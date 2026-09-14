@@ -8,8 +8,9 @@
 #     ConceptSchemes (the only emds: terms typed skos:Concept — see
 #     deployemds-odrl-profile.ttl's Actions/LeftOperands, which are not),
 #   - dcterms:title/description on each scheme so Prez renders it as a collection
-#     (the profile itself only carries rdfs:label), and
-#   - the emds: vann prefix binding for Prez curie routing.
+#     (the profile itself only carries rdfs:label).
+# The emds: vann prefix binding for Prez curie routing now lives in metadata.ttl
+# (same target named graph, so the union sees it exactly as before).
 # Loaded (local=True) into its own named graph:
 #   https://vocab.eona-x.eu/catalog/deployemds-odrl-profile
 #
@@ -25,14 +26,8 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix vann: <http://purl.org/vocab/vann/> .
 @prefix eona: <https://vocab.eona-x.eu/> .
 @prefix emds: <https://w3id.org/deployemds/odrl-profile#> .
-
-# Prefix binding for Prez curie routing (so emds:confidentialityLevelScheme etc.
-# resolve on collection pages).
-[] vann:preferredNamespacePrefix "emds" ;
-    vann:preferredNamespaceUri "https://w3id.org/deployemds/odrl-profile#" .
 
 # Merge the profile's 5 enumeration schemes into the shared catalog as additional
 # members.

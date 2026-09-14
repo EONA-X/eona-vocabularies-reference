@@ -1,6 +1,0 @@
-title = "deployEMDS ODRL Profile"
-description = "ODRL 2.2 profile for the proto-EMDS access and usage policies drafted by deployEMDS WP2/WP3, extending the W3C ODRL Profile: Data Spaces vocabulary with mobility-data-space-specific actions, left operands and constraint value schemes. Provisional namespace (https://w3id.org/deployemds/odrl-profile#) — not yet registered with EMDS/DSSC."
-
-# No [upstream] table: this is an Eona-X original (generated from the
-# deployEMDS WP2/WP3 usage-policy spreadsheet), not derived from an external
-# standard.

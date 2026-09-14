@@ -1,6 +1,0 @@
-title = "mobilityDCAT-AP SHACL shapes"
-description = "SHACL shapes constraining mobilityDCAT-AP datasets. Published under CC BY 4.0."
-type = "shacl"
-
-[upstream]
-name = "NAPCORE"

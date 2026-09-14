@@ -1,5 +1,0 @@
-title = "Eona-X ODRL Profile"
-description = "The supported subset of W3C ODRL 2.2 the Eona-X dataspace connectors bind and enforce, extended with three credential-claim constraint leftOperands."
-
-# No [upstream] table: this is an Eona-X original, not derived from an
-# external standards body.

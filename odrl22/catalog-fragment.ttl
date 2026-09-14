@@ -4,9 +4,10 @@
 # already declares eona:catalog (dcat:Catalog) with its title/description. This
 # fragment only MERGES additional triples into that single shared catalog via the
 # default-graph union (rebuild_default_graph unions ALL named graphs):
-#   - dcterms:hasPart edges to the ODRL ConceptScheme + entities/attributes ones,
-#   - each scheme's title/label/description so Prez renders it as a collection, and
-#   - the odrl: vann prefix binding for Prez curie routing.
+#   - dcterms:hasPart edges to the ODRL ConceptScheme + entities/attributes ones, and
+#   - each scheme's title/label/description so Prez renders it as a collection.
+# The odrl: vann prefix binding for Prez curie routing now lives in metadata.ttl
+# (same target named graph, so the union sees it exactly as before).
 # Loaded (local=True) into its own named graph:
 #   https://vocab.eona-x.eu/catalog/odrl
 #
@@ -19,14 +20,8 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix vann: <http://purl.org/vocab/vann/> .
 @prefix eona: <https://vocab.eona-x.eu/> .
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
-
-# Prefix binding for Prez curie routing (so odrl:Policy resolves on term pages).
-# Prez expects vann declarations on blank-node subjects, not the namespace IRI.
-[] vann:preferredNamespacePrefix "odrl" ;
-    vann:preferredNamespaceUri "http://www.w3.org/ns/odrl/2/" .
 
 # Merge the ODRL schemes into the shared catalog as additional members: the full
 # vocabulary plus two focused sub-schemes for browsing entities and attributes.

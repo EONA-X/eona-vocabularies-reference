@@ -1,6 +1,0 @@
-title = "DPP — Battery Data Attribute Longlist"
-description = "Digital Product Passport data attributes from the BatteryPass-Ready consortium's regulation-grounded Data Attribute Longlist (v1.3)."
-
-[upstream]
-name = "BatteryPass"
-logo = "batterypass-hero.png"

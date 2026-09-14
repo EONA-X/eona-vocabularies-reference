@@ -1,6 +1,0 @@
-title = "Security Vocabulary"
-description = "W3C vocabulary for describing cryptographic proofs, keys and data-integrity properties on Verifiable Credentials and Decentralized Identifiers. Used by the Gaia-X ICAM semantic model."
-
-[upstream]
-name = "W3C"
-logo = "w3c-hero.png"

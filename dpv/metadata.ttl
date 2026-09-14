@@ -1,0 +1,17 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix eona: <https://vocab.eona-x.eu/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+@prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
+
+<> a dcat:Dataset, adms:Asset ;
+    dcterms:title "Data Privacy Vocabulary (DPV) 2.1"@en ;
+    dcterms:description "Vocabulary from the W3C Data Privacy Vocabularies and Controls Community Group for describing privacy and data protection concepts — processing purposes, legal bases, personal data categories. Used by the Gaia-X ICAM semantic model."@en ;
+    dcat:type assettype:c_89b4bdb7 ;
+    adms:status status:CURRENT .
+
+<> dcterms:creator [ a foaf:Agent ; foaf:name "W3C DPVCG" ] .
+
+<> eona:logo "w3c-hero.png" .

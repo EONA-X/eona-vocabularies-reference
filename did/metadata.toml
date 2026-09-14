@@ -1,6 +1,0 @@
-title = "W3C Decentralized Identifiers (DID) v1.0 Vocabulary"
-description = "RDF vocabulary for describing DID documents and services, from the W3C Decentralized Identifiers (DIDs) v1.0 Recommendation. Used by the Gaia-X ICAM (Identity, Credential & Access Management) semantic model for participant identity."
-
-[upstream]
-name = "W3C"
-logo = "w3c-hero.png"
