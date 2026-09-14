@@ -5,22 +5,17 @@
 # fragment only MERGES additional triples into that single shared catalog via the
 # default-graph union (rebuild_default_graph unions ALL named graphs):
 #   - one extra dcterms:hasPart edge pointing at the DATEX II scheme, and
-#   - the scheme's title/label so Prez renders it as a collection, and
-#   - the datex: vann prefix binding for Prez curie routing.
+#   - the scheme's title/label so Prez renders it as a collection.
+# The datex: vann prefix binding for Prez curie routing now lives in metadata.ttl
+# (same target named graph, so the union sees it exactly as before).
 # Loaded (local=True) into its own named graph:
 #   https://vocab.eona-x.eu/catalog/datex-ii
 
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix vann: <http://purl.org/vocab/vann/> .
 @prefix eona: <https://vocab.eona-x.eu/> .
 @prefix datex: <https://vocab.eona-x.eu/datex-ii/> .
-
-# Prefix binding for Prez curie routing (so datex:energy-infrastructure resolves).
-# Prez expects vann declarations on blank-node subjects, not the namespace IRI.
-[] vann:preferredNamespacePrefix "datex" ;
-    vann:preferredNamespaceUri "https://vocab.eona-x.eu/datex-ii/" .
 
 # Merge the DATEX II scheme into the shared catalog as an additional member.
 eona:catalog dcterms:hasPart datex:energy-infrastructure .

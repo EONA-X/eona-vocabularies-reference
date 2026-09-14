@@ -1,6 +1,0 @@
-title = "DATEX II EnergyInfrastructure (EV-charging)"
-description = "Hub-curated OWL/SKOS ontology for DATEX II's EnergyInfrastructure EV-charging (IRVE) model: entities, attributes and enumeration code values."
-
-[upstream]
-name = "DATEX II"
-logo = "datex-ii-hero.png"

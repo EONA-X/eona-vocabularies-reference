@@ -1,6 +1,0 @@
-title = "Verifiable Credentials Vocabulary v2.0"
-description = "RDF vocabulary underlying the W3C Verifiable Credentials Data Model — issuers, holders, verifiable credentials and presentations. Used by the Gaia-X ICAM semantic model and by Eona-X's own credential types (see eonax-credentials)."
-
-[upstream]
-name = "W3C"
-logo = "w3c-hero.png"

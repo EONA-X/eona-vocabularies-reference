@@ -1,6 +1,0 @@
-title = "NeTEx/Transmodel — EV Charging & Alternative-Fuel"
-description = "Hub-curated OWL/SKOS rendering of the NeTEx (CEN/TS 16614, Transmodel-based) vehicle-charging and alternative-fuel subset: charging/refuelling/battery equipment, recharging stations and points, and vehicle charging profiles."
-
-[upstream]
-name = "CEN"
-logo = "cen-hero.png"

@@ -5,10 +5,12 @@
 # single catalog via the default-graph union:
 #   - dcterms:hasPart edges to two browsable ConceptSchemes,
 #   - each scheme's title/label/description, and
-#   - the eox-policy: / eox-cred: vann prefix bindings for Prez curie routing,
 #   - skos:inScheme + skos:topConceptOf links so the terms list & render in Prez
 #     (asserted here directly because this pipeline has no bespoke loader step,
 #      unlike load-odrl which injects them via SPARQL).
+# The eox-policy: / eox-cred: vann prefix bindings for Prez curie routing now live
+# in metadata.ttl (same target named graph, so the union sees them exactly as
+# before).
 #
 # Two schemes are exposed:
 #   eona:eonax-odrl-profile  -> the supported ODRL profile terms
@@ -17,16 +19,9 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix vann: <http://purl.org/vocab/vann/> .
 @prefix eona: <https://vocab.eona-x.eu/> .
 @prefix eox-policy: <https://w3id.org/eonax/policy/> .
 @prefix eox-cred: <https://w3id.org/eonax/credentials/> .
-
-# Prefix bindings for Prez curie routing.
-[] vann:preferredNamespacePrefix "eox-policy" ;
-    vann:preferredNamespaceUri "https://w3id.org/eonax/policy/" .
-[] vann:preferredNamespacePrefix "eox-cred" ;
-    vann:preferredNamespaceUri "https://w3id.org/eonax/credentials/" .
 
 # Merge the two schemes into the shared catalog as additional members.
 eona:catalog dcterms:hasPart eona:eonax-odrl-profile , eona:eonax-credentials .

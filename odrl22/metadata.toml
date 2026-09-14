@@ -1,6 +1,0 @@
-title = "W3C ODRL 2.2 Vocabulary"
-description = "The Open Digital Rights Language (ODRL) 2.2 — the W3C Recommendation vocabulary for permissions, prohibitions and obligations. Bundled upstream copy."
-
-[upstream]
-name = "W3C"
-logo = "w3c-hero.png"

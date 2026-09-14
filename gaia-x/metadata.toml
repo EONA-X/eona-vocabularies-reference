@@ -1,7 +1,0 @@
-title = "Gaia-X Trust Framework SHACL Shapes"
-description = "SHACL shape constraints from the Gaia-X trust framework's development namespace — validation rules for Gaia-X credentials and self-descriptions, used by the ICAM (Identity, Credential & Access Management) semantic model."
-type = "shacl"
-
-[upstream]
-name = "Gaia-X"
-# No logo vendored yet — falls back to the default illustration.

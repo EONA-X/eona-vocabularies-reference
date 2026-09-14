@@ -1,5 +1,0 @@
-title = "Eona-X Credentials Vocabulary"
-description = "Verifiable Credential types the Eona-X dataspace issues to participants: DomainCredential (current), FederationCredential (target — not yet emitted by the current runtime), and MembershipCredential (current attestation, plus target set-valued claims)."
-
-# No [upstream] table: this is an Eona-X original, not derived from an
-# external upstream.

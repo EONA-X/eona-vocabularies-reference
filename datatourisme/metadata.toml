@@ -1,6 +1,0 @@
-title = "DATAtourisme Core Ontology"
-description = "The French national tourism-data ontology (ADN Tourisme), v3.2.2 — structures tourist information (POIs, events, offers, itineraries) from France's regional/departmental tourism systems into a common OWL/SKOS format. Bundled upstream copy."
-
-[upstream]
-name = "ADN Tourisme"
-logo = "datatourisme-hero.png"

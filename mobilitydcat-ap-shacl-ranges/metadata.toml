@@ -1,6 +1,0 @@
-title = "mobilityDCAT-AP SHACL range shapes"
-description = "Range/type SHACL shapes for mobilityDCAT-AP properties. Published under CC BY 4.0."
-type = "shacl"
-
-[upstream]
-name = "NAPCORE"

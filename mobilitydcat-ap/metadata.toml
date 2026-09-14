@@ -1,6 +1,0 @@
-title = "mobilityDCAT-AP"
-description = "Application profile of DCAT-AP for describing mobility datasets and services — extends DCAT-AP with mobility-specific properties. Published under CC BY 4.0."
-
-[upstream]
-name = "NAPCORE"
-# No logo vendored yet — falls back to the default illustration.

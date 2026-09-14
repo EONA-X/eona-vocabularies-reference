@@ -1,6 +1,0 @@
-title = "Battery Passport Data Model"
-description = "EU Battery Regulation (2023/1542) Battery Passport data model, derived from the BatteryPass-Ready per-category JSON Schemas."
-
-[upstream]
-name = "BatteryPass"
-logo = "batterypass-hero.png"

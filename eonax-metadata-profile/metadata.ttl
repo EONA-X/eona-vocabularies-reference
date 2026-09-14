@@ -1,0 +1,11 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+@prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
+
+<> a dcat:Dataset, adms:Asset ;
+    dcterms:title "Eona-X Metadata Profile"@en ;
+    dcterms:description "SHACL shapes graph constraining and explaining the DCAT-AP + ADMS metadata.ttl self-description every vocabulary in the Eona Vocabulary Hub publishes about itself."@en ;
+    dcat:type assettype:c_3948c2ed ;
+    adms:status status:CURRENT .

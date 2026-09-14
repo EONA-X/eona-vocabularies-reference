@@ -1,6 +1,0 @@
-title = "Data Privacy Vocabulary (DPV) 2.1"
-description = "Vocabulary from the W3C Data Privacy Vocabularies and Controls Community Group for describing privacy and data protection concepts — processing purposes, legal bases, personal data categories. Used by the Gaia-X ICAM semantic model."
-
-[upstream]
-name = "W3C DPVCG"
-logo = "w3c-hero.png"

@@ -1,0 +1,11 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+@prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
+
+<> a dcat:Dataset, adms:Asset ;
+    dcterms:title "Eona-X Credentials Vocabulary"@en ;
+    dcterms:description "Verifiable Credential types the Eona-X dataspace issues to participants: DomainCredential (current), FederationCredential (target — not yet emitted by the current runtime), and MembershipCredential (current attestation, plus target set-valued claims)."@en ;
+    dcat:type assettype:c_89b4bdb7 ;
+    adms:status status:CURRENT .
