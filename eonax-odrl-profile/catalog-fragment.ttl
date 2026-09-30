@@ -20,7 +20,7 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix eona: <https://vocab.eona-x.eu/> .
-@prefix eox-policy: <https://eona-x.eu/odrl-profile/v0.0.1#> .
+@prefix eox-policy: <https://eona-x.eu/c_89b4bdb7/odrl-profile/v0.0.1#> .
 @prefix eox-cred: <https://w3id.org/eonax/credentials/> .
 
 # Merge the two schemes into the shared catalog as additional members.
@@ -35,7 +35,7 @@ eona:eonax-odrl-profile a skos:ConceptScheme ;
     dcterms:title "Eona-X ODRL Profile" ;
     rdfs:label "Eona-X ODRL Profile" ;
     dcterms:description "The supported subset of W3C ODRL 2.2 used to author and enforce access & usage policies in the Eona-X dataspace, plus three custom credential-claim leftOperands (Membership, GenericClaim, RestrictedDiscoveryClaim)." ;
-    rdfs:seeAlso <https://eona-x.eu/odrl-profile/v0.0.1#> .
+    rdfs:seeAlso <https://eona-x.eu/c_89b4bdb7/odrl-profile/v0.0.1#> .
 
 # The profile's own terms as items of the scheme.
 eox-policy:Membership               skos:inScheme eona:eonax-odrl-profile ; skos:topConceptOf eona:eonax-odrl-profile .
