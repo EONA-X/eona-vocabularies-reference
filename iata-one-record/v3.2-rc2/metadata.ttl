@@ -6,9 +6,10 @@
 @prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
 
 <> a dcat:Dataset, adms:Asset ;
+    dcat:version "3.2-rc2" ;
     dcterms:title "ONE Record Ontology"@en ;
     dcterms:description "The ONE Record vocabulary, described using W3C RDF Schema and the Web Ontology Language."@en ;
-    dcat:type assettype:c_3948c2ed ;
+    dcat:type assettype:c_89b4bdb7 ;
     adms:status status:CURRENT .
 
-
+<> dcat:distribution [ a dcat:Distribution ; dcat:downloadURL <IATA-1R-DM-Ontology.ttl> ; dcat:mediaType "text/turtle" ] .
