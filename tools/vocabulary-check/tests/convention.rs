@@ -3,16 +3,24 @@ use std::path::Path;
 
 use eona_vocabulary_check::{SITE_BASE, discover};
 
+/// An asset version: `<dir>/v<owl:versionInfo>/ontology.ttl` (`v0` without one).
 fn vocab(root: &Path, dir: &str, ontology_ttl: &str) {
-  fs::create_dir_all(root.join(dir)).unwrap();
-  fs::write(root.join(dir).join("ontology.ttl"), ontology_ttl).unwrap();
+  let version = ontology_ttl.split("owl:versionInfo \"").nth(1).and_then(|r| r.split('"').next()).unwrap_or("0");
+  let version_dir = root.join(dir).join(format!("v{version}"));
+  fs::create_dir_all(&version_dir).unwrap();
+  fs::write(version_dir.join("ontology.ttl"), ontology_ttl).unwrap();
+}
+
+/// The single version directory of `dir`.
+fn version_dir(root: &Path, dir: &str) -> std::path::PathBuf {
+  fs::read_dir(root.join(dir)).unwrap().map(|e| e.unwrap().path()).find(|p| p.is_dir()).unwrap()
 }
 
 /// The DCAT/ADMS self-description upstream ships next to each ontology, with
 /// its EU asset-classification `dcat:type`.
 fn metadata(root: &Path, dir: &str, asset_type: &str) {
   fs::write(
-    root.join(dir).join("metadata.ttl"),
+    version_dir(root, dir).join("metadata.ttl"),
     format!(
       r#"@prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
@@ -58,7 +66,7 @@ fn a_vocabulary_minted_under_the_site_base_is_published_at_its_asset_type_slug_a
 
   assert_eq!(found.published.len(), 1);
   let v = &found.published[0];
-  assert_eq!(v.dir_name, "eonax-odrl-profile");
+  assert_eq!(v.dir_name, "eonax-odrl-profile/v0.0.1");
   assert_eq!(v.namespace, "https://eona-x.eu/vocabulary/odrl-profile/v0.0.1#");
   assert_eq!(v.kind, "vocabulary");
   assert_eq!(v.slug, "odrl-profile");
@@ -110,23 +118,12 @@ fn a_vocabulary_still_minted_elsewhere_is_skipped_with_its_namespace_as_the_reas
 
   assert!(found.published.is_empty());
   assert_eq!(found.skipped.len(), 1);
-  assert_eq!(found.skipped[0].dir_name, "eonax-credentials");
+  assert_eq!(found.skipped[0].dir_name, "eonax-credentials/v0.1.0");
   assert!(
     found.skipped[0].reason.contains("https://w3id.org/eonax/credentials/"),
     "{}",
     found.skipped[0].reason
   );
-}
-
-#[test]
-fn only_eonax_directories_are_candidates() {
-  let root = tempfile::tempdir().unwrap();
-  vocab(root.path(), "odrl22", &ontology("https://eona-x.eu/ontology/odrl22/v2.2#", "2.2"));
-
-  let found = discover(root.path(), SITE_BASE).unwrap();
-
-  assert!(found.published.is_empty());
-  assert!(found.skipped.is_empty());
 }
 
 #[test]
@@ -227,7 +224,8 @@ fn each_asset_type_covers_its_eu_asset_classification_concepts() {
     metadata(root.path(), &dir, code);
     if *code == "c_bba2bb35" {
       // A crosswalk's graph file defaults to alignment.ttl.
-      fs::rename(root.path().join(&dir).join("ontology.ttl"), root.path().join(&dir).join("alignment.ttl")).unwrap();
+      let v = version_dir(root.path(), &dir);
+      fs::rename(v.join("ontology.ttl"), v.join("alignment.ttl")).unwrap();
     }
   }
 
@@ -284,4 +282,27 @@ fn two_namespace_roots_are_still_an_error() {
   let err = discover(root.path(), SITE_BASE).err().expect("two namespaces in one asset must not publish");
 
   assert!(err.contains("more than one"), "{err}");
+}
+
+#[test]
+fn several_versions_of_an_eona_x_eu_vocabulary_are_all_published() {
+  let root = tempfile::tempdir().unwrap();
+  vocab(root.path(), "eonax-odrl-profile", &ontology("https://eona-x.eu/vocabulary/odrl-profile/v0.0.1#", "0.0.1"));
+  vocab(root.path(), "eonax-odrl-profile", &ontology("https://eona-x.eu/vocabulary/odrl-profile/v0.1.0#", "0.1.0"));
+
+  let found = discover(root.path(), SITE_BASE).unwrap();
+
+  let versions: Vec<_> = found.published.iter().map(|v| (v.slug.as_str(), v.version.as_str())).collect();
+  assert_eq!(versions, [("odrl-profile", "v0.0.1"), ("odrl-profile", "v0.1.0")]);
+}
+
+#[test]
+fn a_vocabulary_minted_under_the_site_base_is_published_whatever_its_directory_is_called() {
+  let root = tempfile::tempdir().unwrap();
+  vocab(root.path(), "battery-pass", &ontology("https://eona-x.eu/ontology/battery-pass/v0.1.0#", "0.1.0"));
+
+  let found = discover(root.path(), SITE_BASE).unwrap();
+
+  assert_eq!(found.published.len(), 1);
+  assert_eq!(found.published[0].dir_name, "battery-pass/v0.1.0");
 }
