@@ -426,3 +426,16 @@ fn one_asset_type_and_slug_cannot_be_on_both_hosts() {
 
   assert!(found.iter().any(|f| f.contains("vocabulary/p") && f.contains("both")), "{found:?}");
 }
+
+#[test]
+fn the_hub_build_accepts_every_repository_the_gate_accepts() {
+  // vocabulary-hub-build runs `discover` on what this gate let through: a green
+  // gate must never leave the hub unable to build.
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  assert_eq!(messages(root.path()), Vec::<String>::new());
+
+  let found = eona_vocabulary_check::discover(root.path(), eona_vocabulary_check::SITE_BASE);
+
+  assert!(found.is_ok(), "{}", found.err().unwrap_or_default());
+}

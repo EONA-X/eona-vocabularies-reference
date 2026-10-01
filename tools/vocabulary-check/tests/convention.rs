@@ -397,3 +397,28 @@ fn a_person_credited_as_creator_is_an_author_not_an_upstream_body() {
   assert_eq!(found.published.len(), 1);
   assert_eq!(found.published[0].base, SITE_BASE);
 }
+
+#[test]
+fn a_graph_without_an_ontology_or_concept_scheme_root_is_skipped_not_an_error() {
+  // A SHACL shapes graph (gaia-x) or a crosswalk's void:Linkset: the gate
+  // accepts them, so the build must not fail on them; none is minted here.
+  let root = tempfile::tempdir().unwrap();
+  let dir = root.path().join("shapes/v1.0.0");
+  fs::create_dir_all(&dir).unwrap();
+  fs::write(
+    dir.join("ontology.ttl"),
+    "@prefix sh: <http://www.w3.org/ns/shacl#> .\n<https://example.org/s/S> a sh:NodeShape .\n",
+  )
+  .unwrap();
+
+  let found = discover(root.path(), SITE_BASE).unwrap();
+
+  assert!(found.published.is_empty());
+  assert_eq!(found.skipped.len(), 1);
+  assert_eq!(found.skipped[0].dir_name, "shapes/v1.0.0");
+  assert!(
+    found.skipped[0].reason.contains("no owl:Ontology or skos:ConceptScheme"),
+    "{}",
+    found.skipped[0].reason
+  );
+}
