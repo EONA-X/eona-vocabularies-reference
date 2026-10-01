@@ -9,6 +9,7 @@ const OWL_ONTOLOGY: &str = "http://www.w3.org/2002/07/owl#Ontology";
 const SKOS_CONCEPT_SCHEME: &str = "http://www.w3.org/2004/02/skos/core#ConceptScheme";
 const DCAT_TYPE: &str = "http://www.w3.org/ns/dcat#type";
 const DCTERMS_CREATOR: &str = "http://purl.org/dc/terms/creator";
+const FOAF_PERSON: &str = "http://xmlns.com/foaf/0.1/Person";
 const DCAT_DISTRIBUTION: &str = "http://www.w3.org/ns/dcat#distribution";
 const DCAT_DOWNLOAD_URL: &str = "http://www.w3.org/ns/dcat#downloadURL";
 const OWL_VERSION_INFO: &str = "http://www.w3.org/2002/07/owl#versionInfo";
@@ -329,8 +330,8 @@ pub fn graph_file(dir: &Path) -> Result<String, String> {
   Ok(if alignment { "alignment.ttl" } else { "ontology.ttl" }.into())
 }
 
-/// Whether `metadata.ttl` names a `dcterms:creator`: the upstream body of a
-/// standard Eona-X represents but did not author.
+/// Whether `metadata.ttl` names a `dcterms:creator` other than a person: the
+/// upstream body of a standard Eona-X represents but did not author.
 fn names_a_creator(metadata: &Path) -> Result<bool, String> {
   if !metadata.is_file() {
     return Ok(false);
@@ -338,7 +339,25 @@ fn names_a_creator(metadata: &Path) -> Result<bool, String> {
   let base = format!("file://{}", metadata.canonicalize().unwrap_or_else(|_| metadata.to_path_buf()).display());
   let parser = TurtleParser::new().with_base_iri(base).map_err(|e| format!("{}: {e}", metadata.display()))?;
   let (triples, _) = parse_turtle_with(metadata, parser)?;
-  Ok(triples.iter().any(|t| t.predicate.as_str() == DCTERMS_CREATOR))
+  // A creator typed foaf:Person is an author credit; any other creator (a
+  // foaf:Organization or foaf:Agent naming a standards body, or a plain name)
+  // is the upstream body of a standard Eona-X represents.
+  let is_person = |node: &Term| {
+    triples.iter().any(|t| {
+      let same = match (node, &t.subject) {
+        (Term::NamedNode(n), NamedOrBlankNode::NamedNode(s)) => n == s,
+        (Term::BlankNode(n), NamedOrBlankNode::BlankNode(s)) => n == s,
+        _ => false,
+      };
+      same && t.predicate.as_str() == RDF_TYPE && matches!(&t.object, Term::NamedNode(o) if o.as_str() == FOAF_PERSON)
+    })
+  };
+  Ok(
+    triples
+      .iter()
+      .filter(|t| t.predicate.as_str() == DCTERMS_CREATOR)
+      .any(|t| !is_person(&t.object)),
+  )
 }
 
 fn declared_asset_classes(metadata: &Path) -> Result<Vec<String>, String> {

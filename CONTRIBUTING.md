@@ -104,9 +104,11 @@ https://vocabulary.eona-x.eu/<asset-type>/<slug>/<version>#<term>  Eona-X's RDF 
 ```
 
 Which one is read from `metadata.ttl`: an asset that names its upstream body as
-`dcterms:creator` (e.g. CEN for NeTEx, DATEX II, BatteryPass) is a representation
-Eona-X hosts so its IRIs dereference, and belongs on `vocabulary.eona-x.eu`; an asset
-with no `dcterms:creator` is Eona-X's own and belongs on `eona-x.eu`. One
+`dcterms:creator` (an organization or other agent, e.g. CEN for NeTEx, DATEX II,
+BatteryPass) is a representation Eona-X hosts so its IRIs dereference, and belongs on
+`vocabulary.eona-x.eu`; an asset with no such creator is Eona-X's own and belongs on
+`eona-x.eu`. Crediting the people who wrote an Eona-X vocabulary as
+`dcterms:creator [ a foaf:Person ; foaf:name "…" ]` does not change that. One
 `<asset-type>/<slug>` lives on one host only.
 
 - `<asset-type>` is one of `ontology`, `shape`, `crosswalk`, `vocabulary`,
