@@ -376,3 +376,24 @@ fn an_eona_x_authored_vocabulary_minted_on_the_vocabulary_host_fails_the_build()
 
   assert!(err.contains("dcterms:creator") && err.contains(SITE_BASE), "{err}");
 }
+
+#[test]
+fn a_person_credited_as_creator_is_an_author_not_an_upstream_body() {
+  let root = tempfile::tempdir().unwrap();
+  vocab(root.path(), "mcv", &ontology("https://eona-x.eu/vocabulary/mcv/v0.1.0#", "0.1.0"));
+  fs::write(
+    version_dir(root.path(), "mcv").join("metadata.ttl"),
+    r#"@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+<> a dcat:Dataset ; dcat:type assettype:c_ebfb658e ; dcterms:creator [ a foaf:Person ; foaf:name "An Author" ] .
+"#,
+  )
+  .unwrap();
+
+  let found = discover(root.path(), SITE_BASE).unwrap();
+
+  assert_eq!(found.published.len(), 1);
+  assert_eq!(found.published[0].base, SITE_BASE);
+}
