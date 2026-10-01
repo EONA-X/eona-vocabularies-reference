@@ -14,10 +14,9 @@ redefines the concepts (those live in the datex/netex graphs).
 
 | Graph IRI | Asset | Content |
 | --- | --- | --- |
-| `https://vocab.eona-x.eu/alignments/netex-datex-ii` | `alignment.ttl` | the alignment graph (match triples + provenance) |
-| `https://vocab.eona-x.eu/catalog/crosswalk-netex-datex` | `catalog-fragment.ttl` | merges one `dcterms:hasPart` edge + title into shared `eona:catalog` + `align:` vann binding |
+| `https://eona-x.eu/crosswalk/netex-datex/v0.1.0#` | `alignment.ttl` | the alignment graph (match triples + provenance) |
 
-The alignment resource node `<https://vocab.eona-x.eu/alignments/netex-datex-ii>`
+The alignment resource node `<https://eona-x.eu/crosswalk/netex-datex/v0.1.0#>`
 is typed `dcat:Resource`, `void:Linkset`, `skos:Collection` and carries
 graph-level provenance (`dcterms:title` "NeTEx ↔ DATEX II crosswalk
 (EV-charging)", `dcterms:description`, `dcterms:created`, `dcterms:creator`,
@@ -37,8 +36,8 @@ SPARQL resolves either way).
 | `datex:connectorType` | `skos:closeMatch` | `netex:connectorStandard` | "type" vs "standard" framing |
 | `datex:location` | `skos:exactMatch` | `netex:location` | same geographic concept |
 
-(`datex:` = `https://vocab.eona-x.eu/datex-ii/`,
-`netex:` = `https://vocab.eona-x.eu/netex/`)
+(`datex:` = `https://eona-x.eu/ontology/datex-ii/v0.3.0#`,
+`netex:` = `https://eona-x.eu/ontology/netex/v0.2.0#`)
 
 Per-mapping provenance is attached via **RDF reification**: one `rdf:Statement`
 per pair (`align:map-charging-point`, `align:map-status`, `align:map-power`,
@@ -52,28 +51,28 @@ Query the live Oxigraph endpoint (`http://oxigraph:7878/query` in-compose, or
 
 ```sparql
 PREFIX skos:  <http://www.w3.org/2004/02/skos/core#>
-PREFIX datex: <https://vocab.eona-x.eu/datex-ii/>
-PREFIX netex: <https://vocab.eona-x.eu/netex/>
+PREFIX datex: <https://eona-x.eu/ontology/datex-ii/v0.3.0#>
+PREFIX netex: <https://eona-x.eu/ontology/netex/v0.2.0#>
 
 SELECT ?netexTerm WHERE {
   datex:power skos:exactMatch|skos:closeMatch ?netexTerm .
   FILTER(STRSTARTS(STR(?netexTerm), STR(netex:)))
 }
-# -> https://vocab.eona-x.eu/netex/powerRating
+# -> https://eona-x.eu/ontology/netex/v0.2.0#powerRating
 ```
 
 Reverse direction (NeTEx term → DATEX II equivalent):
 
 ```sparql
 PREFIX skos:  <http://www.w3.org/2004/02/skos/core#>
-PREFIX datex: <https://vocab.eona-x.eu/datex-ii/>
-PREFIX netex: <https://vocab.eona-x.eu/netex/>
+PREFIX datex: <https://eona-x.eu/ontology/datex-ii/v0.3.0#>
+PREFIX netex: <https://eona-x.eu/ontology/netex/v0.2.0#>
 
 SELECT ?datexTerm WHERE {
   netex:powerRating skos:exactMatch|skos:closeMatch ?datexTerm .
   FILTER(STRSTARTS(STR(?datexTerm), STR(datex:)))
 }
-# -> https://vocab.eona-x.eu/datex-ii/power
+# -> https://eona-x.eu/ontology/datex-ii/v0.3.0#power
 ```
 
 Both directions resolve directly because the crosswalk asserts each match in
