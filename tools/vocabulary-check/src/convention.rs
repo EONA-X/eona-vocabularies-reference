@@ -174,9 +174,21 @@ pub(crate) fn classify(vocabularies_root: &Path, dir_name: &str, site_base: &str
     return Ok(Classified::Skipped(format!("no {graph}")));
   }
   let (triples, prefixes) = parse_turtle(&path)?;
-  let Some(namespace) = ontology_iri(&triples).map_err(|e| format!("{}: {e}", path.display()))? else {
+  let roots = roots(&triples);
+  let namespace = match roots.as_slice() {
     // A shapes graph or a crosswalk's linkset: nothing minted, nothing to publish.
-    return Ok(Classified::Skipped(format!("{graph} declares no owl:Ontology or skos:ConceptScheme")));
+    [] => return Ok(Classified::Skipped(format!("{graph} declares no owl:Ontology or skos:ConceptScheme"))),
+    [iri] => iri.clone(),
+    // Shapes declaring the code lists they use: all someone else's.
+    _ if !roots.iter().any(|r| r.starts_with(site_base) || r.starts_with(crate::VENDORED_BASE)) => {
+      return Ok(Classified::Skipped(format!("{graph} declares only others' roots: {}", roots.join(", "))));
+    }
+    [a, b, ..] => {
+      return Err(format!(
+        "{}: declares more than one owl:Ontology or skos:ConceptScheme ({a}, {b})",
+        path.display()
+      ));
+    }
   };
   let Some((host_base, rest)) = [site_base, crate::VENDORED_BASE]
     .into_iter()
@@ -259,9 +271,9 @@ fn parse_turtle_with(path: &Path, parser: TurtleParser) -> Result<(Vec<Triple>, 
   Ok((triples, prefixes))
 }
 
-/// The one root resource: an `owl:Ontology`, or a `skos:ConceptScheme` (code
-/// lists, thesauri), if there is one.
-fn ontology_iri(triples: &[Triple]) -> Result<Option<String>, String> {
+/// The root resources: `owl:Ontology`s and `skos:ConceptScheme`s (code
+/// lists, thesauri), without those nested under another root.
+fn roots(triples: &[Triple]) -> Vec<String> {
   let mut iris: Vec<&str> = triples
     .iter()
     .filter_map(|t| match (&t.subject, &t.object) {
@@ -277,11 +289,7 @@ fn ontology_iri(triples: &[Triple]) -> Result<Option<String>, String> {
   // `…v0.1.0#`) is part of it, not a second root.
   let all = iris.clone();
   iris.retain(|iri| !all.iter().any(|other| other != iri && iri.starts_with(other)));
-  match iris.as_slice() {
-    [iri] => Ok(Some(iri.to_string())),
-    [] => Ok(None),
-    [a, b, ..] => Err(format!("declares more than one owl:Ontology or skos:ConceptScheme ({a}, {b})")),
-  }
+  iris.into_iter().map(String::from).collect()
 }
 
 /// `vocabulary/odrl-profile/v0.0.1#` -> `("vocabulary", "odrl-profile", "v0.0.1")`.
