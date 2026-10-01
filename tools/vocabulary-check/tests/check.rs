@@ -42,11 +42,26 @@ fn ontology(iri: &str, extra: &str) -> String {
 /// directories that are not vocabularies at all.
 fn clean(root: &Path) {
   write(root, "a/metadata.ttl", &metadata(Some("A"), FORMAL_ONTOLOGY));
-  write(root, "a/ontology.ttl", &ontology("https://example.org/a", "<https://example.org/a/Thing> a owl:Class ."));
+  write(
+    root,
+    "a/ontology.ttl",
+    &ontology("https://example.org/a", "<https://example.org/a/Thing> a owl:Class ."),
+  );
   write(root, "b/metadata.ttl", &metadata(Some("B"), FORMAL_ONTOLOGY));
-  write(root, "b/ontology.ttl", &ontology("https://example.org/b", "<https://example.org/b/Other> rdfs:subClassOf <https://example.org/a/Thing> ."));
+  write(
+    root,
+    "b/ontology.ttl",
+    &ontology(
+      "https://example.org/b",
+      "<https://example.org/b/Other> rdfs:subClassOf <https://example.org/a/Thing> .",
+    ),
+  );
   write(root, "shapes/metadata.ttl", &metadata(Some("Shapes"), MARKUP_SCHEMA));
-  write(root, "shapes/ontology.ttl", "@prefix sh: <http://www.w3.org/ns/shacl#> .\n<https://example.org/s/S> a sh:NodeShape .\n");
+  write(
+    root,
+    "shapes/ontology.ttl",
+    "@prefix sh: <http://www.w3.org/ns/shacl#> .\n<https://example.org/s/S> a sh:NodeShape .\n",
+  );
   write(root, "crosswalk-a-b/metadata.ttl", &metadata(Some("A to B"), ALIGNMENT));
   write(
     root,
@@ -106,7 +121,11 @@ fn metadata_without_a_title_is_a_finding() {
 fn a_formal_ontology_must_declare_an_owl_ontology_but_a_shapes_graph_need_not() {
   let root = tempfile::tempdir().unwrap();
   clean(root.path());
-  write(root.path(), "a/ontology.ttl", "<https://example.org/a/Thing> a <http://www.w3.org/2002/07/owl#Class> .\n");
+  write(
+    root.path(),
+    "a/ontology.ttl",
+    "<https://example.org/a/Thing> a <http://www.w3.org/2002/07/owl#Class> .\n",
+  );
 
   let found = messages(root.path());
 
@@ -137,12 +156,19 @@ fn a_crosswalk_must_link_at_least_two_published_vocabularies() {
 fn a_crosswalk_needs_an_alignment_graph_with_a_void_linkset() {
   let root = tempfile::tempdir().unwrap();
   clean(root.path());
-  write(root.path(), "crosswalk-a-b/alignment.ttl", "<https://example.org/x/a-b> a <http://www.w3.org/2004/02/skos/core#ConceptScheme> .\n");
+  write(
+    root.path(),
+    "crosswalk-a-b/alignment.ttl",
+    "<https://example.org/x/a-b> a <http://www.w3.org/2004/02/skos/core#ConceptScheme> .\n",
+  );
   write(root.path(), "c/metadata.ttl", &metadata(Some("C"), ALIGNMENT));
 
   let found = messages(root.path());
 
-  assert!(found.iter().any(|f| f.starts_with("crosswalk-a-b: ") && f.contains("void:Linkset")), "{found:?}");
+  assert!(
+    found.iter().any(|f| f.starts_with("crosswalk-a-b: ") && f.contains("void:Linkset")),
+    "{found:?}"
+  );
   assert!(found.iter().any(|f| f.starts_with("c: ") && f.contains("alignment.ttl")), "{found:?}");
 }
 
@@ -155,13 +181,19 @@ fn referencing_an_unpublished_hub_ontology_is_a_finding() {
   write(
     root.path(),
     "b/ontology.ttl",
-    &ontology("https://example.org/b", "<https://example.org/b/Other> rdfs:subClassOf <https://example.org/hidden/Base> ."),
+    &ontology(
+      "https://example.org/b",
+      "<https://example.org/b/Other> rdfs:subClassOf <https://example.org/hidden/Base> .",
+    ),
   );
 
   let found = messages(root.path());
 
   assert_eq!(found.len(), 1, "{found:?}");
-  assert!(found[0].starts_with("b: ") && found[0].contains("https://example.org/hidden") && found[0].contains("hidden/"), "{found:?}");
+  assert!(
+    found[0].starts_with("b: ") && found[0].contains("https://example.org/hidden") && found[0].contains("hidden/"),
+    "{found:?}"
+  );
 }
 
 #[test]
@@ -180,6 +212,9 @@ fn the_eona_x_eu_publication_rules_apply_to_every_directory_and_all_findings_are
   let found = messages(root.path());
 
   assert_eq!(found.len(), 2, "{found:?}");
-  assert!(found.iter().any(|f| f.starts_with("q: ") && f.contains("v2.0.0") && f.contains("1.0.0")), "{found:?}");
+  assert!(
+    found.iter().any(|f| f.starts_with("q: ") && f.contains("v2.0.0") && f.contains("1.0.0")),
+    "{found:?}"
+  );
   assert!(found.iter().any(|f| f.starts_with("a: ")), "{found:?}");
 }

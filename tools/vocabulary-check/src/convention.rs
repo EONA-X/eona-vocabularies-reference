@@ -108,66 +108,74 @@ pub fn discover(vocabularies_root: &Path, site_base: &str) -> Result<Discovery, 
     skipped: Vec::new(),
   };
   for dir_name in dirs {
-    let path = vocabularies_root.join(&dir_name).join("ontology.ttl");
-    if !path.is_file() {
-      found.skipped.push(Skipped {
-        dir_name,
-        reason: "no ontology.ttl".into(),
-      });
-      continue;
+    match classify(vocabularies_root, &dir_name, site_base)? {
+      Classified::Published(v) => found.published.push(v),
+      Classified::Skipped(reason) => found.skipped.push(Skipped { dir_name, reason }),
     }
-    let (triples, prefixes) = parse_turtle(&path)?;
-    let namespace = ontology_iri(&triples).map_err(|e| format!("{}: {e}", path.display()))?;
-    let Some(rest) = namespace.strip_prefix(site_base) else {
-      found.skipped.push(Skipped {
-        dir_name,
-        reason: format!("namespace {namespace} is not under {site_base}"),
-      });
-      continue;
-    };
-    let (asset_type, slug, version) = split_iri_path(rest).ok_or_else(|| {
-      format!(
-        "{}: namespace {namespace} is under {site_base} but is not {site_base}<asset-type>/<slug>/<version>#",
-        path.display()
-      )
-    })?;
-    let Some((_, covered)) = ASSET_TYPES.iter().find(|(name, _)| *name == asset_type) else {
-      return Err(format!(
-        "{}: namespace {namespace}: '{asset_type}' is not an asset type; expected one of {}",
-        path.display(),
-        asset_type_names().join(", ")
-      ));
-    };
-    let declared = declared_asset_classes(&vocabularies_root.join(&dir_name).join("metadata.ttl"))?;
-    if let Some(code) = declared.iter().find(|c| !covered.contains(&c.as_str())) {
-      let expected = ASSET_TYPES
-        .iter()
-        .find(|(_, codes)| codes.contains(&code.as_str()))
-        .map_or("no asset type", |(name, _)| *name);
-      return Err(format!(
-        "{}: namespace {namespace} is a {asset_type}, but metadata.ttl declares dcat:type {code} <{ASSET_CLASSIFICATION}{code}>, which is published as {expected}",
-        path.display()
-      ));
-    }
-    let version_info = literal(&triples, &namespace, OWL_VERSION_INFO);
-    if version_info.map(|v| format!("v{v}")).as_deref() != Some(version) {
-      return Err(format!(
-        "{}: namespace {namespace} says version {version} but owl:versionInfo is {}",
-        path.display(),
-        version_info.unwrap_or("missing")
-      ));
-    }
-    found.published.push(Vocabulary {
-      dir_name,
-      kind: asset_type.into(),
-      slug: slug.into(),
-      version: version.into(),
-      namespace,
-      triples,
-      prefixes,
-    });
   }
   Ok(found)
+}
+
+pub(crate) enum Classified {
+  Published(Vocabulary),
+  Skipped(String),
+}
+
+/// The eona-x.eu publication rules for one directory: published when its
+/// root resource is minted under `site_base` and follows the convention,
+/// skipped when it is minted elsewhere, an error when it claims `site_base`
+/// but breaks the convention.
+pub(crate) fn classify(vocabularies_root: &Path, dir_name: &str, site_base: &str) -> Result<Classified, String> {
+  let path = vocabularies_root.join(dir_name).join("ontology.ttl");
+  if !path.is_file() {
+    return Ok(Classified::Skipped("no ontology.ttl".into()));
+  }
+  let (triples, prefixes) = parse_turtle(&path)?;
+  let namespace = ontology_iri(&triples).map_err(|e| format!("{}: {e}", path.display()))?;
+  let Some(rest) = namespace.strip_prefix(site_base) else {
+    return Ok(Classified::Skipped(format!("namespace {namespace} is not under {site_base}")));
+  };
+  let (asset_type, slug, version) = split_iri_path(rest).ok_or_else(|| {
+    format!(
+      "{}: namespace {namespace} is under {site_base} but is not {site_base}<asset-type>/<slug>/<version>#",
+      path.display()
+    )
+  })?;
+  let Some((_, covered)) = ASSET_TYPES.iter().find(|(name, _)| *name == asset_type) else {
+    return Err(format!(
+      "{}: namespace {namespace}: '{asset_type}' is not an asset type; expected one of {}",
+      path.display(),
+      asset_type_names().join(", ")
+    ));
+  };
+  let declared = declared_asset_classes(&vocabularies_root.join(dir_name).join("metadata.ttl"))?;
+  if let Some(code) = declared.iter().find(|c| !covered.contains(&c.as_str())) {
+    let expected = ASSET_TYPES
+      .iter()
+      .find(|(_, codes)| codes.contains(&code.as_str()))
+      .map_or("no asset type", |(name, _)| *name);
+    return Err(format!(
+      "{}: namespace {namespace} is a {asset_type}, but metadata.ttl declares dcat:type {code} <{ASSET_CLASSIFICATION}{code}>, which is published as {expected}",
+      path.display()
+    ));
+  }
+  let version_info = literal(&triples, &namespace, OWL_VERSION_INFO);
+  if version_info.map(|v| format!("v{v}")).as_deref() != Some(version) {
+    return Err(format!(
+      "{}: namespace {namespace} says version {version} but owl:versionInfo is {}",
+      path.display(),
+      version_info.unwrap_or("missing")
+    ));
+  }
+  Ok(Classified::Published(Vocabulary {
+    dir_name: dir_name.to_string(),
+    kind: asset_type.into(),
+    slug: slug.into(),
+    version: version.into(),
+    namespace,
+    triples,
+    prefixes,
+  }))
 }
 
 type PrefixTable = Vec<(String, String)>;
@@ -193,9 +201,7 @@ fn ontology_iri(triples: &[Triple]) -> Result<String, String> {
   let mut iris: Vec<&str> = triples
     .iter()
     .filter_map(|t| match (&t.subject, &t.object) {
-      (NamedOrBlankNode::NamedNode(s), Term::NamedNode(o))
-        if t.predicate.as_str() == RDF_TYPE && [OWL_ONTOLOGY, SKOS_CONCEPT_SCHEME].contains(&o.as_str()) =>
-      {
+      (NamedOrBlankNode::NamedNode(s), Term::NamedNode(o)) if t.predicate.as_str() == RDF_TYPE && [OWL_ONTOLOGY, SKOS_CONCEPT_SCHEME].contains(&o.as_str()) => {
         Some(s.as_str())
       }
       _ => None,
