@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use eona_vocabulary_check::{SITE_BASE, discover};
+use eona_vocabulary_check::{SITE_BASE, VENDORED_BASE, discover};
 
 /// An asset version: `<dir>/v<owl:versionInfo>/ontology.ttl` (`v0` without one).
 fn vocab(root: &Path, dir: &str, ontology_ttl: &str) {
@@ -317,4 +317,83 @@ fn a_vocabulary_minted_under_the_site_base_is_published_whatever_its_directory_i
 
   assert_eq!(found.published.len(), 1);
   assert_eq!(found.published[0].dir_name, "battery-pass/v0.1.0");
+}
+
+/// The metadata of an Eona-X representation of an external standard: it names
+/// the standard's body as dcterms:creator.
+fn vendored_metadata(root: &Path, dir: &str, asset_type: &str) {
+  fs::write(
+    version_dir(root, dir).join("metadata.ttl"),
+    format!(
+      r#"@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+<> a dcat:Dataset ; dcat:type assettype:{asset_type} ; dcterms:creator [ a foaf:Agent ; foaf:name "CEN" ] .
+"#
+    ),
+  )
+  .unwrap();
+}
+
+#[test]
+fn a_vendored_representation_is_published_on_the_vocabulary_host() {
+  let root = tempfile::tempdir().unwrap();
+  vocab(root.path(), "netex", &ontology("https://vocabulary.eona-x.eu/ontology/netex/v0.2.0#", "0.2.0"));
+  vendored_metadata(root.path(), "netex", "c_89b4bdb7");
+
+  let found = discover(root.path(), SITE_BASE).unwrap();
+
+  assert_eq!(found.published.len(), 1);
+  let v = &found.published[0];
+  assert_eq!(v.base, VENDORED_BASE);
+  assert_eq!((v.kind.as_str(), v.slug.as_str(), v.version.as_str()), ("ontology", "netex", "v0.2.0"));
+}
+
+#[test]
+fn a_vendored_representation_minted_on_the_authored_host_fails_the_build() {
+  let root = tempfile::tempdir().unwrap();
+  vocab(root.path(), "netex", &ontology("https://eona-x.eu/ontology/netex/v0.2.0#", "0.2.0"));
+  vendored_metadata(root.path(), "netex", "c_89b4bdb7");
+
+  let err = discover(root.path(), SITE_BASE)
+    .err()
+    .expect("a vendored representation belongs on vocabulary.eona-x.eu");
+
+  assert!(err.contains("dcterms:creator") && err.contains(VENDORED_BASE), "{err}");
+}
+
+#[test]
+fn an_eona_x_authored_vocabulary_minted_on_the_vocabulary_host_fails_the_build() {
+  let root = tempfile::tempdir().unwrap();
+  vocab(
+    root.path(),
+    "eonax-odrl-profile",
+    &ontology("https://vocabulary.eona-x.eu/vocabulary/odrl-profile/v0.0.1#", "0.0.1"),
+  );
+
+  let err = discover(root.path(), SITE_BASE).err().expect("an authored vocabulary belongs on eona-x.eu");
+
+  assert!(err.contains("dcterms:creator") && err.contains(SITE_BASE), "{err}");
+}
+
+#[test]
+fn a_person_credited_as_creator_is_an_author_not_an_upstream_body() {
+  let root = tempfile::tempdir().unwrap();
+  vocab(root.path(), "mcv", &ontology("https://eona-x.eu/vocabulary/mcv/v0.1.0#", "0.1.0"));
+  fs::write(
+    version_dir(root.path(), "mcv").join("metadata.ttl"),
+    r#"@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+<> a dcat:Dataset ; dcat:type assettype:c_ebfb658e ; dcterms:creator [ a foaf:Person ; foaf:name "An Author" ] .
+"#,
+  )
+  .unwrap();
+
+  let found = discover(root.path(), SITE_BASE).unwrap();
+
+  assert_eq!(found.published.len(), 1);
+  assert_eq!(found.published[0].base, SITE_BASE);
 }

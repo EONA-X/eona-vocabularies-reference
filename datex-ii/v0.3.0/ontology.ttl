@@ -24,11 +24,11 @@
 # attribute. skos:narrower inverses are stated explicitly (no inference).
 #
 # Loaded (local=True) into its own named graph:
-#   https://eona-x.eu/ontology/datex-ii/v0.3.0#
+#   https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#
 # The scheme IRI doubles as the OGC Records collection so Prez lists the
 # concepts below as `items` under it.
 
-@prefix datex: <https://eona-x.eu/ontology/datex-ii/v0.3.0#> .
+@prefix datex: <https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -36,7 +36,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 # --- Ontology header: version + provenance -------------------------------
-<https://eona-x.eu/ontology/datex-ii/v0.3.0#> a owl:Ontology ;
+<https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#> a owl:Ontology ;
     dcterms:title "DATEX II EnergyInfrastructure — EV-charging subset (EONA-X hub-curated)" ;
     dcterms:description "Hub-curated SKOS rendering of the DATEX II EnergyInfrastructure model, scoped to EV charging (IRVE) for the EMDS demo: entities, attributes, attribute value types and enumeration code values." ;
     dcterms:source "DATEX II v3.7 EnergyInfrastructure namespace (DATEXII_3_EnergyInfrastructure.xsd, https://docs.datex2.eu/v3.7/energy/) — natively XSD; this is a curated SKOS rendering. Enumeration literals preserved in skos:notation." ;

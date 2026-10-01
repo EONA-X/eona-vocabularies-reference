@@ -93,13 +93,23 @@ picking a value outside that set.
 EuroVoc theming (`dcat:theme`) is intentionally **not** part of `metadata.ttl`
 — it's a ~400MB thesaurus, deferred as too heavy for this pass (eona-x/backlog#791).
 
-### IRIs: `https://eona-x.eu/<asset-type>/<slug>/<version>#<term>`
+### IRIs: `https://eona-x.eu/…` or `https://vocabulary.eona-x.eu/…`
 
-Vocabularies Eona-X mints are published at
+Vocabularies minted on an Eona-X host are published at one of two bases, with the
+same path:
 
 ```
-https://eona-x.eu/<asset-type>/<slug>/<version>#<term>
+https://eona-x.eu/<asset-type>/<slug>/<version>#<term>             vocabularies Eona-X authors
+https://vocabulary.eona-x.eu/<asset-type>/<slug>/<version>#<term>  Eona-X's RDF representations of external standards
 ```
+
+Which one is read from `metadata.ttl`: an asset that names its upstream body as
+`dcterms:creator` (an organization or other agent, e.g. CEN for NeTEx, DATEX II,
+BatteryPass) is a representation Eona-X hosts so its IRIs dereference, and belongs on
+`vocabulary.eona-x.eu`; an asset with no such creator is Eona-X's own and belongs on
+`eona-x.eu`. Crediting the people who wrote an Eona-X vocabulary as
+`dcterms:creator [ a foaf:Person ; foaf:name "…" ]` does not change that. One
+`<asset-type>/<slug>` lives on one host only.
 
 - `<asset-type>` is one of `ontology`, `shape`, `crosswalk`, `vocabulary`,
   `codelist`, and must cover the asset's `dcat:type`: `ontology` ⇐ Formal

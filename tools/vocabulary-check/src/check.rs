@@ -11,8 +11,8 @@ use std::path::Path;
 use oxrdf::{NamedOrBlankNode, Term, Triple};
 use oxttl::TurtleParser;
 
-use crate::SITE_BASE;
 use crate::convention::{ASSET_CLASSIFICATION, ASSET_TYPES, Classified, classify, graph_file, subdirs};
+use crate::{SITE_BASE, VENDORED_BASE};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const OWL_ONTOLOGY: &str = "http://www.w3.org/2002/07/owl#Ontology";
@@ -104,6 +104,8 @@ pub fn check(root: &Path) -> Vec<Finding> {
     .collect();
   let hub: Vec<(&str, &str)> = dirs.iter().filter_map(|d| Some((d.name.as_str(), d.first_ontology()?))).collect();
 
+  // <asset-type>/<slug> -> (host, directory), to catch one path on two hosts.
+  let mut paths: Vec<(String, String, String)> = Vec::new();
   for dir in dirs.iter().filter(|d| d.published()) {
     let name = dir.name.as_str();
     if dir.metadata_objects(DCTERMS_TITLE).is_empty() {
@@ -196,11 +198,12 @@ pub fn check(root: &Path) -> Vec<Finding> {
     let minted_here = ontology.iter().any(|t| {
       typed(t, OWL_ONTOLOGY)
         .or_else(|| typed(t, SKOS_CONCEPT_SCHEME))
-        .is_some_and(|s| s.starts_with(SITE_BASE))
+        .is_some_and(|s| s.starts_with(SITE_BASE) || s.starts_with(VENDORED_BASE))
     });
     if minted_here {
       match classify(root, name, SITE_BASE) {
         Ok(Classified::Published(v)) => {
+          paths.push((format!("{}/{}", v.kind, v.slug), v.base.clone(), name.to_string()));
           if let Some(version) = version
             && v.version != format!("v{version}")
           {
@@ -215,6 +218,15 @@ pub fn check(root: &Path) -> Vec<Finding> {
       }
     }
   }
+  for (i, (path, base, dir)) in paths.iter().enumerate() {
+    if let Some((_, other_base, other_dir)) = paths[..i].iter().find(|(p, b, _)| p == path && b != base) {
+      report(
+        dir,
+        format!("{path} is published on both {other_base} ({other_dir}) and {base}: one asset, one host"),
+      );
+    }
+  }
+
   // IRIs on Eona-X-owned hosts must be publication-convention IRIs, in every
   // file of a published asset (graphs, metadata, anything else).
   for dir in dirs.iter().filter(|d| d.published()) {
@@ -245,7 +257,7 @@ pub fn check(root: &Path) -> Vec<Finding> {
         report(
           &dir.name,
           format!(
-            "{file}: {count} IRI(s) under <{ns}>, e.g. <{example}>, are on an Eona-X host but not {SITE_BASE}<asset-type>/<slug>/<version>#… (asset types: {})",
+            "{file}: {count} IRI(s) under <{ns}>, e.g. <{example}>, are on an Eona-X host but not {SITE_BASE} or {VENDORED_BASE}<asset-type>/<slug>/<version>#… (asset types: {})",
             ASSET_TYPES.iter().map(|(t, _)| *t).collect::<Vec<_>>().join(", ")
           ),
         );
@@ -270,7 +282,7 @@ fn off_convention(iri: &str) -> Option<String> {
   if path.is_empty() && !eonax_w3id {
     return None; // the site itself, e.g. https://eona-x.eu/
   }
-  if scheme == "https" && host == "eona-x.eu" {
+  if scheme == "https" && (host == "eona-x.eu" || host == "vocabulary.eona-x.eu") {
     let mut seg = path.splitn(3, '/');
     let (asset_type, slug, rest) = (seg.next().unwrap_or(""), seg.next().unwrap_or(""), seg.next().unwrap_or(""));
     let version_ok = rest.split_once('#').is_some_and(|(v, _)| v.starts_with('v') && v.len() > 1 && !v.contains('/'));

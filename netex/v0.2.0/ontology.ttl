@@ -24,7 +24,7 @@
 # Standard docs: https://netex-cen.eu/  http://www.transmodel-cen.eu/
 #
 # Loaded (local=True) into its own named graph:
-#   https://eona-x.eu/ontology/netex/v0.2.0#
+#   https://vocabulary.eona-x.eu/ontology/netex/v0.2.0#
 #
 # PRESERVED IRIs referenced by the crosswalk (#446) — do NOT rename:
 #   netex:ElectricVehicleChargingEquipment  <->  datex:ElectricVehicleChargingPoint
@@ -87,7 +87,7 @@
 # flagged as a follow-up opportunity, not acted on here.
 # ---------------------------------------------------------------------------
 
-@prefix netex: <https://eona-x.eu/ontology/netex/v0.2.0#> .
+@prefix netex: <https://vocabulary.eona-x.eu/ontology/netex/v0.2.0#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -95,7 +95,7 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 # --- Ontology header: version + provenance -------------------------------
-<https://eona-x.eu/ontology/netex/v0.2.0#> a owl:Ontology ;
+<https://vocabulary.eona-x.eu/ontology/netex/v0.2.0#> a owl:Ontology ;
     dcterms:title "NeTEx/Transmodel — EV charging & alternative-fuel subset (EONA-X hub-curated)" ;
     dcterms:description "Hub-curated SKOS rendering of the NeTEx (CEN/TS 16614, Transmodel-based) vehicle-charging and alternative-fuel subset: VEHICLE CHARGING EQUIPMENT, REFUELLING EQUIPMENT, BATTERY EQUIPMENT, RECHARGING STATION and RECHARGING POINT ASSIGNMENT plus the RECHARGING EQUIPMENT PROFILE, with their attributes and PlugType/CurrentType/PowerCouplingType/FuelType enumerations. NeTEx proper is natively XSD and PT-scoped; this is an adjacent, browsable subset for the EMDS demo." ;
     dcterms:source "NeTEx v2.0 XSDs (github.com/TransmodelEcosystem/NeTEx, branch v2.0): netex_nm_equipmentEnergy_version.xsd, netex_nm_chargingEquipmentProfile_version.xsd, netex_rechargingPointAssignment_version.xsd, netex_units.xsd. NeTEx site https://netex-cen.eu/ ; Transmodel http://www.transmodel-cen.eu/ . NeTEx is natively XSD and PT-scoped; this is a curated SKOS rendering of an adjacent EV-charging/alternative-fuel subset." ;

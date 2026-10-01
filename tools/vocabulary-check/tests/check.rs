@@ -377,3 +377,52 @@ fn an_eona_x_eu_version_must_agree_with_the_metadata() {
   // Directory v1.0.0, IRI v1.0.0 and owl:versionInfo 1.0.0, but dcat:version 1.0.1.
   assert!(found.iter().any(|f| f.starts_with("eonax-p/v1.0.0: ") && f.contains("1.0.1")), "{found:?}");
 }
+
+fn vendored(root: &Path, slug: &str, ns: &str) {
+  write(
+    root,
+    &format!("{slug}/v1.0.0/metadata.ttl"),
+    &format!(
+      "{}<> dcterms:creator [ a <http://xmlns.com/foaf/0.1/Agent> ; <http://xmlns.com/foaf/0.1/name> \"CEN\" ] .\n",
+      metadata(Some(slug), FORMAL_ONTOLOGY)
+    ),
+  );
+  write(
+    root,
+    &format!("{slug}/v1.0.0/ontology.ttl"),
+    &format!("@prefix owl: <http://www.w3.org/2002/07/owl#> .\n<{ns}> a owl:Ontology ; owl:versionInfo \"1.0.0\" .\n<{ns}Stop> a owl:Class .\n"),
+  );
+}
+
+#[test]
+fn a_vendored_representation_on_the_vocabulary_host_is_fine() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  vendored(root.path(), "netex", "https://vocabulary.eona-x.eu/ontology/netex/v1.0.0#");
+
+  assert_eq!(messages(root.path()), Vec::<String>::new());
+}
+
+#[test]
+fn one_asset_type_and_slug_cannot_be_on_both_hosts() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  // eonax-p publishes https://eona-x.eu/vocabulary/p/…; a vendored "p" may not take the same path.
+  write(
+    root.path(),
+    "other-p/v1.0.0/metadata.ttl",
+    &format!(
+      "{}<> dcterms:creator [ <http://xmlns.com/foaf/0.1/name> \"X\" ] .\n",
+      metadata(Some("Other P"), TERMINOLOGY)
+    ),
+  );
+  write(
+    root.path(),
+    "other-p/v1.0.0/ontology.ttl",
+    "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n<https://vocabulary.eona-x.eu/vocabulary/p/v1.0.0#> a owl:Ontology ; owl:versionInfo \"1.0.0\" .\n",
+  );
+
+  let found = messages(root.path());
+
+  assert!(found.iter().any(|f| f.contains("vocabulary/p") && f.contains("both")), "{found:?}");
+}
