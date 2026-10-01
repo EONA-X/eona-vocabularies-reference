@@ -356,7 +356,9 @@ fn a_vendored_representation_minted_on_the_authored_host_fails_the_build() {
   vocab(root.path(), "netex", &ontology("https://eona-x.eu/ontology/netex/v0.2.0#", "0.2.0"));
   vendored_metadata(root.path(), "netex", "c_89b4bdb7");
 
-  let err = discover(root.path(), SITE_BASE).err().expect("a vendored representation belongs on vocabulary.eona-x.eu");
+  let err = discover(root.path(), SITE_BASE)
+    .err()
+    .expect("a vendored representation belongs on vocabulary.eona-x.eu");
 
   assert!(err.contains("dcterms:creator") && err.contains(VENDORED_BASE), "{err}");
 }
@@ -364,7 +366,11 @@ fn a_vendored_representation_minted_on_the_authored_host_fails_the_build() {
 #[test]
 fn an_eona_x_authored_vocabulary_minted_on_the_vocabulary_host_fails_the_build() {
   let root = tempfile::tempdir().unwrap();
-  vocab(root.path(), "eonax-odrl-profile", &ontology("https://vocabulary.eona-x.eu/vocabulary/odrl-profile/v0.0.1#", "0.0.1"));
+  vocab(
+    root.path(),
+    "eonax-odrl-profile",
+    &ontology("https://vocabulary.eona-x.eu/vocabulary/odrl-profile/v0.0.1#", "0.0.1"),
+  );
 
   let err = discover(root.path(), SITE_BASE).err().expect("an authored vocabulary belongs on eona-x.eu");
 

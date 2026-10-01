@@ -408,7 +408,14 @@ fn one_asset_type_and_slug_cannot_be_on_both_hosts() {
   let root = tempfile::tempdir().unwrap();
   clean(root.path());
   // eonax-p publishes https://eona-x.eu/vocabulary/p/…; a vendored "p" may not take the same path.
-  write(root.path(), "other-p/v1.0.0/metadata.ttl", &format!("{}<> dcterms:creator [ <http://xmlns.com/foaf/0.1/name> \"X\" ] .\n", metadata(Some("Other P"), TERMINOLOGY)));
+  write(
+    root.path(),
+    "other-p/v1.0.0/metadata.ttl",
+    &format!(
+      "{}<> dcterms:creator [ <http://xmlns.com/foaf/0.1/name> \"X\" ] .\n",
+      metadata(Some("Other P"), TERMINOLOGY)
+    ),
+  );
   write(
     root.path(),
     "other-p/v1.0.0/ontology.ttl",

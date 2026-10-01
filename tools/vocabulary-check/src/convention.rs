@@ -8,6 +8,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const OWL_ONTOLOGY: &str = "http://www.w3.org/2002/07/owl#Ontology";
 const SKOS_CONCEPT_SCHEME: &str = "http://www.w3.org/2004/02/skos/core#ConceptScheme";
 const DCAT_TYPE: &str = "http://www.w3.org/ns/dcat#type";
+const DCTERMS_CREATOR: &str = "http://purl.org/dc/terms/creator";
 const DCAT_DISTRIBUTION: &str = "http://www.w3.org/ns/dcat#distribution";
 const DCAT_DOWNLOAD_URL: &str = "http://www.w3.org/ns/dcat#downloadURL";
 const OWL_VERSION_INFO: &str = "http://www.w3.org/2002/07/owl#versionInfo";
@@ -173,9 +174,26 @@ pub(crate) fn classify(vocabularies_root: &Path, dir_name: &str, site_base: &str
   }
   let (triples, prefixes) = parse_turtle(&path)?;
   let namespace = ontology_iri(&triples).map_err(|e| format!("{}: {e}", path.display()))?;
-  let Some(rest) = namespace.strip_prefix(site_base) else {
-    return Ok(Classified::Skipped(format!("namespace {namespace} is not under {site_base}")));
+  let Some((host_base, rest)) = [site_base, crate::VENDORED_BASE]
+    .into_iter()
+    .find_map(|base| namespace.strip_prefix(base).map(|rest| (base, rest)))
+  else {
+    return Ok(Classified::Skipped(format!(
+      "namespace {namespace} is not under {site_base} or {}",
+      crate::VENDORED_BASE
+    )));
   };
+  // Who authored it decides the host: an external dcterms:creator marks an
+  // Eona-X representation of someone else's standard.
+  let vendored = names_a_creator(&vocabularies_root.join(dir_name).join("metadata.ttl"))?;
+  let expected_base = if vendored { crate::VENDORED_BASE } else { site_base };
+  if host_base != expected_base {
+    return Err(format!(
+      "{}: namespace {namespace} is on {host_base}, but metadata.ttl names {} dcterms:creator, so it belongs on {expected_base}<asset-type>/<slug>/<version>#",
+      path.display(),
+      if vendored { "an external" } else { "no" }
+    ));
+  }
   let (asset_type, slug, version) = split_iri_path(rest).ok_or_else(|| {
     format!(
       "{}: namespace {namespace} is under {site_base} but is not {site_base}<asset-type>/<slug>/<version>#",
@@ -209,7 +227,7 @@ pub(crate) fn classify(vocabularies_root: &Path, dir_name: &str, site_base: &str
     ));
   }
   Ok(Classified::Published(Vocabulary {
-    base: site_base.to_string(),
+    base: host_base.to_string(),
     dir_name: dir_name.to_string(),
     kind: asset_type.into(),
     slug: slug.into(),
@@ -309,6 +327,18 @@ pub fn graph_file(dir: &Path) -> Result<String, String> {
     .iter()
     .any(|t| t.predicate.as_str() == DCAT_TYPE && matches!(&t.object, Term::NamedNode(o) if o.as_str() == format!("{ASSET_CLASSIFICATION}c_bba2bb35")));
   Ok(if alignment { "alignment.ttl" } else { "ontology.ttl" }.into())
+}
+
+/// Whether `metadata.ttl` names a `dcterms:creator`: the upstream body of a
+/// standard Eona-X represents but did not author.
+fn names_a_creator(metadata: &Path) -> Result<bool, String> {
+  if !metadata.is_file() {
+    return Ok(false);
+  }
+  let base = format!("file://{}", metadata.canonicalize().unwrap_or_else(|_| metadata.to_path_buf()).display());
+  let parser = TurtleParser::new().with_base_iri(base).map_err(|e| format!("{}: {e}", metadata.display()))?;
+  let (triples, _) = parse_turtle_with(metadata, parser)?;
+  Ok(triples.iter().any(|t| t.predicate.as_str() == DCTERMS_CREATOR))
 }
 
 fn declared_asset_classes(metadata: &Path) -> Result<Vec<String>, String> {
