@@ -264,6 +264,16 @@ pub fn check(root: &Path) -> Vec<Finding> {
       }
     }
   }
+  // Last line of defence: what passes here is what vocabulary-hub-build gets,
+  // and it builds with `discover`. Anything it still refuses is a finding.
+  if findings.is_empty()
+    && let Err(e) = crate::discover(root, SITE_BASE)
+  {
+    findings.push(Finding {
+      dir: ".".into(),
+      message: format!("vocabulary-hub-build would fail: {e}"),
+    });
+  }
   findings
 }
 
