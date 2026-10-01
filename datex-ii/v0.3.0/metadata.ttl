@@ -8,6 +8,7 @@
 @prefix vann: <http://purl.org/vocab/vann/> .
 
 <> a dcat:Dataset, adms:Asset ;
+    dcat:version "0.3.0" ;
     dcterms:title "DATEX II EnergyInfrastructure (EV-charging)"@en ;
     dcterms:description "Hub-curated OWL/SKOS ontology for DATEX II's EnergyInfrastructure EV-charging (IRVE) model: entities, attributes and enumeration code values."@en ;
     dcat:type assettype:c_89b4bdb7 ;

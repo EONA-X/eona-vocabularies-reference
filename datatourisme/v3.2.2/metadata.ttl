@@ -7,11 +7,12 @@
 @prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
 
 <> a dcat:Dataset, adms:Asset ;
-    dcterms:title "Verifiable Credentials Vocabulary v2.0"@en ;
-    dcterms:description "RDF vocabulary underlying the W3C Verifiable Credentials Data Model — issuers, holders, verifiable credentials and presentations. Used by the Gaia-X ICAM semantic model and by Eona-X's own credential types (see eonax-credentials)."@en ;
+    dcat:version "3.2.2" ;
+    dcterms:title "DATAtourisme Core Ontology"@en ;
+    dcterms:description "The French national tourism-data ontology (ADN Tourisme), v3.2.2 — structures tourist information (POIs, events, offers, itineraries) from France's regional/departmental tourism systems into a common OWL/SKOS format. Bundled upstream copy."@en ;
     dcat:type assettype:c_89b4bdb7 ;
     adms:status status:CURRENT .
 
-<> dcterms:creator [ a foaf:Agent ; foaf:name "W3C" ] .
+<> dcterms:creator [ a foaf:Agent ; foaf:name "ADN Tourisme" ] .
 
-<> schema:logo "w3c-hero.png" .
+<> schema:logo "datatourisme-hero.png" .

@@ -8,6 +8,7 @@
 @prefix vann: <http://purl.org/vocab/vann/> .
 
 <> a dcat:Dataset, adms:Asset ;
+    dcat:version "0.2.0" ;
     dcterms:title "NeTEx/Transmodel — EV Charging & Alternative-Fuel"@en ;
     dcterms:description "Hub-curated OWL/SKOS rendering of the NeTEx (CEN/TS 16614, Transmodel-based) vehicle-charging and alternative-fuel subset: charging/refuelling/battery equipment, recharging stations and points, and vehicle charging profiles."@en ;
     dcat:type assettype:c_89b4bdb7 ;
