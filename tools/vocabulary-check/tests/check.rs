@@ -218,3 +218,88 @@ fn the_eona_x_eu_publication_rules_apply_to_every_directory_and_all_findings_are
   );
   assert!(found.iter().any(|f| f.starts_with("a: ")), "{found:?}");
 }
+
+#[test]
+fn metadata_may_declare_its_graph_file_instead_of_ontology_ttl() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  let declared = format!(
+    "{}<> dcat:distribution [ a dcat:Distribution ; dcat:downloadURL <cargo-model.ttl> ; dcat:mediaType \"text/turtle\" ] .\n",
+    metadata(Some("Cargo"), FORMAL_ONTOLOGY)
+  );
+  write(root.path(), "cargo/metadata.ttl", &declared);
+  write(
+    root.path(),
+    "cargo/cargo-model.ttl",
+    &ontology("https://example.org/cargo", "<https://example.org/cargo/Item> a owl:Class ."),
+  );
+
+  assert_eq!(messages(root.path()), Vec::<String>::new());
+
+  fs::remove_file(root.path().join("cargo/cargo-model.ttl")).unwrap();
+  let found = messages(root.path());
+  assert_eq!(found.len(), 1, "{found:?}");
+  assert!(found[0].starts_with("cargo: ") && found[0].contains("cargo-model.ttl"), "{found:?}");
+}
+
+#[test]
+fn an_iri_on_an_eona_x_host_must_follow_the_publication_convention() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  // Minted on the Hub UI's host, over http, without version (as a contribution did).
+  write(root.path(), "mcv/metadata.ttl", &metadata(Some("MCV"), TERMINOLOGY));
+  write(
+    root.path(),
+    "mcv/ontology.ttl",
+    "@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n<http://vocabulary.eona-x.eu/vocabulary/mcv> a skos:ConceptScheme .\n<http://vocabulary.eona-x.eu/vocabulary/mcv/a> a skos:Concept .\n",
+  );
+  // The pre-#677 hub namespace and the w3id.org/eonax redirector, used as objects.
+  write(
+    root.path(),
+    "b/ontology.ttl",
+    &ontology(
+      "https://example.org/b",
+      "<https://example.org/b/Other> rdfs:seeAlso <https://vocab.eona-x.eu/netex/Stop>, <https://w3id.org/eonax/credentials/MembershipCredential> .",
+    ),
+  );
+  // An Eona-X predicate in metadata.ttl is an IRI like any other.
+  write(
+    root.path(),
+    "a/metadata.ttl",
+    &format!("{}<> <https://vocab.eona-x.eu/logo> \"a.png\" .\n", metadata(Some("A"), FORMAL_ONTOLOGY)),
+  );
+
+  let found = messages(root.path());
+
+  for (dir, iri) in [
+    ("mcv", "http://vocabulary.eona-x.eu/vocabulary/mcv"),
+    ("b", "https://vocab.eona-x.eu/netex"),
+    ("b", "https://w3id.org/eonax/credentials"),
+    ("a", "https://vocab.eona-x.eu/logo"),
+  ] {
+    assert!(
+      found
+        .iter()
+        .any(|f| f.starts_with(&format!("{dir}: ")) && f.contains(iri) && f.contains("<asset-type>/<slug>/<version>")),
+      "{dir} {iri}: {found:?}"
+    );
+  }
+  // One finding per file and namespace, not one per term.
+  assert_eq!(found.iter().filter(|f| f.starts_with("mcv: ")).count(), 1, "{found:?}");
+}
+
+#[test]
+fn convention_iris_and_the_bare_site_roots_are_fine() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  write(
+    root.path(),
+    "b/ontology.ttl",
+    &ontology(
+      "https://example.org/b",
+      "<https://example.org/b/Other> rdfs:seeAlso <https://eona-x.eu/vocabulary/p/v1.0.0#Term>, <https://eona-x.eu/>, <https://vocabulary.eona-x.eu/> .",
+    ),
+  );
+
+  assert_eq!(messages(root.path()), Vec::<String>::new());
+}

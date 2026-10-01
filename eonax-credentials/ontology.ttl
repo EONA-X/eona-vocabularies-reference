@@ -12,14 +12,14 @@
 # Merged from the three files this repo originally kept separate
 # (domain-credential.ttl, federation-credential.ttl,
 # membership-credential.ttl) — all three mint terms under the SAME
-# namespace/base (https://w3id.org/eonax/credentials/, prefix eox-cred),
+# namespace/base (https://eona-x.eu/ontology/credentials/v0.1.0#, prefix eox-cred),
 # so they're one vocabulary, not three.
 #
 # Verified by JsonPathCredentialConstraintFunction / MembershipConstraintFunction
 # via the eox-policy: profile (see eonax-odrl-profile.ttl).
 
-@base <https://w3id.org/eonax/credentials/> .
-@prefix eox-cred: <https://w3id.org/eonax/credentials/> .
+@base <https://eona-x.eu/ontology/credentials/v0.1.0#> .
+@prefix eox-cred: <https://eona-x.eu/ontology/credentials/v0.1.0#> .
 @prefix cred: <https://www.w3.org/2018/credentials#> .
 @prefix sh:   <http://www.w3.org/ns/shacl#> .
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -36,7 +36,7 @@ eox-cred:
     dct:description """Verifiable Credential types the Eona-X dataspace issues to participants: DomainCredential (current), FederationCredential (target — not yet emitted by the current runtime), and MembershipCredential (current attestation, plus target set-valued claims), together with their claim properties."""@en ;
     owl:versionInfo "0.1.0" ;
     vann:preferredNamespacePrefix "eox-cred" ;
-    vann:preferredNamespaceUri "https://w3id.org/eonax/credentials/" .
+    vann:preferredNamespaceUri "https://eona-x.eu/ontology/credentials/v0.1.0#" .
 
 #################################################################
 #  DomainCredential — CURRENT

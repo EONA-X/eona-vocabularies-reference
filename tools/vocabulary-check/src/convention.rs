@@ -8,6 +8,8 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const OWL_ONTOLOGY: &str = "http://www.w3.org/2002/07/owl#Ontology";
 const SKOS_CONCEPT_SCHEME: &str = "http://www.w3.org/2004/02/skos/core#ConceptScheme";
 const DCAT_TYPE: &str = "http://www.w3.org/ns/dcat#type";
+const DCAT_DISTRIBUTION: &str = "http://www.w3.org/ns/dcat#distribution";
+const DCAT_DOWNLOAD_URL: &str = "http://www.w3.org/ns/dcat#downloadURL";
 const OWL_VERSION_INFO: &str = "http://www.w3.org/2002/07/owl#versionInfo";
 
 /// The EU asset-classification authority table, whose concepts an asset's
@@ -126,9 +128,10 @@ pub(crate) enum Classified {
 /// skipped when it is minted elsewhere, an error when it claims `site_base`
 /// but breaks the convention.
 pub(crate) fn classify(vocabularies_root: &Path, dir_name: &str, site_base: &str) -> Result<Classified, String> {
-  let path = vocabularies_root.join(dir_name).join("ontology.ttl");
+  let graph = graph_file(&vocabularies_root.join(dir_name))?;
+  let path = vocabularies_root.join(dir_name).join(&graph);
   if !path.is_file() {
-    return Ok(Classified::Skipped("no ontology.ttl".into()));
+    return Ok(Classified::Skipped(format!("no {graph}")));
   }
   let (triples, prefixes) = parse_turtle(&path)?;
   let namespace = ontology_iri(&triples).map_err(|e| format!("{}: {e}", path.display()))?;
@@ -209,6 +212,10 @@ fn ontology_iri(triples: &[Triple]) -> Result<String, String> {
     .collect();
   iris.sort_unstable();
   iris.dedup();
+  // A code list embedded in the vocabulary (`…v0.1.0#StatusCodes` under
+  // `…v0.1.0#`) is part of it, not a second root.
+  let all = iris.clone();
+  iris.retain(|iri| !all.iter().any(|other| other != iri && iri.starts_with(other)));
   match iris.as_slice() {
     [iri] => Ok(iri.to_string()),
     [] => Err("declares no owl:Ontology or skos:ConceptScheme".into()),
@@ -226,6 +233,45 @@ fn split_iri_path(rest: &str) -> Option<(&str, &str, &str)> {
 
 /// The asset-classification codes `metadata.ttl` gives as `dcat:type`, if the
 /// file exists (upstream ships one per vocabulary).
+/// The asset's graph file, relative to its directory: the one its
+/// `metadata.ttl` declares as a sibling `dcat:distribution`'s
+/// `dcat:downloadURL`, else `alignment.ttl` for a crosswalk (dcat:type
+/// Alignment) and `ontology.ttl` for anything else.
+pub fn graph_file(dir: &Path) -> Result<String, String> {
+  let metadata = dir.join("metadata.ttl");
+  if !metadata.is_file() {
+    return Ok("ontology.ttl".into());
+  }
+  let base = format!("file://{}/", dir.canonicalize().unwrap_or_else(|_| dir.to_path_buf()).display());
+  let parser = TurtleParser::new()
+    .with_base_iri(format!("{base}metadata.ttl"))
+    .map_err(|e| format!("{}: {e}", metadata.display()))?;
+  let (triples, _) = parse_turtle_with(&metadata, parser)?;
+  let distributions: Vec<&Term> = triples
+    .iter()
+    .filter(|t| t.predicate.as_str() == DCAT_DISTRIBUTION)
+    .map(|t| &t.object)
+    .collect();
+  for t in &triples {
+    let subject_is_distribution = distributions.iter().any(|d| match (d, &t.subject) {
+      (Term::NamedNode(d), NamedOrBlankNode::NamedNode(s)) => d == s,
+      (Term::BlankNode(d), NamedOrBlankNode::BlankNode(s)) => d == s,
+      _ => false,
+    });
+    if subject_is_distribution
+      && t.predicate.as_str() == DCAT_DOWNLOAD_URL
+      && let Term::NamedNode(url) = &t.object
+      && let Some(file) = url.as_str().strip_prefix(&base).filter(|f| !f.contains('/'))
+    {
+      return Ok(file.to_string());
+    }
+  }
+  let alignment = triples
+    .iter()
+    .any(|t| t.predicate.as_str() == DCAT_TYPE && matches!(&t.object, Term::NamedNode(o) if o.as_str() == format!("{ASSET_CLASSIFICATION}c_bba2bb35")));
+  Ok(if alignment { "alignment.ttl" } else { "ontology.ttl" }.into())
+}
+
 fn declared_asset_classes(metadata: &Path) -> Result<Vec<String>, String> {
   if !metadata.is_file() {
     return Ok(Vec::new());

@@ -12,7 +12,7 @@ use oxrdf::{NamedOrBlankNode, Term, Triple};
 use oxttl::TurtleParser;
 
 use crate::SITE_BASE;
-use crate::convention::{ASSET_CLASSIFICATION, Classified, classify};
+use crate::convention::{ASSET_CLASSIFICATION, ASSET_TYPES, Classified, classify, graph_file};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const OWL_ONTOLOGY: &str = "http://www.w3.org/2002/07/owl#Ontology";
@@ -34,6 +34,8 @@ pub struct Finding {
 /// One top-level directory: its parsed Turtle files, by file name.
 struct Dir {
   name: String,
+  /// The asset's graph file: declared in metadata.ttl, or the default.
+  graph: String,
   graphs: BTreeMap<String, Vec<Triple>>,
   /// The `<>` subject `metadata.ttl` was parsed against, when it has one.
   metadata_base: Option<String>,
@@ -47,7 +49,7 @@ impl Dir {
   /// The first `owl:Ontology` of `ontology.ttl`, in authored order — what the
   /// publishing pipeline takes as the vocabulary's namespace.
   fn first_ontology(&self) -> Option<&str> {
-    self.graphs.get("ontology.ttl")?.iter().find_map(|t| typed(t, OWL_ONTOLOGY))
+    self.graphs.get(&self.graph)?.iter().find_map(|t| typed(t, OWL_ONTOLOGY))
   }
 
   fn metadata_objects(&self, predicate: &str) -> Vec<&Term> {
@@ -97,13 +99,13 @@ pub fn check(root: &Path) -> Vec<Finding> {
     let classes = dir.asset_classes();
 
     if classes.contains(&ALIGNMENT) {
-      match dir.graphs.get("alignment.ttl") {
-        None if !root.join(name).join("alignment.ttl").is_file() => {
-          report(name, "dcat:type is Alignment but there is no alignment.ttl".into());
+      match dir.graphs.get(&dir.graph) {
+        None if !root.join(name).join(&dir.graph).is_file() => {
+          report(name, format!("dcat:type is Alignment but its graph file {} does not exist", dir.graph));
         }
         None => {} // present but unparsable: already reported
         Some(alignment) => match alignment.iter().find_map(|t| typed(t, VOID_LINKSET)) {
-          None => report(name, "alignment.ttl: no void:Linkset root".into()),
+          None => report(name, format!("{}: no void:Linkset root", dir.graph)),
           Some(linkset) => {
             let mut sides: Vec<&str> = Vec::new();
             for target in objects(alignment, linkset, RDFS_SEE_ALSO) {
@@ -117,7 +119,8 @@ pub fn check(root: &Path) -> Vec<Finding> {
               report(
                 name,
                 format!(
-                  "alignment.ttl: the void:Linkset's rdfs:seeAlso reach {} published vocabularies ({}); a crosswalk needs at least 2",
+                  "{}: the void:Linkset's rdfs:seeAlso reach {} published vocabularies ({}); a crosswalk needs at least 2",
+                  dir.graph,
                   sides.len(),
                   sides.join(", ")
                 ),
@@ -129,14 +132,14 @@ pub fn check(root: &Path) -> Vec<Finding> {
       continue;
     }
 
-    let Some(ontology) = dir.graphs.get("ontology.ttl") else {
-      if !root.join(name).join("ontology.ttl").is_file() {
-        report(name, "metadata.ttl but no ontology.ttl".into());
+    let Some(ontology) = dir.graphs.get(&dir.graph) else {
+      if !root.join(name).join(&dir.graph).is_file() {
+        report(name, format!("metadata.ttl but its graph file {} does not exist", dir.graph));
       }
       continue;
     };
     if dir.first_ontology().is_none() && (classes.is_empty() || classes.contains(&FORMAL_ONTOLOGY)) {
-      report(name, "ontology.ttl declares no owl:Ontology (required for a Formal ontology)".into());
+      report(name, format!("{} declares no owl:Ontology (required for a Formal ontology)", dir.graph));
     }
 
     // References into an ontology of the repository that is not published.
@@ -172,7 +175,75 @@ pub fn check(root: &Path) -> Vec<Finding> {
       }
     }
   }
+  // IRIs on Eona-X-owned hosts must be publication-convention IRIs, in every
+  // file of a published asset (graphs, metadata, anything else).
+  for dir in dirs.iter().filter(|d| d.published()) {
+    for (file, triples) in &dir.graphs {
+      let mut off: Vec<(String, String, usize)> = Vec::new(); // (namespace, example, count)
+      for t in triples {
+        let terms = [
+          match &t.subject {
+            NamedOrBlankNode::NamedNode(n) => Some(n.as_str()),
+            _ => None,
+          },
+          Some(t.predicate.as_str()),
+          match &t.object {
+            Term::NamedNode(n) => Some(n.as_str()),
+            _ => None,
+          },
+        ];
+        for iri in terms.into_iter().flatten() {
+          if let Some(ns) = off_convention(iri) {
+            match off.iter_mut().find(|(n, _, _)| *n == ns) {
+              Some(entry) => entry.2 += 1,
+              None => off.push((ns, iri.to_string(), 1)),
+            }
+          }
+        }
+      }
+      for (ns, example, count) in off {
+        report(
+          &dir.name,
+          format!(
+            "{file}: {count} IRI(s) under <{ns}>, e.g. <{example}>, are on an Eona-X host but not {SITE_BASE}<asset-type>/<slug>/<version>#… (asset types: {})",
+            ASSET_TYPES.iter().map(|(t, _)| *t).collect::<Vec<_>>().join(", ")
+          ),
+        );
+      }
+    }
+  }
   findings
+}
+
+/// For an IRI on an Eona-X-owned host or path that is neither a
+/// publication-convention IRI nor a bare site root: the namespace to report it
+/// under (scheme, host and first path segment). `None` when the IRI is fine.
+fn off_convention(iri: &str) -> Option<String> {
+  let (scheme, rest) = iri.split_once("://")?;
+  let (host, path) = rest.split_once('/').unwrap_or((rest, ""));
+  let host = host.to_ascii_lowercase();
+  let eona_host = host == "eona-x.eu" || host.ends_with(".eona-x.eu");
+  let eonax_w3id = host == "w3id.org" && (path == "eonax" || path.starts_with("eonax/"));
+  if !eona_host && !eonax_w3id {
+    return None;
+  }
+  if path.is_empty() && !eonax_w3id {
+    return None; // the site itself, e.g. https://eona-x.eu/
+  }
+  if scheme == "https" && host == "eona-x.eu" {
+    let mut seg = path.splitn(3, '/');
+    let (asset_type, slug, rest) = (seg.next().unwrap_or(""), seg.next().unwrap_or(""), seg.next().unwrap_or(""));
+    let version_ok = rest.split_once('#').is_some_and(|(v, _)| v.starts_with('v') && v.len() > 1 && !v.contains('/'));
+    if ASSET_TYPES.iter().any(|(t, _)| *t == asset_type) && !slug.is_empty() && version_ok {
+      return None;
+    }
+  }
+  let first = if eonax_w3id {
+    path.splitn(3, '/').take(2).collect::<Vec<_>>().join("/")
+  } else {
+    path.split(['/', '#']).next().unwrap_or("").to_string()
+  };
+  Some(format!("{scheme}://{host}/{first}"))
 }
 
 /// Parses every Turtle file directly in each top-level directory.
@@ -233,7 +304,13 @@ fn load(root: &Path, findings: &mut Vec<Finding>) -> Vec<Dir> {
           }),
         }
       }
-      Dir { name, graphs, metadata_base }
+      let graph = graph_file(&dir_path).unwrap_or_else(|_| "ontology.ttl".into());
+      Dir {
+        name,
+        graph,
+        graphs,
+        metadata_base,
+      }
     })
     .collect()
 }

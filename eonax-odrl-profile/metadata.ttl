@@ -14,4 +14,4 @@
 [] vann:preferredNamespacePrefix "eox-policy" ;
     vann:preferredNamespaceUri "https://eona-x.eu/vocabulary/odrl-profile/v0.0.1#" .
 [] vann:preferredNamespacePrefix "eox-cred" ;
-    vann:preferredNamespaceUri "https://w3id.org/eonax/credentials/" .
+    vann:preferredNamespaceUri "https://eona-x.eu/ontology/credentials/v0.1.0#" .

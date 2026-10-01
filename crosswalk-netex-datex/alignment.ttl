@@ -7,7 +7,7 @@
 # pipelines; here we only reference their IRIs.
 #
 # Loaded (local=True) into its own named graph:
-#   https://vocab.eona-x.eu/alignments/netex-datex-ii
+#   https://eona-x.eu/crosswalk/netex-datex/v0.1.0#
 #
 # For each concept pair we assert a SKOS match triple in BOTH directions (SKOS
 # match properties are symmetric; the reverse is asserted explicitly for
@@ -21,9 +21,9 @@
 # charging mode), 9 concept pairs in total, plus granular connector code-value
 # (plug) alignments between the two connector enumerations.
 
-@prefix align: <https://vocab.eona-x.eu/alignments/> .
-@prefix datex: <https://vocab.eona-x.eu/datex-ii/> .
-@prefix netex: <https://vocab.eona-x.eu/netex/> .
+@prefix align: <https://eona-x.eu/crosswalk/netex-datex/v0.1.0#> .
+@prefix datex: <https://eona-x.eu/ontology/datex-ii/v0.3.0#> .
+@prefix netex: <https://eona-x.eu/ontology/netex/v0.2.0#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -31,6 +31,7 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
 
 # === Graph-level provenance: the alignment resource ========================
 # Typed skos:ConceptScheme so Prez resolves it as a browsable vocabulary object
@@ -42,8 +43,9 @@
 # different hierarchy level (concept collection WITHIN a vocab), so a catalog
 # member also typed skos:Collection makes Prez's object endpoint return an empty
 # body and the UI throws "Unable to find item". Verified against Prez 4.23.6.
-<https://vocab.eona-x.eu/alignments/netex-datex-ii>
+<https://eona-x.eu/crosswalk/netex-datex/v0.1.0#>
     a skos:ConceptScheme , void:Linkset , dcat:Resource ;
+    owl:versionInfo "0.1.0" ;
     dcterms:identifier "netex-datex-ii" ;
     dcterms:title "NeTEx ↔ DATEX II crosswalk (EV-charging)" ;
     rdfs:label "NeTEx ↔ DATEX II crosswalk (EV-charging)" ;
@@ -53,8 +55,8 @@
     dcterms:creator "EONA-X Vocabulary Hub" ;
     dcterms:source "Hub-curated EV-charging crosswalk for the EMDS demo (demo point C); not derived from an upstream NeTEx/DATEX II distribution — DATEX II and NeTEx are published natively as XSD and carry no canonical cross-standard SKOS mapping." ;
     void:linkPredicate skos:exactMatch , skos:closeMatch , skos:relatedMatch ;
-    rdfs:seeAlso <https://vocab.eona-x.eu/datex-ii/energy-infrastructure> ,
-                 <https://vocab.eona-x.eu/netex/ev-charging> .
+    rdfs:seeAlso <https://eona-x.eu/ontology/datex-ii/v0.3.0#energy-infrastructure> ,
+                 <https://eona-x.eu/ontology/netex/v0.2.0#ev-charging> .
 
 # === The 5 alignment mappings (both directions) ============================
 # Pair 1: charging point/equipment — point vs equipment, hence closeMatch.
@@ -143,7 +145,7 @@ netex:connectorStandard-type1 skos:closeMatch datex:connectorType-yazaki .
 # rdf:subject / rdf:object).
 
 align:map-charging-point a rdf:Statement , skos:Concept ;
-    skos:inScheme align:netex-datex-ii ;
+    skos:inScheme <https://eona-x.eu/crosswalk/netex-datex/v0.1.0#> ;
     skos:prefLabel "Charging point ↔ charging equipment"@en ;
     rdf:subject datex:ElectricVehicleChargingPoint ;
     rdf:predicate skos:closeMatch ;
@@ -153,7 +155,7 @@ align:map-charging-point a rdf:Statement , skos:Concept ;
     dcterms:created "2026-06-22"^^xsd:date .
 
 align:map-status a rdf:Statement , skos:Concept ;
-    skos:inScheme align:netex-datex-ii ;
+    skos:inScheme <https://eona-x.eu/crosswalk/netex-datex/v0.1.0#> ;
     skos:prefLabel "Status ↔ availability status"@en ;
     rdf:subject datex:status ;
     rdf:predicate skos:closeMatch ;
@@ -163,7 +165,7 @@ align:map-status a rdf:Statement , skos:Concept ;
     dcterms:created "2026-06-22"^^xsd:date .
 
 align:map-power a rdf:Statement , skos:Concept ;
-    skos:inScheme align:netex-datex-ii ;
+    skos:inScheme <https://eona-x.eu/crosswalk/netex-datex/v0.1.0#> ;
     skos:prefLabel "Rated power ↔ power rating"@en ;
     rdf:subject datex:power ;
     rdf:predicate skos:exactMatch ;
@@ -173,7 +175,7 @@ align:map-power a rdf:Statement , skos:Concept ;
     dcterms:created "2026-06-22"^^xsd:date .
 
 align:map-connector a rdf:Statement , skos:Concept ;
-    skos:inScheme align:netex-datex-ii ;
+    skos:inScheme <https://eona-x.eu/crosswalk/netex-datex/v0.1.0#> ;
     skos:prefLabel "Connector type ↔ connector standard"@en ;
     rdf:subject datex:connectorType ;
     rdf:predicate skos:closeMatch ;
@@ -183,7 +185,7 @@ align:map-connector a rdf:Statement , skos:Concept ;
     dcterms:created "2026-06-22"^^xsd:date .
 
 align:map-location a rdf:Statement , skos:Concept ;
-    skos:inScheme align:netex-datex-ii ;
+    skos:inScheme <https://eona-x.eu/crosswalk/netex-datex/v0.1.0#> ;
     skos:prefLabel "Location ↔ location"@en ;
     rdf:subject datex:location ;
     rdf:predicate skos:exactMatch ;
@@ -193,7 +195,7 @@ align:map-location a rdf:Statement , skos:Concept ;
     dcterms:created "2026-06-22"^^xsd:date .
 
 align:map-station a rdf:Statement , skos:Concept ;
-    skos:inScheme align:netex-datex-ii ;
+    skos:inScheme <https://eona-x.eu/crosswalk/netex-datex/v0.1.0#> ;
     skos:prefLabel "Station ↔ recharging station"@en ;
     rdf:subject datex:EnergyInfrastructureStation ;
     rdf:predicate skos:closeMatch ;
@@ -203,7 +205,7 @@ align:map-station a rdf:Statement , skos:Concept ;
     dcterms:created "2026-06-26"^^xsd:date .
 
 align:map-max-power a rdf:Statement , skos:Concept ;
-    skos:inScheme align:netex-datex-ii ;
+    skos:inScheme <https://eona-x.eu/crosswalk/netex-datex/v0.1.0#> ;
     skos:prefLabel "Maximum power at socket ↔ maximum charging power"@en ;
     rdf:subject datex:maxPowerAtSocket ;
     rdf:predicate skos:closeMatch ;
@@ -213,7 +215,7 @@ align:map-max-power a rdf:Statement , skos:Concept ;
     dcterms:created "2026-06-26"^^xsd:date .
 
 align:map-voltage a rdf:Statement , skos:Concept ;
-    skos:inScheme align:netex-datex-ii ;
+    skos:inScheme <https://eona-x.eu/crosswalk/netex-datex/v0.1.0#> ;
     skos:prefLabel "Voltage ↔ nominal voltage"@en ;
     rdf:subject datex:voltage ;
     rdf:predicate skos:closeMatch ;
@@ -223,7 +225,7 @@ align:map-voltage a rdf:Statement , skos:Concept ;
     dcterms:created "2026-06-26"^^xsd:date .
 
 align:map-charging-mode a rdf:Statement , skos:Concept ;
-    skos:inScheme align:netex-datex-ii ;
+    skos:inScheme <https://eona-x.eu/crosswalk/netex-datex/v0.1.0#> ;
     skos:prefLabel "Charging mode ↔ current type"@en ;
     rdf:subject datex:chargingMode ;
     rdf:predicate skos:relatedMatch ;
