@@ -6,9 +6,10 @@
 @prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
 
 <> a dcat:Dataset, adms:Asset ;
-    dcterms:title "mobilityDCAT-AP SHACL shapes"@en ;
-    dcterms:description "SHACL shapes constraining mobilityDCAT-AP datasets. Published under CC BY 4.0."@en ;
+    dcat:version "2026-08-25" ;
+    dcterms:title "Gaia-X Trust Framework SHACL Shapes"@en ;
+    dcterms:description "SHACL shape constraints from the Gaia-X trust framework's development namespace — validation rules for Gaia-X credentials and self-descriptions, used by the ICAM (Identity, Credential & Access Management) semantic model."@en ;
     dcat:type assettype:c_3948c2ed ;
     adms:status status:CURRENT .
 
-<> dcterms:creator [ a foaf:Agent ; foaf:name "NAPCORE" ] .
+<> dcterms:creator [ a foaf:Agent ; foaf:name "Gaia-X" ] .

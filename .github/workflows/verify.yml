@@ -32,11 +32,13 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pyshacl==0.40.1
-      - name: Validate every metadata.ttl
+      - name: Validate every metadata.ttl against the newest metadata profile
         run: |
+          profile=$(ls -d eonax-metadata-profile/v*/ | sort -V | tail -1)ontology.ttl
+          echo "profile: $profile"
           status=0
-          for m in */metadata.ttl; do
-            if out=$(pyshacl -s eonax-metadata-profile/ontology.ttl -d "$m" 2>&1); then
+          for m in */*/metadata.ttl; do
+            if out=$(pyshacl -s "$profile" -d "$m" 2>&1); then
               echo "ok   $m"
             else
               echo "FAIL $m"; echo "$out" | sed 's/^/     /'; status=1

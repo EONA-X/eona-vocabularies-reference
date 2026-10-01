@@ -6,6 +6,7 @@
 @prefix vann: <http://purl.org/vocab/vann/> .
 
 <> a dcat:Dataset, adms:Asset ;
+    dcat:version "0.0.1" ;
     dcterms:title "Eona-X ODRL Profile"@en ;
     dcterms:description "The supported subset of W3C ODRL 2.2 the Eona-X dataspace connectors bind and enforce, extended with three credential-claim constraint leftOperands."@en ;
     dcat:type assettype:c_64714767 ;

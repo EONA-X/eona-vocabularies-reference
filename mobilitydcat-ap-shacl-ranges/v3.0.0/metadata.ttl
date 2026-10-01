@@ -6,6 +6,7 @@
 @prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
 
 <> a dcat:Dataset, adms:Asset ;
+    dcat:version "3.0.0" ;
     dcterms:title "mobilityDCAT-AP SHACL range shapes"@en ;
     dcterms:description "Range/type SHACL shapes for mobilityDCAT-AP properties. Published under CC BY 4.0."@en ;
     dcat:type assettype:c_3948c2ed ;
