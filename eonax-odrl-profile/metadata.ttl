@@ -8,10 +8,10 @@
 <> a dcat:Dataset, adms:Asset ;
     dcterms:title "Eona-X ODRL Profile"@en ;
     dcterms:description "The supported subset of W3C ODRL 2.2 the Eona-X dataspace connectors bind and enforce, extended with three credential-claim constraint leftOperands."@en ;
-    dcat:type assettype:c_89b4bdb7 ;
+    dcat:type assettype:c_64714767 ;
     adms:status status:CURRENT .
 
 [] vann:preferredNamespacePrefix "eox-policy" ;
-    vann:preferredNamespaceUri "https://eona-x.eu/c_89b4bdb7/odrl-profile/v0.0.1#" .
+    vann:preferredNamespaceUri "https://eona-x.eu/vocabulary/odrl-profile/v0.0.1#" .
 [] vann:preferredNamespacePrefix "eox-cred" ;
     vann:preferredNamespaceUri "https://w3id.org/eonax/credentials/" .
