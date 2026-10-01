@@ -1,0 +1,11 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+@prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
+
+<> a dcat:Dataset, adms:Asset ;
+    dcterms:title "NeTEx ↔ DATEX II crosswalk (EV-charging)"@en ;
+    dcterms:description "Hub-curated SKOS alignment between the NeTEx/Transmodel and DATEX II EnergyInfrastructure EV-charging (IRVE) subsets — entity, attribute and connector code-value correspondences."@en ;
+    dcat:type assettype:c_bba2bb35 ;
+    adms:status status:CURRENT .
