@@ -96,14 +96,7 @@ pub struct Discovery {
 /// Errors are reserved for sources that claim the site base but break its
 /// convention — publishing those would put wrong IRIs on eona-x.eu.
 pub fn discover(vocabularies_root: &Path, site_base: &str) -> Result<Discovery, String> {
-  let mut dirs: Vec<String> = fs::read_dir(vocabularies_root)
-    .map_err(|e| format!("cannot read {}: {e}", vocabularies_root.display()))?
-    .filter_map(Result::ok)
-    .filter(|e| e.path().is_dir())
-    .filter_map(|e| e.file_name().into_string().ok())
-    .filter(|name| name.starts_with("eonax-"))
-    .collect();
-  dirs.sort();
+  let dirs = version_dirs(vocabularies_root)?;
 
   let mut found = Discovery {
     published: Vec::new(),
@@ -116,6 +109,47 @@ pub fn discover(vocabularies_root: &Path, site_base: &str) -> Result<Discovery, 
     }
   }
   Ok(found)
+}
+
+/// Every asset version directory, `<slug>/<version>`, that holds Turtle: in
+/// slug order, then version order (numerically: v0.10.0 after v0.9.0).
+pub fn version_dirs(root: &Path) -> Result<Vec<String>, String> {
+  let mut out = Vec::new();
+  for slug in subdirs(root)? {
+    let mut versions: Vec<String> = subdirs(&root.join(&slug))?
+      .into_iter()
+      .filter(|v| {
+        fs::read_dir(root.join(&slug).join(v))
+          .map(|entries| entries.filter_map(Result::ok).any(|e| e.file_name().to_string_lossy().ends_with(".ttl")))
+          .unwrap_or(false)
+      })
+      .collect();
+    versions.sort_by_key(|v| version_key(v));
+    out.extend(versions.into_iter().map(|v| format!("{slug}/{v}")));
+  }
+  Ok(out)
+}
+
+/// Sorted, non-hidden subdirectory names of `dir`.
+pub(crate) fn subdirs(dir: &Path) -> Result<Vec<String>, String> {
+  let mut names: Vec<String> = fs::read_dir(dir)
+    .map_err(|e| format!("cannot read {}: {e}", dir.display()))?
+    .filter_map(Result::ok)
+    .filter(|e| e.path().is_dir())
+    .filter_map(|e| e.file_name().into_string().ok())
+    .filter(|n| !n.starts_with('.'))
+    .collect();
+  names.sort();
+  Ok(names)
+}
+
+/// `v0.10.0` sorts after `v0.9.0`; non-numeric parts compare as text.
+fn version_key(version: &str) -> Vec<(u64, String)> {
+  version
+    .trim_start_matches('v')
+    .split(['.', '-'])
+    .map(|part| (part.parse().unwrap_or(0), part.to_string()))
+    .collect()
 }
 
 pub(crate) enum Classified {

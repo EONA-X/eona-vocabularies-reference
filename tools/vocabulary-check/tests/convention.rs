@@ -287,8 +287,16 @@ fn two_namespace_roots_are_still_an_error() {
 #[test]
 fn several_versions_of_an_eona_x_eu_vocabulary_are_all_published() {
   let root = tempfile::tempdir().unwrap();
-  vocab(root.path(), "eonax-odrl-profile", &ontology("https://eona-x.eu/vocabulary/odrl-profile/v0.0.1#", "0.0.1"));
-  vocab(root.path(), "eonax-odrl-profile", &ontology("https://eona-x.eu/vocabulary/odrl-profile/v0.1.0#", "0.1.0"));
+  vocab(
+    root.path(),
+    "eonax-odrl-profile",
+    &ontology("https://eona-x.eu/vocabulary/odrl-profile/v0.0.1#", "0.0.1"),
+  );
+  vocab(
+    root.path(),
+    "eonax-odrl-profile",
+    &ontology("https://eona-x.eu/vocabulary/odrl-profile/v0.1.0#", "0.1.0"),
+  );
 
   let found = discover(root.path(), SITE_BASE).unwrap();
 
@@ -299,7 +307,11 @@ fn several_versions_of_an_eona_x_eu_vocabulary_are_all_published() {
 #[test]
 fn a_vocabulary_minted_under_the_site_base_is_published_whatever_its_directory_is_called() {
   let root = tempfile::tempdir().unwrap();
-  vocab(root.path(), "battery-pass", &ontology("https://eona-x.eu/ontology/battery-pass/v0.1.0#", "0.1.0"));
+  vocab(
+    root.path(),
+    "battery-pass",
+    &ontology("https://eona-x.eu/ontology/battery-pass/v0.1.0#", "0.1.0"),
+  );
 
   let found = discover(root.path(), SITE_BASE).unwrap();
 

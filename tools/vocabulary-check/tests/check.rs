@@ -321,14 +321,23 @@ fn an_asset_directly_under_its_slug_must_move_into_a_version_directory() {
 fn a_version_is_required_and_names_its_directory() {
   let root = tempfile::tempdir().unwrap();
   clean(root.path());
-  write(root.path(), "a/v1.0.0/metadata.ttl", &metadata(Some("A"), FORMAL_ONTOLOGY).replace("dcat:version \"1.0.0\" ;", ""));
+  write(
+    root.path(),
+    "a/v1.0.0/metadata.ttl",
+    &metadata(Some("A"), FORMAL_ONTOLOGY).replace("dcat:version \"1.0.0\" ;", ""),
+  );
   write(root.path(), "b/v2.0.0/metadata.ttl", &metadata(Some("B2"), FORMAL_ONTOLOGY));
   write(root.path(), "b/v2.0.0/ontology.ttl", &ontology("https://example.org/b2", ""));
 
   let found = messages(root.path());
 
   assert!(found.iter().any(|f| f.starts_with("a/v1.0.0: ") && f.contains("dcat:version")), "{found:?}");
-  assert!(found.iter().any(|f| f.starts_with("b/v2.0.0: ") && f.contains("v1.0.0") && f.contains("v2.0.0")), "{found:?}");
+  assert!(
+    found
+      .iter()
+      .any(|f| f.starts_with("b/v2.0.0: ") && f.contains("v1.0.0") && f.contains("v2.0.0")),
+    "{found:?}"
+  );
   assert_eq!(found.len(), 2, "{found:?}");
 }
 
@@ -336,8 +345,19 @@ fn a_version_is_required_and_names_its_directory() {
 fn several_versions_of_an_asset_are_checked_side_by_side() {
   let root = tempfile::tempdir().unwrap();
   clean(root.path());
-  write(root.path(), "a/v2.0.0/metadata.ttl", &metadata(Some("A"), FORMAL_ONTOLOGY).replace("\"1.0.0\"", "\"2.0.0\""));
-  write(root.path(), "a/v2.0.0/ontology.ttl", &ontology("https://example.org/a2", "<https://example.org/a2/Thing> rdfs:subClassOf <https://example.org/a/Thing> ."));
+  write(
+    root.path(),
+    "a/v2.0.0/metadata.ttl",
+    &metadata(Some("A"), FORMAL_ONTOLOGY).replace("\"1.0.0\"", "\"2.0.0\""),
+  );
+  write(
+    root.path(),
+    "a/v2.0.0/ontology.ttl",
+    &ontology(
+      "https://example.org/a2",
+      "<https://example.org/a2/Thing> rdfs:subClassOf <https://example.org/a/Thing> .",
+    ),
+  );
 
   assert_eq!(messages(root.path()), Vec::<String>::new());
 }
@@ -346,7 +366,11 @@ fn several_versions_of_an_asset_are_checked_side_by_side() {
 fn an_eona_x_eu_version_must_agree_with_the_metadata() {
   let root = tempfile::tempdir().unwrap();
   clean(root.path());
-  write(root.path(), "eonax-p/v1.0.0/metadata.ttl", &metadata(Some("P"), TERMINOLOGY).replace("\"1.0.0\"", "\"1.0.1\""));
+  write(
+    root.path(),
+    "eonax-p/v1.0.0/metadata.ttl",
+    &metadata(Some("P"), TERMINOLOGY).replace("\"1.0.0\"", "\"1.0.1\""),
+  );
 
   let found = messages(root.path());
 
