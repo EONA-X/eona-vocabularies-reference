@@ -243,3 +243,41 @@ fn published_vocabularies_come_out_in_directory_name_order() {
   let slugs: Vec<_> = found.published.iter().map(|v| v.slug.as_str()).collect();
   assert_eq!(slugs, ["a", "b"]);
 }
+
+#[test]
+fn code_lists_embedded_under_the_namespace_are_not_extra_roots() {
+  let root = tempfile::tempdir().unwrap();
+  vocab(
+    root.path(),
+    "eonax-bp",
+    r#"@prefix ex: <https://eona-x.eu/ontology/bp/v0.1.0#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+ex: a owl:Ontology ; owl:versionInfo "0.1.0" .
+<https://eona-x.eu/ontology/bp/v0.1.0#StatusCodes> a skos:ConceptScheme .
+<https://eona-x.eu/ontology/bp/v0.1.0#StatusCodes/active> a skos:Concept ; skos:inScheme <https://eona-x.eu/ontology/bp/v0.1.0#StatusCodes> .
+"#,
+  );
+
+  let found = discover(root.path(), SITE_BASE).unwrap();
+
+  assert_eq!(found.published.len(), 1);
+  assert_eq!(found.published[0].namespace, "https://eona-x.eu/ontology/bp/v0.1.0#");
+}
+
+#[test]
+fn two_namespace_roots_are_still_an_error() {
+  let root = tempfile::tempdir().unwrap();
+  vocab(
+    root.path(),
+    "eonax-bp",
+    r#"@prefix owl: <http://www.w3.org/2002/07/owl#> .
+<https://eona-x.eu/ontology/bp/v0.1.0#> a owl:Ontology ; owl:versionInfo "0.1.0" .
+<https://eona-x.eu/ontology/other/v0.1.0#> a owl:Ontology ; owl:versionInfo "0.1.0" .
+"#,
+  );
+
+  let err = discover(root.path(), SITE_BASE).err().expect("two namespaces in one asset must not publish");
+
+  assert!(err.contains("more than one"), "{err}");
+}
