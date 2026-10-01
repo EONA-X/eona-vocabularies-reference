@@ -422,3 +422,42 @@ fn a_graph_without_an_ontology_or_concept_scheme_root_is_skipped_not_an_error() 
     found.skipped[0].reason
   );
 }
+
+#[test]
+fn a_graph_whose_roots_are_all_someone_elses_is_skipped_not_an_error() {
+  // mobilitydcat-ap-shacl: shapes that declare the EU code lists they use.
+  let root = tempfile::tempdir().unwrap();
+  let dir = root.path().join("shapes/v3.0.0");
+  fs::create_dir_all(&dir).unwrap();
+  fs::write(
+    dir.join("ontology.ttl"),
+    r#"@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+<http://nuts.geovocab.org/> a skos:ConceptScheme .
+<http://publications.europa.eu/resource/authority/access-right> a skos:ConceptScheme .
+"#,
+  )
+  .unwrap();
+
+  let found = discover(root.path(), SITE_BASE).unwrap();
+
+  assert!(found.published.is_empty());
+  assert_eq!(found.skipped.len(), 1);
+  assert!(found.skipped[0].reason.contains("http://nuts.geovocab.org/"), "{}", found.skipped[0].reason);
+}
+
+#[test]
+fn two_roots_one_of_them_on_an_eona_x_host_still_fail_the_build() {
+  let root = tempfile::tempdir().unwrap();
+  let dir = root.path().join("p/v1.0.0");
+  fs::create_dir_all(&dir).unwrap();
+  fs::write(
+    dir.join("ontology.ttl"),
+    r#"@prefix owl: <http://www.w3.org/2002/07/owl#> .
+<https://eona-x.eu/vocabulary/p/v1.0.0#> a owl:Ontology ; owl:versionInfo "1.0.0" .
+<https://example.org/other> a owl:Ontology .
+"#,
+  )
+  .unwrap();
+
+  assert!(discover(root.path(), SITE_BASE).is_err());
+}
