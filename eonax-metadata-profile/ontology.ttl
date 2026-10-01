@@ -17,8 +17,8 @@
 # Validate a vocabulary's metadata.ttl against this profile, e.g. with pySHACL:
 #   pyshacl -s eonax-metadata-profile/ontology.ttl -d <slug>/metadata.ttl
 
-@base <https://eona-x.eu/shape/metadata-profile/v1.1.0#> .
-@prefix eox-meta: <https://eona-x.eu/shape/metadata-profile/v1.1.0#> .
+@base <https://eona-x.eu/shape/metadata-profile/v1.2.0#> .
+@prefix eox-meta: <https://eona-x.eu/shape/metadata-profile/v1.2.0#> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -39,12 +39,12 @@ eox-meta:
     a owl:Ontology ;
     rdfs:label "Eona-X Metadata Profile"@en ;
     dcterms:title "Eona-X Metadata Profile"@en ;
-    owl:versionInfo "1.1.0" ;
+    owl:versionInfo "1.2.0" ;
     dcterms:conformsTo <http://www.w3.org/ns/dcat#>, <http://www.w3.org/ns/adms#> ;
     dcterms:description """A SHACL shapes graph constraining the DCAT-AP + ADMS metadata.ttl self-description every vocabulary in the Eona Vocabulary Hub carries: it requires a title and description, restricts dcat:type to the Asset Classification concepts the hub actually publishes under, and restricts adms:status to the Concept Status values the hub currently uses (defaulting to CURRENT)."""@en ;
     rdfs:comment """Written to close out eona-x/backlog#791's request for human-readable notes explaining the use of DCAT-AP for vocabulary publication — read each shape's rdfs:comment/skos:definition below for the reasoning, not just the constraint."""@en ;
     rdfs:seeAlso <http://www.w3.org/ns/dcat#>, <http://www.w3.org/ns/adms#> ;
-    dcterms:source "https://vocab.eona-x.eu/"^^xsd:anyURI .
+    dcterms:source "https://vocabulary.eona-x.eu/"^^xsd:anyURI .
 
 #################################################################
 #  The metadata shape
@@ -81,9 +81,9 @@ eox-meta:MetadataShape
         sh:name "asset classification" ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:in ( assettype:c_89b4bdb7 assettype:c_3948c2ed assettype:c_bba2bb35 assettype:c_64714767 ) ;
-        skos:definition """Classifies the asset using the EU Publications Office's Asset Classification authority table, restricted to the four concepts the hub actually publishes assets under: c_89b4bdb7 "Formal ontology" for an OWL/RDFS vocabulary (metadata.toml's old, default type="owl"), c_3948c2ed "Markup schema" for a SHACL shapes graph (old type="shacl"), and c_bba2bb35 "Alignment" for a SKOS crosswalk between two vocabularies (old type="crosswalk", confirmed the right concept for this use in eona-x/backlog#800), and c_64714767 "Terminology" for a SKOS-based vocabulary that defines terms (concepts, collections) rather than classes and properties, such as the Eona-X ODRL profile. Restricting to sh:in rather than accepting any Asset Classification concept catches a typo'd or mis-picked classification at authoring time instead of it surfacing later as a wrong facet in the catalog UI."""@en ;
-        rdfs:seeAlso <http://publications.europa.eu/resource/authority/asset-classification/c_89b4bdb7>, <http://publications.europa.eu/resource/authority/asset-classification/c_3948c2ed>, <http://publications.europa.eu/resource/authority/asset-classification/c_bba2bb35>, <http://publications.europa.eu/resource/authority/asset-classification/c_64714767> ;
+        sh:in ( assettype:c_89b4bdb7 assettype:c_3948c2ed assettype:c_bba2bb35 assettype:c_64714767 assettype:c_ebfb658e ) ;
+        skos:definition """Classifies the asset using the EU Publications Office's Asset Classification authority table, restricted to the five concepts the hub actually publishes assets under: c_89b4bdb7 "Formal ontology" for an OWL/RDFS vocabulary (metadata.toml's old, default type="owl"), c_3948c2ed "Markup schema" for a SHACL shapes graph (old type="shacl"), and c_bba2bb35 "Alignment" for a SKOS crosswalk between two vocabularies (old type="crosswalk", confirmed the right concept for this use in eona-x/backlog#800), and c_64714767 "Terminology" for a SKOS-based vocabulary that defines terms (concepts, collections) rather than classes and properties, such as the Eona-X ODRL profile, and c_ebfb658e "Glossary" for a controlled vocabulary that defines and disambiguates the business terms of a domain. Restricting to sh:in rather than accepting any Asset Classification concept catches a typo'd or mis-picked classification at authoring time instead of it surfacing later as a wrong facet in the catalog UI."""@en ;
+        rdfs:seeAlso <http://publications.europa.eu/resource/authority/asset-classification/c_89b4bdb7>, <http://publications.europa.eu/resource/authority/asset-classification/c_3948c2ed>, <http://publications.europa.eu/resource/authority/asset-classification/c_bba2bb35>, <http://publications.europa.eu/resource/authority/asset-classification/c_64714767>, <http://publications.europa.eu/resource/authority/asset-classification/c_ebfb658e> ;
     ] ;
 
     sh:property [
