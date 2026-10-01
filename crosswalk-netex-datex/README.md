@@ -36,8 +36,8 @@ SPARQL resolves either way).
 | `datex:connectorType` | `skos:closeMatch` | `netex:connectorStandard` | "type" vs "standard" framing |
 | `datex:location` | `skos:exactMatch` | `netex:location` | same geographic concept |
 
-(`datex:` = `https://eona-x.eu/ontology/datex-ii/v0.3.0#`,
-`netex:` = `https://eona-x.eu/ontology/netex/v0.2.0#`)
+(`datex:` = `https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#`,
+`netex:` = `https://vocabulary.eona-x.eu/ontology/netex/v0.2.0#`)
 
 Per-mapping provenance is attached via **RDF reification**: one `rdf:Statement`
 per pair (`align:map-charging-point`, `align:map-status`, `align:map-power`,
@@ -51,28 +51,28 @@ Query the live Oxigraph endpoint (`http://oxigraph:7878/query` in-compose, or
 
 ```sparql
 PREFIX skos:  <http://www.w3.org/2004/02/skos/core#>
-PREFIX datex: <https://eona-x.eu/ontology/datex-ii/v0.3.0#>
-PREFIX netex: <https://eona-x.eu/ontology/netex/v0.2.0#>
+PREFIX datex: <https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#>
+PREFIX netex: <https://vocabulary.eona-x.eu/ontology/netex/v0.2.0#>
 
 SELECT ?netexTerm WHERE {
   datex:power skos:exactMatch|skos:closeMatch ?netexTerm .
   FILTER(STRSTARTS(STR(?netexTerm), STR(netex:)))
 }
-# -> https://eona-x.eu/ontology/netex/v0.2.0#powerRating
+# -> https://vocabulary.eona-x.eu/ontology/netex/v0.2.0#powerRating
 ```
 
 Reverse direction (NeTEx term → DATEX II equivalent):
 
 ```sparql
 PREFIX skos:  <http://www.w3.org/2004/02/skos/core#>
-PREFIX datex: <https://eona-x.eu/ontology/datex-ii/v0.3.0#>
-PREFIX netex: <https://eona-x.eu/ontology/netex/v0.2.0#>
+PREFIX datex: <https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#>
+PREFIX netex: <https://vocabulary.eona-x.eu/ontology/netex/v0.2.0#>
 
 SELECT ?datexTerm WHERE {
   netex:powerRating skos:exactMatch|skos:closeMatch ?datexTerm .
   FILTER(STRSTARTS(STR(?datexTerm), STR(datex:)))
 }
-# -> https://eona-x.eu/ontology/datex-ii/v0.3.0#power
+# -> https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#power
 ```
 
 Both directions resolve directly because the crosswalk asserts each match in

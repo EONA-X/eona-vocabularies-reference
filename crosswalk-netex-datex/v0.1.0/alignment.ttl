@@ -22,8 +22,8 @@
 # (plug) alignments between the two connector enumerations.
 
 @prefix align: <https://eona-x.eu/crosswalk/netex-datex/v0.1.0#> .
-@prefix datex: <https://eona-x.eu/ontology/datex-ii/v0.3.0#> .
-@prefix netex: <https://eona-x.eu/ontology/netex/v0.2.0#> .
+@prefix datex: <https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#> .
+@prefix netex: <https://vocabulary.eona-x.eu/ontology/netex/v0.2.0#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -55,8 +55,8 @@
     dcterms:creator "EONA-X Vocabulary Hub" ;
     dcterms:source "Hub-curated EV-charging crosswalk for the EMDS demo (demo point C); not derived from an upstream NeTEx/DATEX II distribution — DATEX II and NeTEx are published natively as XSD and carry no canonical cross-standard SKOS mapping." ;
     void:linkPredicate skos:exactMatch , skos:closeMatch , skos:relatedMatch ;
-    rdfs:seeAlso <https://eona-x.eu/ontology/datex-ii/v0.3.0#energy-infrastructure> ,
-                 <https://eona-x.eu/ontology/netex/v0.2.0#ev-charging> .
+    rdfs:seeAlso <https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#energy-infrastructure> ,
+                 <https://vocabulary.eona-x.eu/ontology/netex/v0.2.0#ev-charging> .
 
 # === The 5 alignment mappings (both directions) ============================
 # Pair 1: charging point/equipment — point vs equipment, hence closeMatch.

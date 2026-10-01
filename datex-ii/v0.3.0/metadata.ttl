@@ -19,4 +19,4 @@
 <> schema:logo "datex-ii-hero.png" .
 
 [] vann:preferredNamespacePrefix "datex" ;
-    vann:preferredNamespaceUri "https://eona-x.eu/ontology/datex-ii/v0.3.0#" .
+    vann:preferredNamespaceUri "https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#" .
