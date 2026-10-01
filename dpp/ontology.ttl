@@ -18,8 +18,8 @@
 # rdfs:domain/range) and skos:Concept (so it definitions/notes render in the
 # ontology browser), matching this repo's eox-policy: term convention.
 
-@base <https://vocab.eona-x.eu/dpp/> .
-@prefix dpp: <https://vocab.eona-x.eu/dpp/> .
+@base <https://eona-x.eu/ontology/dpp/v0.1.0#> .
+@prefix dpp: <https://eona-x.eu/ontology/dpp/v0.1.0#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .

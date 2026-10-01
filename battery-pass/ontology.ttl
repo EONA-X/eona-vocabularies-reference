@@ -30,9 +30,9 @@
 # field. Each JSON Schema x-AccessRights extension becomes bp:readAccess /
 # bp:writeAccess object properties onto a shared access-role codelist.
 
-@base <https://vocab.eona-x.eu/battery-pass/> .
-@prefix bp: <https://vocab.eona-x.eu/battery-pass/> .
-@prefix dpp: <https://vocab.eona-x.eu/dpp/> .
+@base <https://eona-x.eu/ontology/battery-pass/v0.1.0#> .
+@prefix bp: <https://eona-x.eu/ontology/battery-pass/v0.1.0#> .
+@prefix dpp: <https://eona-x.eu/ontology/dpp/v0.1.0#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .

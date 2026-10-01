@@ -17,8 +17,8 @@
 # Validate a vocabulary's metadata.ttl against this profile, e.g. with pySHACL:
 #   pyshacl -s eonax-metadata-profile/ontology.ttl -d <slug>/metadata.ttl
 
-@base <https://w3id.org/eonax/metadata-profile/> .
-@prefix eox-meta: <https://w3id.org/eonax/metadata-profile/> .
+@base <https://eona-x.eu/shape/metadata-profile/v1.1.0#> .
+@prefix eox-meta: <https://eona-x.eu/shape/metadata-profile/v1.1.0#> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .

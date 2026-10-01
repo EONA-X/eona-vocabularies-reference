@@ -18,4 +18,4 @@
 <> eona:logo "cen-hero.png" .
 
 [] vann:preferredNamespacePrefix "netex" ;
-    vann:preferredNamespaceUri "https://vocab.eona-x.eu/netex/" .
+    vann:preferredNamespaceUri "https://eona-x.eu/ontology/netex/v0.2.0#" .
