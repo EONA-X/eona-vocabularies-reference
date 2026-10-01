@@ -137,9 +137,9 @@ Eona-X host that is not the convention above. A second job validates every
 - **Fix an error** in an existing ontology (a wrong domain/range, a missing
   label, a broken `owl:versionInfo`) — open a PR against the relevant
   `<slug>/v<version>/ontology.ttl` — or, if the version is already in use downstream, release the fix as a new version (see above).
-- **Update to a newer upstream release** — bump the bundled Turtle and
-  `owl:versionInfo` together, and note the upstream version in your PR
-  description.
+- **Update to a newer upstream release** — add it as a new version directory,
+  `<slug>/v<upstream-version>/`, with its own `metadata.ttl` (`dcat:version` set
+  to the upstream version); the earlier version stays published next to it.
 - **Add a new vocabulary** — open an issue first describing what it is and
   why it belongs here; once agreed, add a new `<slug>/` directory following
   the layout above.
