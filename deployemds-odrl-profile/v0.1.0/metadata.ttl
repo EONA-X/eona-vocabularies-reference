@@ -6,6 +6,7 @@
 @prefix vann: <http://purl.org/vocab/vann/> .
 
 <> a dcat:Dataset, adms:Asset ;
+    dcat:version "0.1.0" ;
     dcterms:title "deployEMDS ODRL Profile"@en ;
     dcterms:description "ODRL 2.2 profile for the proto-EMDS access and usage policies drafted by deployEMDS WP2/WP3, extending the W3C ODRL Profile: Data Spaces vocabulary with mobility-data-space-specific actions, left operands and constraint value schemes. Provisional namespace (https://w3id.org/deployemds/odrl-profile#) — not yet registered with EMDS/DSSC."@en ;
     dcat:type assettype:c_89b4bdb7 ;

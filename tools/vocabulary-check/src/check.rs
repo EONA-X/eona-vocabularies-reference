@@ -12,13 +12,14 @@ use oxrdf::{NamedOrBlankNode, Term, Triple};
 use oxttl::TurtleParser;
 
 use crate::SITE_BASE;
-use crate::convention::{ASSET_CLASSIFICATION, ASSET_TYPES, Classified, classify, graph_file};
+use crate::convention::{ASSET_CLASSIFICATION, ASSET_TYPES, Classified, classify, graph_file, subdirs};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const OWL_ONTOLOGY: &str = "http://www.w3.org/2002/07/owl#Ontology";
 const SKOS_CONCEPT_SCHEME: &str = "http://www.w3.org/2004/02/skos/core#ConceptScheme";
 const DCTERMS_TITLE: &str = "http://purl.org/dc/terms/title";
 const DCAT_TYPE: &str = "http://www.w3.org/ns/dcat#type";
+const DCAT_VERSION: &str = "http://www.w3.org/ns/dcat#version";
 const VOID_LINKSET: &str = "http://rdfs.org/ns/void#Linkset";
 const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
 const FORMAL_ONTOLOGY: &str = "c_89b4bdb7";
@@ -63,6 +64,18 @@ impl Dir {
       .collect()
   }
 
+  /// The lexical forms of `<> predicate "…"` in metadata.ttl.
+  fn metadata_literals(&self, predicate: &str) -> Vec<&str> {
+    self
+      .metadata_objects(predicate)
+      .into_iter()
+      .filter_map(|o| match o {
+        Term::Literal(l) => Some(l.value()),
+        _ => None,
+      })
+      .collect()
+  }
+
   /// Asset-classification codes `metadata.ttl` gives as `dcat:type`.
   fn asset_classes(&self) -> Vec<&str> {
     self
@@ -95,6 +108,23 @@ pub fn check(root: &Path) -> Vec<Finding> {
     let name = dir.name.as_str();
     if dir.metadata_objects(DCTERMS_TITLE).is_empty() {
       report(name, "metadata.ttl: no dcterms:title on <>".into());
+    }
+    // The version: exactly one dcat:version, which names the directory.
+    let versions = dir.metadata_literals(DCAT_VERSION);
+    let version = match versions.as_slice() {
+      [v] => Some(*v),
+      _ => {
+        report(name, format!("metadata.ttl: needs exactly one dcat:version on <> (found {})", versions.len()));
+        None
+      }
+    };
+    if let (Some(version), Some((slug, version_dir))) = (version, name.split_once('/'))
+      && version_dir != format!("v{version}")
+    {
+      report(
+        name,
+        format!("version directory {version_dir} but dcat:version is {version}: expected {slug}/v{version}/"),
+      );
     }
     let classes = dir.asset_classes();
 
@@ -170,7 +200,17 @@ pub fn check(root: &Path) -> Vec<Finding> {
     });
     if minted_here {
       match classify(root, name, SITE_BASE) {
-        Ok(Classified::Published(_) | Classified::Skipped(_)) => {}
+        Ok(Classified::Published(v)) => {
+          if let Some(version) = version
+            && v.version != format!("v{version}")
+          {
+            report(
+              name,
+              format!("namespace {} is version {} but dcat:version is {version}", v.namespace, v.version),
+            );
+          }
+        }
+        Ok(Classified::Skipped(_)) => {}
         Err(e) => report(name, relative(&e, root)),
       }
     }
@@ -246,73 +286,91 @@ fn off_convention(iri: &str) -> Option<String> {
   Some(format!("{scheme}://{host}/{first}"))
 }
 
-/// Parses every Turtle file directly in each top-level directory.
+/// Every top-level directory's own Turtle files (graphs that are part of the
+/// hub without being published assets, e.g. a dependency closure — or an
+/// asset still in the pre-version layout) and every `<slug>/<version>/`
+/// directory (an asset version).
 fn load(root: &Path, findings: &mut Vec<Finding>) -> Vec<Dir> {
-  let Ok(entries) = fs::read_dir(root) else {
-    findings.push(Finding {
-      dir: ".".into(),
-      message: format!("cannot read {}", root.display()),
-    });
-    return Vec::new();
+  let slugs = match subdirs(root) {
+    Ok(s) => s,
+    Err(message) => {
+      findings.push(Finding { dir: ".".into(), message });
+      return Vec::new();
+    }
   };
-  let mut names: Vec<String> = entries
-    .filter_map(Result::ok)
-    .filter(|e| e.path().is_dir())
-    .filter_map(|e| e.file_name().into_string().ok())
-    .filter(|n| !n.starts_with('.'))
-    .collect();
-  names.sort();
+  let mut dirs = Vec::new();
+  for slug in slugs {
+    let top = load_dir(root, &slug, findings);
+    if top.published() {
+      let version = top
+        .metadata_literals(DCAT_VERSION)
+        .first()
+        .map_or_else(|| "<version>".to_string(), |v| (*v).to_string());
+      findings.push(Finding {
+        dir: slug.clone(),
+        message: format!("metadata.ttl directly under {slug}/: an asset version belongs in {slug}/v{version}/"),
+      });
+      dirs.push(Dir { metadata_base: None, ..top });
+    } else if !top.graphs.is_empty() {
+      dirs.push(top);
+    }
+    for version in subdirs(&root.join(&slug)).unwrap_or_default() {
+      let dir = load_dir(root, &format!("{slug}/{version}"), findings);
+      if !dir.graphs.is_empty() || dir.metadata_base.is_some() {
+        dirs.push(dir);
+      }
+    }
+  }
+  dirs
+}
 
-  names
+/// Parses every Turtle file directly in `root/name`.
+fn load_dir(root: &Path, name: &str, findings: &mut Vec<Finding>) -> Dir {
+  let dir_path = root.join(name);
+  let mut files: Vec<String> = fs::read_dir(&dir_path)
     .into_iter()
-    .map(|name| {
-      let dir_path = root.join(&name);
-      let mut files: Vec<String> = fs::read_dir(&dir_path)
-        .into_iter()
-        .flatten()
-        .filter_map(Result::ok)
-        .filter(|e| e.path().is_file())
-        .filter_map(|e| e.file_name().into_string().ok())
-        .filter(|f| f.ends_with(".ttl"))
-        .collect();
-      files.sort();
-      let metadata_base = files.iter().any(|f| f == "metadata.ttl").then(|| format!("file:///{name}/metadata.ttl"));
-      let mut graphs = BTreeMap::new();
-      for file in files {
-        let mut parser = TurtleParser::new();
-        if file == "metadata.ttl" {
-          // `<>` is the asset itself: resolve it against a stable base.
-          parser = parser.with_base_iri(format!("file:///{name}/metadata.ttl")).expect("a valid base IRI");
-        }
-        let data = match fs::read(dir_path.join(&file)) {
-          Ok(d) => d,
-          Err(e) => {
-            findings.push(Finding {
-              dir: name.clone(),
-              message: format!("{file}: cannot read: {e}"),
-            });
-            continue;
-          }
-        };
-        match parser.for_reader(data.as_slice()).collect::<Result<Vec<_>, _>>() {
-          Ok(triples) => {
-            graphs.insert(file, triples);
-          }
-          Err(e) => findings.push(Finding {
-            dir: name.clone(),
-            message: format!("{file}: not valid Turtle: {e}"),
-          }),
-        }
+    .flatten()
+    .filter_map(Result::ok)
+    .filter(|e| e.path().is_file())
+    .filter_map(|e| e.file_name().into_string().ok())
+    .filter(|f| f.ends_with(".ttl"))
+    .collect();
+  files.sort();
+  let metadata_base = files.iter().any(|f| f == "metadata.ttl").then(|| format!("file:///{name}/metadata.ttl"));
+  let mut graphs = BTreeMap::new();
+  for file in files {
+    let mut parser = TurtleParser::new();
+    if file == "metadata.ttl" {
+      // `<>` is the asset itself: resolve it against a stable base.
+      parser = parser.with_base_iri(format!("file:///{name}/metadata.ttl")).expect("a valid base IRI");
+    }
+    let data = match fs::read(dir_path.join(&file)) {
+      Ok(d) => d,
+      Err(e) => {
+        findings.push(Finding {
+          dir: name.to_string(),
+          message: format!("{file}: cannot read: {e}"),
+        });
+        continue;
       }
-      let graph = graph_file(&dir_path).unwrap_or_else(|_| "ontology.ttl".into());
-      Dir {
-        name,
-        graph,
-        graphs,
-        metadata_base,
+    };
+    match parser.for_reader(data.as_slice()).collect::<Result<Vec<_>, _>>() {
+      Ok(triples) => {
+        graphs.insert(file, triples);
       }
-    })
-    .collect()
+      Err(e) => findings.push(Finding {
+        dir: name.to_string(),
+        message: format!("{file}: not valid Turtle: {e}"),
+      }),
+    }
+  }
+  let graph = graph_file(&dir_path).unwrap_or_else(|_| "ontology.ttl".into());
+  Dir {
+    name: name.to_string(),
+    graph,
+    graphs,
+    metadata_base,
+  }
 }
 
 /// The subject IRI of `t` when `t` is `<subject> a <class>`.

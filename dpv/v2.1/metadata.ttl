@@ -7,11 +7,12 @@
 @prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
 
 <> a dcat:Dataset, adms:Asset ;
-    dcterms:title "Battery Passport Data Model"@en ;
-    dcterms:description "EU Battery Regulation (2023/1542) Battery Passport data model, derived from the BatteryPass-Ready per-category JSON Schemas."@en ;
+    dcat:version "2.1" ;
+    dcterms:title "Data Privacy Vocabulary (DPV) 2.1"@en ;
+    dcterms:description "Vocabulary from the W3C Data Privacy Vocabularies and Controls Community Group for describing privacy and data protection concepts — processing purposes, legal bases, personal data categories. Used by the Gaia-X ICAM semantic model."@en ;
     dcat:type assettype:c_89b4bdb7 ;
     adms:status status:CURRENT .
 
-<> dcterms:creator [ a foaf:Agent ; foaf:name "BatteryPass" ] .
+<> dcterms:creator [ a foaf:Agent ; foaf:name "W3C DPVCG" ] .
 
-<> schema:logo "batterypass-hero.png" .
+<> schema:logo "w3c-hero.png" .

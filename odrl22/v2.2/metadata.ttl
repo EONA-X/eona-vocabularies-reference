@@ -8,6 +8,7 @@
 @prefix vann: <http://purl.org/vocab/vann/> .
 
 <> a dcat:Dataset, adms:Asset ;
+    dcat:version "2.2" ;
     dcterms:title "W3C ODRL 2.2 Vocabulary"@en ;
     dcterms:description "The Open Digital Rights Language (ODRL) 2.2 — the W3C Recommendation vocabulary for permissions, prohibitions and obligations. Bundled upstream copy."@en ;
     dcat:type assettype:c_89b4bdb7 ;

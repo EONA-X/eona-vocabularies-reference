@@ -15,10 +15,10 @@
 # value.
 #
 # Validate a vocabulary's metadata.ttl against this profile, e.g. with pySHACL:
-#   pyshacl -s eonax-metadata-profile/ontology.ttl -d <slug>/metadata.ttl
+#   pyshacl -s eonax-metadata-profile/v1.3.0/ontology.ttl -d <slug>/<version>/metadata.ttl
 
-@base <https://eona-x.eu/shape/metadata-profile/v1.2.0#> .
-@prefix eox-meta: <https://eona-x.eu/shape/metadata-profile/v1.2.0#> .
+@base <https://eona-x.eu/shape/metadata-profile/v1.3.0#> .
+@prefix eox-meta: <https://eona-x.eu/shape/metadata-profile/v1.3.0#> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -39,7 +39,7 @@ eox-meta:
     a owl:Ontology ;
     rdfs:label "Eona-X Metadata Profile"@en ;
     dcterms:title "Eona-X Metadata Profile"@en ;
-    owl:versionInfo "1.2.0" ;
+    owl:versionInfo "1.3.0" ;
     dcterms:conformsTo <http://www.w3.org/ns/dcat#>, <http://www.w3.org/ns/adms#> ;
     dcterms:description """A SHACL shapes graph constraining the DCAT-AP + ADMS metadata.ttl self-description every vocabulary in the Eona Vocabulary Hub carries: it requires a title and description, restricts dcat:type to the Asset Classification concepts the hub actually publishes under, and restricts adms:status to the Concept Status values the hub currently uses (defaulting to CURRENT)."""@en ;
     rdfs:comment """Written to close out eona-x/backlog#791's request for human-readable notes explaining the use of DCAT-AP for vocabulary publication — read each shape's rdfs:comment/skos:definition below for the reasoning, not just the constraint."""@en ;
@@ -74,6 +74,16 @@ eox-meta:MetadataShape
         sh:datatype rdf:langString ;
         sh:languageIn ( "en" ) ;
         rdfs:comment """Required: the one-line summary shown in the catalog list view, so a contributor can tell what a vocabulary is for before opening it. Carried forward unchanged from metadata.toml's required `description` key."""@en ;
+    ] ;
+
+    sh:property [
+        sh:path dcat:version ;
+        sh:name "version" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:Literal ;
+        skos:definition """Required: the version of this asset that this directory holds — the version Eona-X publishes (for a vocabulary minted under https://eona-x.eu/, the <version> segment of its IRIs, without the leading v; for a vendored upstream vocabulary, the upstream release it was taken from). Each version of an asset lives in its own <slug>/v<version>/ directory, so the hub can publish several versions side by side."""@en ;
+        rdfs:seeAlso <http://www.w3.org/ns/dcat#version> ;
     ] ;
 
     sh:property [

@@ -7,15 +7,21 @@ publishes, plus the metadata describing each one.
 
 ## What lives here
 
-One directory per ontology, named by its slug:
+One directory per asset, named by its slug, holding one directory per version:
 
 ```
 <slug>/
-├── ontology.ttl          # the vocabulary itself — owl:versionInfo is its version of record
-│                         #   (alignment.ttl for a crosswalk; another name if metadata.ttl declares it, see below)
-├── metadata.ttl          # title, description, classification, upstream attribution
-└── TERMS.md              # optional: field-by-field documentation
+├── v<version>/               # one per published version, e.g. v0.1.0/ — v + its dcat:version
+│   ├── ontology.ttl          # the graph (alignment.ttl for a crosswalk; another name if metadata.ttl declares it)
+│   └── metadata.ttl          # title, description, classification, dcat:version, upstream attribution
+├── v<next-version>/          # a new version goes next to the previous ones, which stay published
+└── TERMS.md                  # optional: field-by-field documentation of the asset
 ```
+
+To release a new version, copy the current version directory to `v<new-version>/`,
+change it there, and bump `dcat:version` (and, for a vocabulary minted under
+`https://eona-x.eu/`, `owl:versionInfo` and the version in its IRIs). Earlier
+versions stay as they are: their IRIs are in use.
 
 ### `metadata.ttl`
 
@@ -35,6 +41,7 @@ self-describing (eona-x/backlog#793). Every asset is modeled as **both**
 @prefix schema: <http://schema.org/> .
 
 <> a dcat:Dataset, adms:Asset ;
+    dcat:version "0.1.0" ;
     dcterms:title "Example Vocabulary"@en ;
     dcterms:description "One-line description shown in the catalog."@en ;
     dcat:type assettype:c_89b4bdb7 ;
@@ -77,7 +84,7 @@ authority table (`status:` = `<http://publications.europa.eu/resource/authority/
 Every vocabulary currently published here is `status:CURRENT`; the full table
 also has `DRAFT`, `DEPRECATED`, `RETIRED`, `CANDIDATE`, `PLANNED`, `REVISED`,
 `WAITING` (and `*_DEPRECATED` variants) for when one is actually superseded or
-withdrawn. `eonax-metadata-profile/ontology.ttl` (see below) SHACL-validates
+withdrawn. `eonax-metadata-profile/v<newest>/ontology.ttl` (see below) SHACL-validates
 `dcat:type` and `adms:status` against exactly the concepts the hub currently
 uses, defaulting `adms:status` to `status:CURRENT` — read its `rdfs:comment`/
 `skos:definition` annotations for the reasoning behind each constraint before
@@ -117,21 +124,22 @@ pipeline builds with); run it locally with
 cargo run --manifest-path tools/vocabulary-check/Cargo.toml -- .
 ```
 
-It reports every finding at once: Turtle that does not parse, a `metadata.ttl`
+It reports every finding at once: Turtle that does not parse, an asset not in a
+`<slug>/v<version>/` directory or whose `dcat:version` does not name it, a `metadata.ttl`
 without `dcterms:title`, a Formal ontology without `owl:Ontology`, a crosswalk
 whose `void:Linkset` does not reach two published vocabularies, a reference to
 an ontology of this repository that has no `metadata.ttl`, and any IRI on an
 Eona-X host that is not the convention above. A second job validates every
-`metadata.ttl` against `eonax-metadata-profile/ontology.ttl` with pySHACL.
+`metadata.ttl` against the newest `eonax-metadata-profile/v*/ontology.ttl` with pySHACL.
 
 ## Kinds of contribution
 
 - **Fix an error** in an existing ontology (a wrong domain/range, a missing
   label, a broken `owl:versionInfo`) — open a PR against the relevant
-  `<slug>/ontology.ttl`.
-- **Update to a newer upstream release** — bump the bundled Turtle and
-  `owl:versionInfo` together, and note the upstream version in your PR
-  description.
+  `<slug>/v<version>/ontology.ttl` — or, if the version is already in use downstream, release the fix as a new version (see above).
+- **Update to a newer upstream release** — add it as a new version directory,
+  `<slug>/v<upstream-version>/`, with its own `metadata.ttl` (`dcat:version` set
+  to the upstream version); the earlier version stays published next to it.
 - **Add a new vocabulary** — open an issue first describing what it is and
   why it belongs here; once agreed, add a new `<slug>/` directory following
   the layout above.
@@ -150,9 +158,9 @@ Eona-X host that is not the convention above. A second job validates every
   repository's [Apache 2.0 license](./LICENSE). If you're contributing an
   upstream standard's own Turtle, make sure its license permits
   redistribution here and note that in `metadata.ttl`/`TERMS.md`.
-- `metadata.ttl` changes should also satisfy `eonax-metadata-profile/ontology.ttl`,
+- `metadata.ttl` changes should also satisfy the newest `eonax-metadata-profile/v*/ontology.ttl`,
   the hub-wide SHACL profile for this file (see `## What lives here` above);
-  validate with e.g. `pyshacl -s eonax-metadata-profile/ontology.ttl -d <slug>/metadata.ttl`
+  validate with e.g. `pyshacl -s eonax-metadata-profile/v1.3.0/ontology.ttl -d <slug>/<version>/metadata.ttl`
   if you have pySHACL installed. The relative `<>` subject in `metadata.ttl`
   is the asset itself: tools resolve it against any base they choose (the
   catalog uses `https://vocabulary.eona-x.eu/catalog/<slug>`).
