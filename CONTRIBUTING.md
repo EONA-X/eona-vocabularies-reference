@@ -66,6 +66,7 @@ self-describing (eona-x/backlog#793). Every asset is modeled as **both**
 | `"owl"` (or absent) | `assettype:c_89b4bdb7` "Formal ontology" | an OWL/RDFS ontology |
 | `"shacl"` | `assettype:c_3948c2ed` "Markup schema" | a SHACL shapes graph |
 | `"crosswalk"` | `assettype:c_bba2bb35` "Alignment" | a SKOS crosswalk between two vocabularies (confirmed in eona-x/backlog#800) |
+| — | `assettype:c_64714767` "Terminology" | a SKOS-based vocabulary defining terms (concepts, collections), not classes or properties — e.g. the Eona-X ODRL profile |
 
 `assettype:` expands to
 `<http://publications.europa.eu/resource/authority/asset-classification/>`.
