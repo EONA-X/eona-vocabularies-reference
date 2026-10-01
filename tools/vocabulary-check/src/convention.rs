@@ -56,6 +56,10 @@ fn asset_type_names() -> Vec<&'static str> {
 pub struct Vocabulary {
   /// Source directory name in eona-vocabularies-reference, e.g. `eonax-odrl-profile`.
   pub dir_name: String,
+  /// The host it is published on: [`crate::SITE_BASE`] for an Eona-X-authored
+  /// vocabulary, [`crate::VENDORED_BASE`] for a representation of an external
+  /// standard.
+  pub base: String,
   /// The ontology IRI, which is also the term namespace, e.g. `https://eona-x.eu/odrl-profile/v0.0.1#`.
   pub namespace: String,
   /// First path segment under the site base: one of [`ASSET_TYPES`], e.g. `vocabulary`.
@@ -205,6 +209,7 @@ pub(crate) fn classify(vocabularies_root: &Path, dir_name: &str, site_base: &str
     ));
   }
   Ok(Classified::Published(Vocabulary {
+    base: site_base.to_string(),
     dir_name: dir_name.to_string(),
     kind: asset_type.into(),
     slug: slug.into(),

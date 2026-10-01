@@ -13,3 +13,7 @@ pub use convention::{ASSET_TYPES, Discovery, Skipped, Vocabulary, asset_type_alt
 
 /// Where Eona-X vocabularies are published.
 pub const SITE_BASE: &str = "https://eona-x.eu/";
+
+/// Where Eona-X publishes its RDF representations of external standards
+/// (vocabularies it vendors so their IRIs dereference, but did not author).
+pub const VENDORED_BASE: &str = "https://vocabulary.eona-x.eu/";
