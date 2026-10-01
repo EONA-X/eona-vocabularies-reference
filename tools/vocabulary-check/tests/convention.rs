@@ -225,6 +225,10 @@ fn each_asset_type_covers_its_eu_asset_classification_concepts() {
     let dir = format!("eonax-{i}");
     vocab(root.path(), &dir, &ontology(&format!("https://eona-x.eu/{asset_type}/x{i}/v1.0.0#"), "1.0.0"));
     metadata(root.path(), &dir, code);
+    if *code == "c_bba2bb35" {
+      // A crosswalk's graph file defaults to alignment.ttl.
+      fs::rename(root.path().join(&dir).join("ontology.ttl"), root.path().join(&dir).join("alignment.ttl")).unwrap();
+    }
   }
 
   let found = discover(root.path(), SITE_BASE).unwrap();

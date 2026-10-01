@@ -9,7 +9,7 @@ pub mod check;
 pub mod convention;
 
 pub use check::{Finding, check};
-pub use convention::{ASSET_TYPES, Discovery, Skipped, Vocabulary, asset_type_alternation, discover};
+pub use convention::{ASSET_TYPES, Discovery, Skipped, Vocabulary, asset_type_alternation, discover, graph_file};
 
 /// Where Eona-X vocabularies are published.
 pub const SITE_BASE: &str = "https://eona-x.eu/";

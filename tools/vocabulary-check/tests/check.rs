@@ -228,7 +228,11 @@ fn metadata_may_declare_its_graph_file_instead_of_ontology_ttl() {
     metadata(Some("Cargo"), FORMAL_ONTOLOGY)
   );
   write(root.path(), "cargo/metadata.ttl", &declared);
-  write(root.path(), "cargo/cargo-model.ttl", &ontology("https://example.org/cargo", "<https://example.org/cargo/Item> a owl:Class ."));
+  write(
+    root.path(),
+    "cargo/cargo-model.ttl",
+    &ontology("https://example.org/cargo", "<https://example.org/cargo/Item> a owl:Class ."),
+  );
 
   assert_eq!(messages(root.path()), Vec::<String>::new());
 
@@ -259,7 +263,11 @@ fn an_iri_on_an_eona_x_host_must_follow_the_publication_convention() {
     ),
   );
   // An Eona-X predicate in metadata.ttl is an IRI like any other.
-  write(root.path(), "a/metadata.ttl", &format!("{}<> <https://vocab.eona-x.eu/logo> \"a.png\" .\n", metadata(Some("A"), FORMAL_ONTOLOGY)));
+  write(
+    root.path(),
+    "a/metadata.ttl",
+    &format!("{}<> <https://vocab.eona-x.eu/logo> \"a.png\" .\n", metadata(Some("A"), FORMAL_ONTOLOGY)),
+  );
 
   let found = messages(root.path());
 
@@ -269,7 +277,12 @@ fn an_iri_on_an_eona_x_host_must_follow_the_publication_convention() {
     ("b", "https://w3id.org/eonax/credentials"),
     ("a", "https://vocab.eona-x.eu/logo"),
   ] {
-    assert!(found.iter().any(|f| f.starts_with(&format!("{dir}: ")) && f.contains(iri) && f.contains("<asset-type>/<slug>/<version>")), "{dir} {iri}: {found:?}");
+    assert!(
+      found
+        .iter()
+        .any(|f| f.starts_with(&format!("{dir}: ")) && f.contains(iri) && f.contains("<asset-type>/<slug>/<version>")),
+      "{dir} {iri}: {found:?}"
+    );
   }
   // One finding per file and namespace, not one per term.
   assert_eq!(found.iter().filter(|f| f.starts_with("mcv: ")).count(), 1, "{found:?}");
