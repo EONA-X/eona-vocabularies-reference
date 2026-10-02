@@ -1,0 +1,19 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix eona: <https://vocab.eona-x.eu/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+@prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+
+<> a dcat:Dataset, adms:Asset ;
+    dcat:version "0.1.0" ;
+    dcterms:title "Spare Pooling Capacity Controlled Vocabulary"@en ;
+    dcterms:description "This controlled vocabulary defines and disambiguates business concepts involved in the spare pooling capacity use case. Technical concepts are excluded."@en ;
+    dcat:type assettype:c_ebfb658e ;
+    adms:status status:CURRENT .
+
+<> dcterms:creator [ a foaf:Person ;  foaf:name "Maxime Blanchard" ] .
+
+<> dcat:distribution [ a dcat:Distribution ; dcat:downloadURL <spare-pooling-capacity-controlled-vocabulary.ttl> ; dcat:mediaType "text/turtle" ] .
