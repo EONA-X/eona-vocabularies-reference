@@ -1,4 +1,4 @@
-@base <https://eona-x.eu/vocabulary/mcv/v0.1.0#> .
+@base <https://eona-x.eu/vocabulary/mcv/v0.1.0> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
