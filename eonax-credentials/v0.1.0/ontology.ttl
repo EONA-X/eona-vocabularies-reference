@@ -1,0 +1,305 @@
+# Eona-X Credentials Vocabulary
+#
+# Verifiable Credential types the Eona-X dataspace issues (or plans to issue)
+# to participants. Status varies by type — see each section:
+#   - DomainCredential ..... CURRENT (the deployed per-domain mechanism)
+#   - FederationCredential . TARGET — not yet emitted by the current runtime
+#     (Milestone 2; see docs/federation-onboarding.md and
+#     docs/odrl-agreement-eidas-validation.md)
+#   - MembershipCredential . CURRENT attestation + TARGET set-valued claims
+#     (`groups`/`domains`) not yet present in the issued record
+#
+# Merged from the three files this repo originally kept separate
+# (domain-credential.ttl, federation-credential.ttl,
+# membership-credential.ttl) — all three mint terms under the SAME
+# namespace/base (https://eona-x.eu/ontology/credentials/v0.1.0#, prefix eox-cred),
+# so they're one vocabulary, not three.
+#
+# Verified by JsonPathCredentialConstraintFunction / MembershipConstraintFunction
+# via the eox-policy: profile (see eonax-odrl-profile.ttl).
+
+@base <https://eona-x.eu/ontology/credentials/v0.1.0#> .
+@prefix eox-cred: <https://eona-x.eu/ontology/credentials/v0.1.0#> .
+@prefix cred: <https://www.w3.org/2018/credentials#> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+eox-cred:
+    a owl:Ontology ;
+    dct:title "Eona-X Credentials Vocabulary"@en ;
+    dct:description """Verifiable Credential types the Eona-X dataspace issues to participants: DomainCredential (current), FederationCredential (target — not yet emitted by the current runtime), and MembershipCredential (current attestation, plus target set-valued claims), together with their claim properties."""@en ;
+    owl:versionInfo "0.1.0" ;
+    vann:preferredNamespacePrefix "eox-cred" ;
+    vann:preferredNamespaceUri "https://eona-x.eu/ontology/credentials/v0.1.0#" .
+
+#################################################################
+#  DomainCredential — CURRENT
+#
+#  A Verifiable Credential asserting that the holder is authorized for a
+#  single domain / route. This is the CURRENT per-domain mechanism (one
+#  credential type, one issuer deployment, one domain each). The target
+#  direction is to fold the domain into a set-valued `domains` claim on
+#  MembershipCredential — see the MembershipCredential section below.
+#################################################################
+
+eox-cred:DomainCredential
+    a rdfs:Class, owl:Class, skos:Concept ;
+    rdfs:subClassOf cred:VerifiableCredential ;
+    rdfs:isDefinedBy eox-cred: ;
+    rdfs:label "Domain Credential"@en ;
+    skos:definition """A Verifiable Credential, issued by a domain authority, asserting that the holder is authorized for one domain / route of the dataspace."""@en ;
+    dct:conformsTo <https://www.w3.org/TR/vc-data-model/> ;
+    skos:note """Backed issuer-side by DomainAttestation (id, holderId, domain); an issuer deployment may only mint attestations for its configured authorized.domain.issuance value, so one issuer == one domain."""@en ;
+    skos:editorialNote """Target direction: supersede this standalone credential type with the set-valued eox-cred:domains claim on MembershipCredential (single issuer, single trusted-issuer entry)."""@en .
+
+eox-cred:DomainCredentialShape
+    a sh:NodeShape ;
+    rdfs:label "DomainCredential shape (target)"@en ;
+    sh:targetClass eox-cred:DomainCredential ;
+    sh:property [
+        sh:path rdf:type ;
+        sh:hasValue eox-cred:DomainCredential ;
+        sh:description "type MUST include DomainCredential (alongside VerifiableCredential)."@en ;
+    ] ;
+    sh:property [
+        sh:path cred:issuer ;
+        sh:nodeKind sh:IRI ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:description "The domain authority DID; MUST be a configured trusted issuer at the verifier."@en ;
+    ] ;
+    sh:property [
+        sh:path cred:credentialSubject ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:node eox-cred:DomainSubjectShape ;
+    ] .
+
+eox-cred:DomainSubjectShape
+    a sh:NodeShape ;
+    rdfs:label "DomainCredential subject (target shape)"@en ;
+    rdfs:comment "credentialSubject of a DomainCredential. A single scalar domain per credential."@en ;
+    sh:nodeKind sh:IRI ;
+    sh:property [
+        sh:path eox-cred:domain ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:name "domain"@en ;
+        sh:description "The single authorized domain / route, e.g. \"route\", \"air\", \"rail\". Tested with: eox-policy:GenericClaim.$.DomainCredential.domain eq \"route\"."@en ;
+    ] .
+
+eox-cred:domain a rdf:Property, skos:Concept ;
+    rdfs:isDefinedBy eox-cred: ; rdfs:label "domain"@en ;
+    rdfs:domain eox-cred:DomainCredential ; rdfs:range xsd:string ;
+    skos:definition "The single domain / route the holder is authorized for."@en ;
+    skos:scopeNote "Scalar claim, tested with odrl:eq / odrl:neq / odrl:isAnyOf. For multi-domain holders, prefer the set-valued eox-cred:domains claim on MembershipCredential with odrl:hasPart."@en .
+
+#################################################################
+#  FederationCredential — TARGET, not yet emitted by the current runtime
+#
+#  A Verifiable Credential, issued by a Federation Authority (FA), that is
+#  the technical proof a participant has signed the federation accession
+#  agreement. It carries the agreement's id and hash — never its content —
+#  so a verifier learns THAT the holder is bound by the federation
+#  agreement, not its terms. Revoking the credential (status-list) is the
+#  technical enactment of terminating the agreement.
+#################################################################
+
+eox-cred:FederationCredential
+    a rdfs:Class, owl:Class, skos:Concept ;
+    rdfs:subClassOf cred:VerifiableCredential ;
+    rdfs:isDefinedBy eox-cred: ;
+    rdfs:label "Federation Credential"@en ;
+    skos:definition """A Verifiable Credential issued by the Federation Authority that proves the holder has signed the federation accession agreement and is a member of the federation. It references the agreement by id and hash, enabling cross-dataspace discovery without the verifier trusting the holder's home dataspace directly."""@en ;
+    dct:conformsTo <https://www.w3.org/TR/vc-data-model/> ;
+    skos:note "TARGET: gated issuer-side by a FederationAgreementAttestation (holderId, agreementId, signatureVerified); issued over the unmodified upstream DCP issuance pipeline."@en ;
+    rdfs:seeAlso <https://w3id.org/eona-x/federation/odrl-profile/v1> .
+
+eox-cred:FederationCredentialShape
+    a sh:NodeShape ;
+    rdfs:label "FederationCredential shape (target)"@en ;
+    sh:targetClass eox-cred:FederationCredential ;
+    sh:property [
+        sh:path rdf:type ;
+        sh:hasValue eox-cred:FederationCredential ;
+        sh:description "type MUST include FederationCredential (alongside VerifiableCredential)."@en ;
+    ] ;
+    sh:property [
+        sh:path cred:issuer ;
+        sh:nodeKind sh:IRI ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:description "The Federation Authority DID; MUST be a configured trusted issuer at the verifier."@en ;
+    ] ;
+    sh:property [
+        sh:path cred:credentialStatus ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:description "Status-list entry; revoking it is the technical termination of the federation agreement."@en ;
+    ] ;
+    sh:property [
+        sh:path cred:credentialSubject ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:node eox-cred:FederationSubjectShape ;
+    ] .
+
+eox-cred:FederationSubjectShape
+    a sh:NodeShape ;
+    rdfs:label "FederationCredential subject (target shape)"@en ;
+    rdfs:comment "credentialSubject.id is the participant DID. The credential carries the agreement's id and hash, never its content."@en ;
+    sh:nodeKind sh:IRI ;
+    sh:property [
+        sh:path eox-cred:federationId ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:name "federationId"@en ;
+        sh:description "Identifier of the federation the holder has joined."@en ;
+    ] ;
+    sh:property [
+        sh:path eox-cred:agreementId ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:name "agreementId"@en ;
+        sh:description "URN of the signed ODRL accession agreement referenced by this credential."@en ;
+    ] ;
+    sh:property [
+        sh:path eox-cred:agreementHash ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:name "agreementHash"@en ;
+        sh:description "SHA-256 hash of the signed agreement, binding the credential to exact agreement content."@en ;
+    ] ;
+    sh:property [
+        sh:path eox-cred:homeDataspace ;
+        sh:maxCount 1 ;
+        sh:name "homeDataspace"@en ;
+        sh:description "Identifier of the holder's home dataspace."@en ;
+    ] .
+
+eox-cred:federationId a rdf:Property, skos:Concept ;
+    rdfs:isDefinedBy eox-cred: ; rdfs:label "federation id"@en ;
+    rdfs:domain eox-cred:FederationCredential ;
+    skos:definition "Identifier of the federation the holder has acceded to."@en .
+
+eox-cred:agreementId a rdf:Property, skos:Concept ;
+    rdfs:isDefinedBy eox-cred: ; rdfs:label "agreement id"@en ;
+    rdfs:domain eox-cred:FederationCredential ; rdfs:range xsd:string ;
+    skos:definition "URN of the ODRL accession agreement this credential references."@en .
+
+eox-cred:agreementHash a rdf:Property, skos:Concept ;
+    rdfs:isDefinedBy eox-cred: ; rdfs:label "agreement hash"@en ;
+    rdfs:domain eox-cred:FederationCredential ; rdfs:range xsd:string ;
+    skos:definition "SHA-256 hash of the signed accession agreement (content binding, not the content itself)."@en .
+
+eox-cred:homeDataspace a rdf:Property, skos:Concept ;
+    rdfs:isDefinedBy eox-cred: ; rdfs:label "home dataspace"@en ;
+    rdfs:domain eox-cred:FederationCredential ;
+    skos:definition "Identifier of the holder's home dataspace."@en .
+
+#################################################################
+#  MembershipCredential — CURRENT attestation + TARGET set-valued claims
+#
+#  Asserts that the holder is a member of the Eona-X dataspace. Divergences
+#  from what the issuer emits today are called out in skos:note / rdfs:comment
+#  on each affected property below.
+#################################################################
+
+eox-cred:MembershipCredential
+    a rdfs:Class, owl:Class, skos:Concept ;
+    rdfs:subClassOf cred:VerifiableCredential ;
+    rdfs:isDefinedBy eox-cred: ;
+    rdfs:label "Membership Credential"@en ;
+    skos:definition """A Verifiable Credential, issued by the dataspace authority, asserting that the holder is a member of the Eona-X dataspace. In the target model it also carries the use-case groups and the domains the holder is authorized for, as array claims, removing the need for a separate credential (and issuer) per domain."""@en ;
+    dct:conformsTo <https://www.w3.org/TR/vc-data-model/> ;
+    skos:note "Backed issuer-side by MembershipAttestation (id, holderId, name, membershipType, membershipStartDate). The groups/domains array claims are TARGET additions not present in that record today."@en .
+
+eox-cred:MembershipCredentialShape
+    a sh:NodeShape ;
+    rdfs:label "MembershipCredential shape (target)"@en ;
+    sh:targetClass eox-cred:MembershipCredential ;
+    sh:property [
+        sh:path rdf:type ;
+        sh:hasValue eox-cred:MembershipCredential ;
+        sh:description "type MUST include MembershipCredential (alongside VerifiableCredential)."@en ;
+    ] ;
+    sh:property [
+        sh:path cred:issuer ;
+        sh:nodeKind sh:IRI ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:description "The dataspace authority DID; MUST be a configured trusted issuer at the verifier."@en ;
+    ] ;
+    sh:property [
+        sh:path cred:credentialSubject ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:node eox-cred:MembershipSubjectShape ;
+        sh:description "The claims about the holder; see MembershipSubjectShape."@en ;
+    ] .
+
+eox-cred:MembershipSubjectShape
+    a sh:NodeShape ;
+    rdfs:label "MembershipCredential subject (target shape)"@en ;
+    rdfs:comment """TARGET credentialSubject of a MembershipCredential — the intended structure, not the current runtime attestation. The array claims `groups` and `domains` are target design; today the issuer models a single scalar domain on a separate DomainCredential (see the DomainCredential section above)."""@en ;
+    sh:nodeKind sh:IRI ;
+    sh:property [
+        sh:path eox-cred:legalName ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:name "legalName"@en ;
+        sh:description "Human-readable participant name (from MembershipAttestation.name)."@en ;
+    ] ;
+    sh:property [
+        sh:path eox-cred:membershipType ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:name "membershipType"@en ;
+        sh:description "Class of membership, e.g. \"member\" / \"associate\"."@en ;
+    ] ;
+    sh:property [
+        sh:path eox-cred:membershipStartDate ;
+        sh:datatype xsd:dateTime ;
+        sh:maxCount 1 ;
+        sh:name "membershipStartDate"@en ;
+        sh:description "Instant the membership became effective."@en ;
+    ] ;
+    sh:property [
+        sh:path eox-cred:groups ;
+        sh:datatype xsd:string ;
+        sh:minCount 0 ;
+        sh:name "groups"@en ;
+        sh:description "TARGET. Use-case scope groups the holder belongs to (e.g. \"EMDS\"). A set-valued claim tested with: eox-policy:GenericClaim.$.MembershipCredential.groups hasPart \"EMDS\". Bridge mechanism until the federation issuer is operational."@en ;
+    ] ;
+    sh:property [
+        sh:path eox-cred:domains ;
+        sh:datatype xsd:string ;
+        sh:minCount 0 ;
+        sh:name "domains"@en ;
+        sh:description "TARGET. Domains / routes the holder is authorized for (e.g. \"route\", \"air\", \"rail\"). Folds the per-domain DomainCredential into a single set-valued membership claim, tested with odrl:hasPart."@en ;
+    ] .
+
+eox-cred:legalName a rdf:Property, skos:Concept ;
+    rdfs:isDefinedBy eox-cred: ; rdfs:label "legal name"@en ;
+    rdfs:domain eox-cred:MembershipCredential ; rdfs:range xsd:string ;
+    skos:definition "Human-readable participant name."@en .
+
+eox-cred:membershipType a rdf:Property, skos:Concept ;
+    rdfs:isDefinedBy eox-cred: ; rdfs:label "membership type"@en ;
+    rdfs:domain eox-cred:MembershipCredential ; rdfs:range xsd:string ;
+    skos:definition "Class of dataspace membership held by the participant."@en .
+
+eox-cred:membershipStartDate a rdf:Property, skos:Concept ;
+    rdfs:isDefinedBy eox-cred: ; rdfs:label "membership start date"@en ;
+    rdfs:domain eox-cred:MembershipCredential ; rdfs:range xsd:dateTime ;
+    skos:definition "Instant the participant's membership became effective."@en .
+
+eox-cred:groups a rdf:Property, skos:Concept ;
+    rdfs:isDefinedBy eox-cred: ; rdfs:label "groups"@en ;
+    rdfs:domain eox-cred:MembershipCredential ; rdfs:range xsd:string ;
+    skos:definition "TARGET set-valued claim: use-case scope groups (e.g. EMDS) the holder belongs to."@en ;
+    skos:scopeNote "Tested with the odrl:hasPart operator (set contains value)."@en .
+
+eox-cred:domains a rdf:Property, skos:Concept ;
+    rdfs:isDefinedBy eox-cred: ; rdfs:label "domains"@en ;
+    rdfs:domain eox-cred:MembershipCredential ; rdfs:range xsd:string ;
+    skos:definition "TARGET set-valued claim: domains / routes the holder is authorized for."@en ;
+    skos:scopeNote "Tested with the odrl:hasPart operator; supersedes the standalone DomainCredential."@en .

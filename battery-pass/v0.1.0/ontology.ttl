@@ -1,0 +1,1385 @@
+# The Battery Passport Data Model
+#
+# OWL representation of the BatteryPass-Ready consortium's per-category JSON
+# Schemas (EV, LMT, Industrial_Without_BMS, Other_Industrial_Above_2kWh,
+# Stationary_Industrial_Above_2kWh) — the concrete, implementation-side data
+# shape for a Battery Regulation (EU) 2023/1542 Digital Product Passport.
+# Source: git.gefeg.com/bp/BatteryPassDataModel, BatteryPass-Ready/JSONSchemaFiles/*.json
+# (public repository, no stated license — confirm reuse terms with GEFEG/the
+# BatteryPass consortium before external/downstream publication).
+#
+# The 5 category schemas share one structure almost verbatim (same 7 content
+# clusters, ~200 fields); this ontology merges them into a single TBox and
+# records, per field, which of the 5 categories carry it via bp:applicableTo —
+# mirroring pipelines/load-dpp/dpp.ttl's dpp:applicableTo pattern for its own,
+# coarser 4-category split (that spreadsheet does not break out
+# 'industrial battery without BMS' as its own column).
+#
+# Companion resource: pipelines/load-dpp/dpp.ttl models the same domain from
+# the *regulation* side (the BatteryPass-Ready Data Attribute Longlist) — the
+# two ontologies share the same 7 content-cluster names (see rdfs:seeAlso on
+# each bp: section class below) but were generated independently and are not
+# formally aligned (no owl:equivalentClass/Property claims).
+#
+# JSON Schema union types (object) become owl:Class; scalar fields become
+# owl:DatatypeProperty; fields $ref-ing an enum or another object become
+# owl:ObjectProperty. The recurring {value, unit} wrapper pattern (e.g.
+# percent_decimal, kilowatthour_integer) collapses into one reusable
+# bp:QuantityValue class instead of ~15 near-duplicate wrapper classes; the
+# field's expected unit(s) are then recorded as a bp:unit annotation on that
+# field. Each JSON Schema x-AccessRights extension becomes bp:readAccess /
+# bp:writeAccess object properties onto a shared access-role codelist.
+
+@base <https://vocabulary.eona-x.eu/ontology/battery-pass/v0.1.0#> .
+@prefix bp: <https://vocabulary.eona-x.eu/ontology/battery-pass/v0.1.0#> .
+@prefix dpp: <https://vocabulary.eona-x.eu/ontology/dpp/v0.1.0#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+#  Ontology
+#################################################################
+
+bp:
+    a owl:Ontology ;
+    rdfs:label "Battery Passport Data Model"@en ;
+    dct:title "Battery Passport Data Model"@en ;
+    owl:versionInfo "0.1.0" ;
+    dct:description "OWL transcription of the BatteryPass-Ready consortium's per-category JSON Schemas for a Battery Regulation (EU) 2023/1542 Digital Product Passport: the concrete data shape (classes, properties, units, access rights) implementing the requirements listed in the companion dpp: (Data Attribute Longlist) ontology."@en ;
+    dct:source <https://git.gefeg.com/bp/BatteryPassDataModel/-/tree/main/BatteryPass-Ready/JSONSchemaFiles> ;
+    rdfs:seeAlso <https://thebatterypass.eu/battery-pass-ready/resources/> .
+
+#################################################################
+#  Access-role codelist (from each field's x-AccessRights extension)
+#################################################################
+
+bp:AccessRoleCodes a skos:ConceptScheme ;
+    skos:prefLabel "Access role"@en ;
+    skos:hasTopConcept bp:PublicRole , bp:AuthoritiesRole , bp:CommissionRole , bp:NotifiedBodiesRole , bp:LegitimateInterestRole , bp:EconomicOperatorRole , bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:PublicRole a skos:Concept ;
+    skos:inScheme bp:AccessRoleCodes ; skos:topConceptOf bp:AccessRoleCodes ;
+    skos:prefLabel "Public"@en .
+
+bp:AuthoritiesRole a skos:Concept ;
+    skos:inScheme bp:AccessRoleCodes ; skos:topConceptOf bp:AccessRoleCodes ;
+    skos:prefLabel "Market surveillance authorities"@en .
+
+bp:CommissionRole a skos:Concept ;
+    skos:inScheme bp:AccessRoleCodes ; skos:topConceptOf bp:AccessRoleCodes ;
+    skos:prefLabel "European Commission"@en .
+
+bp:NotifiedBodiesRole a skos:Concept ;
+    skos:inScheme bp:AccessRoleCodes ; skos:topConceptOf bp:AccessRoleCodes ;
+    skos:prefLabel "Notified bodies"@en .
+
+bp:LegitimateInterestRole a skos:Concept ;
+    skos:inScheme bp:AccessRoleCodes ; skos:topConceptOf bp:AccessRoleCodes ;
+    skos:prefLabel "Persons with a legitimate interest"@en .
+
+bp:EconomicOperatorRole a skos:Concept ;
+    skos:inScheme bp:AccessRoleCodes ; skos:topConceptOf bp:AccessRoleCodes ;
+    skos:prefLabel "Economic operator"@en .
+
+bp:ThirdPartiesAuthorizedByEconomicOperatorRole a skos:Concept ;
+    skos:inScheme bp:AccessRoleCodes ; skos:topConceptOf bp:AccessRoleCodes ;
+    skos:prefLabel "Third parties authorised by the economic operator"@en .
+
+bp:readAccess a owl:ObjectProperty ;
+    rdfs:label "read access"@en ; rdfs:range bp:AccessRoleCodes ;
+    rdfs:comment "Roles allowed to read this field (x-AccessRights.read in the source JSON Schema)."@en .
+
+bp:writeAccess a owl:ObjectProperty ;
+    rdfs:label "write access"@en ; rdfs:range bp:AccessRoleCodes ;
+    rdfs:comment "Roles allowed to write this field (x-AccessRights.write in the source JSON Schema)."@en .
+
+#################################################################
+#  Battery category codelist
+#################################################################
+
+bp:BatteryCategoryCodes a skos:ConceptScheme ;
+    skos:prefLabel "Battery category"@en ;
+    skos:definition "The 5 BatteryPass-Ready battery categories, one per source JSON Schema file."@en ;
+    skos:hasTopConcept bp:EV , bp:LMT , bp:IndustrialWithoutBMS , bp:OtherIndustrialAbove2kWh , bp:StationaryIndustrialAbove2kWh .
+
+bp:EV a skos:Concept ;
+    skos:inScheme bp:BatteryCategoryCodes ; skos:topConceptOf bp:BatteryCategoryCodes ;
+    skos:prefLabel "electric vehicle battery"@en .
+
+bp:LMT a skos:Concept ;
+    skos:inScheme bp:BatteryCategoryCodes ; skos:topConceptOf bp:BatteryCategoryCodes ;
+    skos:prefLabel "LMT battery"@en .
+
+bp:IndustrialWithoutBMS a skos:Concept ;
+    skos:inScheme bp:BatteryCategoryCodes ; skos:topConceptOf bp:BatteryCategoryCodes ;
+    skos:prefLabel "industrial battery without BMS"@en .
+
+bp:OtherIndustrialAbove2kWh a skos:Concept ;
+    skos:inScheme bp:BatteryCategoryCodes ; skos:topConceptOf bp:BatteryCategoryCodes ;
+    skos:prefLabel "industrial/non-stationary battery"@en .
+
+bp:StationaryIndustrialAbove2kWh a skos:Concept ;
+    skos:inScheme bp:BatteryCategoryCodes ; skos:topConceptOf bp:BatteryCategoryCodes ;
+    skos:prefLabel "industrial/stationary battery"@en .
+
+bp:applicableTo a owl:ObjectProperty ;
+    rdfs:label "applicable to"@en ; rdfs:range bp:BatteryCategoryCodes ;
+    rdfs:comment "Battery categories whose JSON Schema defines this field (fields absent from a category's schema are omitted here, e.g. most self-discharge-rate fields only exist for LMT/StationaryIndustrialAbove2kWh, and most BMS-derived monitoring fields are absent from IndustrialWithoutBMS)."@en .
+
+#################################################################
+#  Unit of measure codelist (folds ~15 {value,unit} wrapper defs into one)
+#################################################################
+
+bp:UnitOfMeasureCodes a skos:ConceptScheme ;
+    skos:prefLabel "Unit of measure"@en ;
+    skos:hasTopConcept bp:UnitPercent , bp:UnitPercentPerMonth , bp:UnitAmperePerAmpereHour , bp:UnitAmpereHour , bp:UnitOhm , bp:UnitVolt , bp:UnitWatt , bp:UnitWattPerWattHour , bp:UnitGram , bp:UnitKilowattHour , bp:UnitKilogram , bp:UnitKgCO2Equivalent , bp:UnitKgCO2EquivalentPerKilowattHour , bp:UnitMilliampereHour , bp:UnitDegreeCelsius .
+
+bp:UnitPercent a skos:Concept ;
+    skos:inScheme bp:UnitOfMeasureCodes ; skos:topConceptOf bp:UnitOfMeasureCodes ;
+    skos:prefLabel "%"@en .
+
+bp:UnitPercentPerMonth a skos:Concept ;
+    skos:inScheme bp:UnitOfMeasureCodes ; skos:topConceptOf bp:UnitOfMeasureCodes ;
+    skos:prefLabel "%/month"@en .
+
+bp:UnitAmperePerAmpereHour a skos:Concept ;
+    skos:inScheme bp:UnitOfMeasureCodes ; skos:topConceptOf bp:UnitOfMeasureCodes ;
+    skos:prefLabel "A/Ah"@en .
+
+bp:UnitAmpereHour a skos:Concept ;
+    skos:inScheme bp:UnitOfMeasureCodes ; skos:topConceptOf bp:UnitOfMeasureCodes ;
+    skos:prefLabel "Ah"@en .
+
+bp:UnitOhm a skos:Concept ;
+    skos:inScheme bp:UnitOfMeasureCodes ; skos:topConceptOf bp:UnitOfMeasureCodes ;
+    skos:prefLabel "Ohm"@en .
+
+bp:UnitVolt a skos:Concept ;
+    skos:inScheme bp:UnitOfMeasureCodes ; skos:topConceptOf bp:UnitOfMeasureCodes ;
+    skos:prefLabel "V"@en .
+
+bp:UnitWatt a skos:Concept ;
+    skos:inScheme bp:UnitOfMeasureCodes ; skos:topConceptOf bp:UnitOfMeasureCodes ;
+    skos:prefLabel "W"@en .
+
+bp:UnitWattPerWattHour a skos:Concept ;
+    skos:inScheme bp:UnitOfMeasureCodes ; skos:topConceptOf bp:UnitOfMeasureCodes ;
+    skos:prefLabel "W/Wh"@en .
+
+bp:UnitGram a skos:Concept ;
+    skos:inScheme bp:UnitOfMeasureCodes ; skos:topConceptOf bp:UnitOfMeasureCodes ;
+    skos:prefLabel "g"@en .
+
+bp:UnitKilowattHour a skos:Concept ;
+    skos:inScheme bp:UnitOfMeasureCodes ; skos:topConceptOf bp:UnitOfMeasureCodes ;
+    skos:prefLabel "kWh"@en .
+
+bp:UnitKilogram a skos:Concept ;
+    skos:inScheme bp:UnitOfMeasureCodes ; skos:topConceptOf bp:UnitOfMeasureCodes ;
+    skos:prefLabel "kg"@en .
+
+bp:UnitKgCO2Equivalent a skos:Concept ;
+    skos:inScheme bp:UnitOfMeasureCodes ; skos:topConceptOf bp:UnitOfMeasureCodes ;
+    skos:prefLabel "kgCO2-eq"@en .
+
+bp:UnitKgCO2EquivalentPerKilowattHour a skos:Concept ;
+    skos:inScheme bp:UnitOfMeasureCodes ; skos:topConceptOf bp:UnitOfMeasureCodes ;
+    skos:prefLabel "kgCO2-eq/kWh"@en .
+
+bp:UnitMilliampereHour a skos:Concept ;
+    skos:inScheme bp:UnitOfMeasureCodes ; skos:topConceptOf bp:UnitOfMeasureCodes ;
+    skos:prefLabel "mAh"@en .
+
+bp:UnitDegreeCelsius a skos:Concept ;
+    skos:inScheme bp:UnitOfMeasureCodes ; skos:topConceptOf bp:UnitOfMeasureCodes ;
+    skos:prefLabel "°C"@en .
+
+bp:QuantityValue a owl:Class ;
+    rdfs:label "Quantity value"@en ;
+    rdfs:comment "Generic {numeric value, unit} pair, reused for every physical-quantity field. Collapses the source schemas' ~15 near-duplicate wrapper types (percent_decimal, kilowatthour_integer, ohm_integer, ...) into one class; the specific unit(s) a given field is expressed in are recorded as a bp:unit annotation on that field, not here."@en .
+
+bp:numericValue a owl:DatatypeProperty ;
+    rdfs:domain bp:QuantityValue ; rdfs:range xsd:decimal ;
+    rdfs:label "numeric value"@en .
+
+bp:unitOfMeasure a owl:ObjectProperty ;
+    rdfs:domain bp:QuantityValue ; rdfs:range bp:UnitOfMeasureCodes ;
+    rdfs:label "unit of measure"@en .
+
+bp:unit a owl:AnnotationProperty ;
+    rdfs:label "unit"@en ;
+    rdfs:comment "The unit(s) a bp:QuantityValue-ranged field is expressed in, per its source wrapper type's unit-sign enum, e.g. \"kWh\" or \"Ah or mAh\"."@en .
+
+#################################################################
+#  Custom chemical codes (varies by category — IndustrialWithoutBMS is Pb-only)
+#################################################################
+
+bp:CustomChemicalCodes a skos:ConceptScheme ;
+    skos:prefLabel "Custom chemical code"@en ;
+    skos:hasTopConcept bp:ChemistryLiIonLCO , bp:ChemistryLiIonLFP , bp:ChemistryLiIonLMO , bp:ChemistryLiIonNCA , bp:ChemistryLiIonNMC , bp:ChemistryLiMetal , bp:ChemistryNaIon , bp:ChemistryNiCd , bp:ChemistryNiMH , bp:ChemistryPb .
+
+bp:ChemistryLiIonLCO a skos:Concept ;
+    skos:inScheme bp:CustomChemicalCodes ; skos:topConceptOf bp:CustomChemicalCodes ;
+    skos:prefLabel "Li-ion LCO"@en ;
+    bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh .
+
+bp:ChemistryLiIonLFP a skos:Concept ;
+    skos:inScheme bp:CustomChemicalCodes ; skos:topConceptOf bp:CustomChemicalCodes ;
+    skos:prefLabel "Li-ion LFP"@en ;
+    bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh .
+
+bp:ChemistryLiIonLMO a skos:Concept ;
+    skos:inScheme bp:CustomChemicalCodes ; skos:topConceptOf bp:CustomChemicalCodes ;
+    skos:prefLabel "Li-ion LMO"@en ;
+    bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh .
+
+bp:ChemistryLiIonNCA a skos:Concept ;
+    skos:inScheme bp:CustomChemicalCodes ; skos:topConceptOf bp:CustomChemicalCodes ;
+    skos:prefLabel "Li-ion NCA"@en ;
+    bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh .
+
+bp:ChemistryLiIonNMC a skos:Concept ;
+    skos:inScheme bp:CustomChemicalCodes ; skos:topConceptOf bp:CustomChemicalCodes ;
+    skos:prefLabel "Li-ion NMC"@en ;
+    bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh .
+
+bp:ChemistryLiMetal a skos:Concept ;
+    skos:inScheme bp:CustomChemicalCodes ; skos:topConceptOf bp:CustomChemicalCodes ;
+    skos:prefLabel "Li-metal"@en ;
+    bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh .
+
+bp:ChemistryNaIon a skos:Concept ;
+    skos:inScheme bp:CustomChemicalCodes ; skos:topConceptOf bp:CustomChemicalCodes ;
+    skos:prefLabel "Na-ion"@en ;
+    bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh .
+
+bp:ChemistryNiCd a skos:Concept ;
+    skos:inScheme bp:CustomChemicalCodes ; skos:topConceptOf bp:CustomChemicalCodes ;
+    skos:prefLabel "Ni-Cd"@en ;
+    bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh .
+
+bp:ChemistryNiMH a skos:Concept ;
+    skos:inScheme bp:CustomChemicalCodes ; skos:topConceptOf bp:CustomChemicalCodes ;
+    skos:prefLabel "Ni-MH"@en ;
+    bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh .
+
+bp:ChemistryPb a skos:Concept ;
+    skos:inScheme bp:CustomChemicalCodes ; skos:topConceptOf bp:CustomChemicalCodes ;
+    skos:prefLabel "Pb"@en ;
+    bp:applicableTo bp:EV, bp:LMT, bp:IndustrialWithoutBMS, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh .
+
+#################################################################
+#  Battery status codelist
+#################################################################
+
+bp:BatteryStatusCodes a skos:ConceptScheme ;
+    skos:prefLabel "Battery status"@en ;
+    skos:hasTopConcept bp:BatteryStatusCodes_Original , bp:BatteryStatusCodes_ReUsed , bp:BatteryStatusCodes_Remanufactured , bp:BatteryStatusCodes_Repurposed , bp:BatteryStatusCodes_Waste .
+
+bp:BatteryStatusCodes_Original a skos:Concept ;
+    skos:inScheme bp:BatteryStatusCodes ; skos:topConceptOf bp:BatteryStatusCodes ;
+    skos:prefLabel "original"@en .
+
+bp:BatteryStatusCodes_ReUsed a skos:Concept ;
+    skos:inScheme bp:BatteryStatusCodes ; skos:topConceptOf bp:BatteryStatusCodes ;
+    skos:prefLabel "re-used"@en .
+
+bp:BatteryStatusCodes_Remanufactured a skos:Concept ;
+    skos:inScheme bp:BatteryStatusCodes ; skos:topConceptOf bp:BatteryStatusCodes ;
+    skos:prefLabel "remanufactured"@en .
+
+bp:BatteryStatusCodes_Repurposed a skos:Concept ;
+    skos:inScheme bp:BatteryStatusCodes ; skos:topConceptOf bp:BatteryStatusCodes ;
+    skos:prefLabel "repurposed"@en .
+
+bp:BatteryStatusCodes_Waste a skos:Concept ;
+    skos:inScheme bp:BatteryStatusCodes ; skos:topConceptOf bp:BatteryStatusCodes ;
+    skos:prefLabel "waste"@en .
+
+#################################################################
+#  DPP status codelist
+#################################################################
+
+bp:DppStatusCodes a skos:ConceptScheme ;
+    skos:prefLabel "DPP status"@en ;
+    skos:hasTopConcept bp:DppStatusCodes_Active , bp:DppStatusCodes_Archived , bp:DppStatusCodes_Inactive , bp:DppStatusCodes_MarkedForDeletion .
+
+bp:DppStatusCodes_Active a skos:Concept ;
+    skos:inScheme bp:DppStatusCodes ; skos:topConceptOf bp:DppStatusCodes ;
+    skos:prefLabel "Active"@en .
+
+bp:DppStatusCodes_Archived a skos:Concept ;
+    skos:inScheme bp:DppStatusCodes ; skos:topConceptOf bp:DppStatusCodes ;
+    skos:prefLabel "Archived"@en .
+
+bp:DppStatusCodes_Inactive a skos:Concept ;
+    skos:inScheme bp:DppStatusCodes ; skos:topConceptOf bp:DppStatusCodes ;
+    skos:prefLabel "Inactive"@en .
+
+bp:DppStatusCodes_MarkedForDeletion a skos:Concept ;
+    skos:inScheme bp:DppStatusCodes ; skos:topConceptOf bp:DppStatusCodes ;
+    skos:prefLabel "Marked-for-deletion"@en .
+
+#################################################################
+#  Root class + the 7 content-cluster classes
+#################################################################
+
+bp:BatteryPassport a owl:Class ;
+    rdfs:label "Battery Passport"@en ;
+    rdfs:comment "Root object of a battery Digital Product Passport instance, composed of the 7 BatteryPass-Ready content clusters below."@en .
+
+bp:hasSymbolsLabelsAndDocumentationOfConformity a owl:ObjectProperty ;
+    rdfs:domain bp:BatteryPassport ; rdfs:range bp:SymbolsLabelsAndDocumentationOfConformity ;
+    rdfs:label "Symbols Labels And Documentation Of Conformity"@en .
+
+bp:hasSupplyChainDueDiligence a owl:ObjectProperty ;
+    rdfs:domain bp:BatteryPassport ; rdfs:range bp:SupplyChainDueDiligence ;
+    rdfs:label "Supply Chain Due Diligence"@en .
+
+bp:hasPerformanceAndDurability a owl:ObjectProperty ;
+    rdfs:domain bp:BatteryPassport ; rdfs:range bp:PerformanceAndDurability ;
+    rdfs:label "Performance And Durability"@en .
+
+bp:hasIdentifiersAndProductData a owl:ObjectProperty ;
+    rdfs:domain bp:BatteryPassport ; rdfs:range bp:IdentifiersAndProductData ;
+    rdfs:label "Identifiers And Product Data"@en .
+
+bp:hasCircularityAndResourceEfficiency a owl:ObjectProperty ;
+    rdfs:domain bp:BatteryPassport ; rdfs:range bp:CircularityAndResourceEfficiency ;
+    rdfs:label "Circularity And Resource Efficiency"@en .
+
+bp:hasBatteryMaterialsAndComposition a owl:ObjectProperty ;
+    rdfs:domain bp:BatteryPassport ; rdfs:range bp:BatteryMaterialsAndComposition ;
+    rdfs:label "Battery Materials And Composition"@en .
+
+bp:hasBatteryCarbonFootprint a owl:ObjectProperty ;
+    rdfs:domain bp:BatteryPassport ; rdfs:range bp:BatteryCarbonFootprint ;
+    rdfs:label "Battery Carbon Footprint"@en .
+
+bp:SymbolsLabelsAndDocumentationOfConformity a owl:Class ;
+    rdfs:label "Symbols Labels And Documentation Of Conformity"@en ;
+    rdfs:seeAlso dpp:SymbolsLabelsAndDocumentationOfConformity .
+
+bp:separateCollectionSymbol
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:SymbolsLabelsAndDocumentationOfConformity
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "SeparateCollectionSymbol"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:symbolsForCadmiumAndLead
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:SymbolsLabelsAndDocumentationOfConformity
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "SymbolsForCadmiumAndLead"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:carbonFootprintLabel
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:SymbolsLabelsAndDocumentationOfConformity
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "CarbonFootprintLabel"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:SymbolsLabelsAndDocumentationOfConformity_extinguishingAgent
+    a owl:ObjectProperty
+    ; rdfs:domain bp:SymbolsLabelsAndDocumentationOfConformity
+    ; rdfs:range bp:ExtinguishingAgent
+    ; rdfs:label "ExtinguishingAgent"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:meaningOfLabelsAndSymbols
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:SymbolsLabelsAndDocumentationOfConformity
+    ; rdfs:range xsd:string
+    ; rdfs:label "MeaningOfLabelsAndSymbols"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:euDeclarationOfConformity
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:SymbolsLabelsAndDocumentationOfConformity
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "EUDeclarationOfConformity"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:resultsOfTestReportsProvingCompliance
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:SymbolsLabelsAndDocumentationOfConformity
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "ResultsOfTestReportsProvingCompliance"@en
+    ; bp:readAccess bp:NotifiedBodiesRole, bp:AuthoritiesRole, bp:CommissionRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:SupplyChainDueDiligence a owl:Class ;
+    rdfs:label "Supply Chain Due Diligence"@en ;
+    rdfs:seeAlso dpp:SupplyChainDueDiligence .
+
+bp:informationOfDueDiligenceReport
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:SupplyChainDueDiligence
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "InformationOfDueDiligenceReport"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:thirdPartyAssurancesOfRecognisedSchemes
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:SupplyChainDueDiligence
+    ; rdfs:range xsd:string
+    ; rdfs:label "ThirdPartyAssurancesOfRecognisedSchemes"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:supplyChainIndices
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:SupplyChainDueDiligence
+    ; rdfs:range xsd:string
+    ; rdfs:label "SupplyChainIndices"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:PerformanceAndDurability a owl:Class ;
+    rdfs:label "Performance And Durability"@en ;
+    rdfs:seeAlso dpp:PerformanceAndDurability .
+
+bp:ratedCapacity
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "Ah or mAh"
+    ; rdfs:label "RatedCapacity"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:remainingCapacity
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "Ah or mAh"
+    ; rdfs:label "RemainingCapacity"@en
+    ; bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:capacityFade
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "CapacityFade"@en
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:certifiedUsableBatteryEnergy
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "kWh"
+    ; rdfs:label "CertifiedUsableBatteryEnergy"@en
+    ; bp:applicableTo bp:EV
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:remainingUsableBatteryEnergy
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "kWh"
+    ; rdfs:label "RemainingUsableBatteryEnergy"@en
+    ; bp:applicableTo bp:EV
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:stateOfCertifiedEnergySOCE
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "StateOfCertifiedEnergySOCE"@en
+    ; bp:applicableTo bp:EV
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:stateOfChargeSoC
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "StateOfChargeSoC"@en
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:minimumVoltage
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:VoltCelsiusDecimal
+    ; rdfs:label "MinimumVoltage"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:maximumVoltage
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:VoltCelsiusDecimal
+    ; rdfs:label "MaximumVoltage"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:nominalVoltage
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:VoltCelsiusDecimal
+    ; rdfs:label "NominalVoltage"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:originalPowerCapability
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:WattCelciusInteger
+    ; rdfs:label "OriginalPowerCapability"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:remainingPowerCapability
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:WattCelciusInteger2
+    ; rdfs:label "RemainingPowerCapability"@en
+    ; bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:powerFade
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "PowerFade"@en
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:maximumPermittedBatteryPower
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:WattCelsiusIntegerOnevalue
+    ; rdfs:label "MaximumPermittedBatteryPower"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:ratioBetweenNominalBatteryPowerAndBatteryEnergy
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "W/Wh"
+    ; rdfs:label "RatioBetweenNominalBatteryPowerAndBatteryEnergy"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:initialRoundTripEnergyEfficiency
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "InitialRoundTripEnergyEfficiency"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:roundTripEnergyEfficiencyAt50OfCycleLife
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "RoundTripEnergyEfficiencyAt50OfCycleLife"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:energyRoundTripEfficiencyFade
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "EnergyRoundTripEfficiencyFade"@en
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:initialInternalResistanceOfBatteryCellAndPackModuleRecommended
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "Ohm"
+    ; rdfs:label "InitialInternalResistanceOfBatteryCellAndPackModuleRecommended"@en
+    ; bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:internalResistanceIncreaseOfPackCellAndModuleRecommended
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "InternalResistanceIncreaseOfPackCellAndModuleRecommended"@en
+    ; bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:expectedLifetimeInCalendarYears
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range xsd:decimal
+    ; rdfs:label "ExpectedLifetimeInCalendarYears"@en
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:expectedLifetimeNumberOfChargeDischargeCycles
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range xsd:integer
+    ; rdfs:label "ExpectedLifetime-NumberOfCharge-dischargeCycles"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:numberOfFullChargingAndDischargingCycles
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range xsd:integer
+    ; rdfs:label "NumberOfFullChargingAndDischargingCycles"@en
+    ; bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:cycleLifeReferenceTest
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range xsd:string
+    ; rdfs:label "Cycle-lifeReferenceTest"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:cRateOfRelevantCycleLifeTest
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "A/Ah"
+    ; rdfs:label "C-rateOfRelevantCycle-lifeTest"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:capacityThresholdForExhaustion
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "CapacityThresholdForExhaustion"@en
+    ; bp:applicableTo bp:EV
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:temperatureInformation
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "°C"
+    ; rdfs:label "TemperatureInformation"@en
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:temperatureRangeIdleStateLowerBoundary
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "°C"
+    ; rdfs:label "TemperatureRangeIdleStateLowerBoundary"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:temperatureRangeIdleStateUpperBoundary
+    a owl:ObjectProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "°C"
+    ; rdfs:label "TemperatureRangeIdleStateUpperBoundary"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:numberOfDeepDischargeEvents
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range xsd:integer
+    ; rdfs:label "NumberOfDeepDischargeEvents"@en
+    ; bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:numberOfOverchargeEvents
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range xsd:integer
+    ; rdfs:label "NumberOfOverchargeEvents"@en
+    ; bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:informationOnAccidents
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:PerformanceAndDurability
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "InformationOnAccidents"@en
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:IdentifiersAndProductData a owl:Class ;
+    rdfs:label "Identifiers And Product Data"@en ;
+    rdfs:seeAlso dpp:IdentifiersAndProductData .
+
+bp:dppSchemaVersion
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range xsd:string
+    ; rdfs:label "DPPSchemaVersion"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:dppStatus
+    a owl:ObjectProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range bp:DppStatusCodes
+    ; rdfs:label "DPPStatus"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:dppGranularity
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range xsd:string
+    ; rdfs:label "DPPGranularity"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:dateTimeOfLatestUpdateOfDPP
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range xsd:dateTime
+    ; rdfs:label "Date-timeOfLatestUpdateOfDPP"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:batteryModelIdentifier
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range xsd:string
+    ; rdfs:label "BatteryModelIdentifier"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:uniqueBatteryPassportIdentifierUniqueDPPIdentifier
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "UniqueBatteryPassportIdentifierUniqueDPPIdentifier"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:uniqueBatteryIdentifierUniqueProductIdentifier
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "UniqueBatteryIdentifierUniqueProductIdentifier"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:batterySerialNumber
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range xsd:string
+    ; rdfs:label "BatterySerialNumber"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:uniqueEconomicOperatorIdentifier
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range xsd:string
+    ; rdfs:label "UniqueEconomicOperatorIdentifier"@en
+    ; bp:readAccess bp:NotifiedBodiesRole, bp:AuthoritiesRole, bp:CommissionRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:uniqueManufacturerIdentifier
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range xsd:string
+    ; rdfs:label "UniqueManufacturerIdentifier"@en
+    ; bp:readAccess bp:NotifiedBodiesRole, bp:AuthoritiesRole, bp:CommissionRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:uniqueFacilityIdentifier
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range xsd:string
+    ; rdfs:label "UniqueFacilityIdentifier"@en
+    ; bp:readAccess bp:NotifiedBodiesRole, bp:AuthoritiesRole, bp:CommissionRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:economicOperatorInformation
+    a owl:ObjectProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range bp:OperatorInformation
+    ; rdfs:label "EconomicOperatorInformation"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:manufacturerInformation
+    a owl:ObjectProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range bp:OperatorInformation
+    ; rdfs:label "ManufacturerInformation"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:manufacturingPlace
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range xsd:string
+    ; rdfs:label "ManufacturingPlace"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:manufacturingDate
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range xsd:string
+    ; rdfs:label "ManufacturingDate"@en
+    ; bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:dateOfPuttingTheBatteryIntoService
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range xsd:string
+    ; rdfs:label "DateOfPuttingTheBatteryIntoService"@en
+    ; bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:warrantyPeriodOfTheBattery
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range xsd:string
+    ; rdfs:label "WarrantyPeriodOfTheBattery"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:batteryCategory
+    a owl:ObjectProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range bp:BatteryCategoryCodes
+    ; rdfs:label "BatteryCategory"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:batteryMass
+    a owl:ObjectProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "g or kg"
+    ; rdfs:label "BatteryMass"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:batteryStatus
+    a owl:ObjectProperty
+    ; rdfs:domain bp:IdentifiersAndProductData
+    ; rdfs:range bp:BatteryStatusCodes
+    ; rdfs:label "BatteryStatus"@en
+    ; bp:readAccess bp:LegitimateInterestRole
+    ; bp:writeAccess bp:EconomicOperatorRole, bp:ThirdPartiesAuthorizedByEconomicOperatorRole .
+
+bp:CircularityAndResourceEfficiency a owl:Class ;
+    rdfs:label "Circularity And Resource Efficiency"@en ;
+    rdfs:seeAlso dpp:CircularityAndResourceEfficiency .
+
+bp:dismantlingInformationManualsForTheRemovalAndTheDisassemblyOfTheBatteryPack
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:CircularityAndResourceEfficiency
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "DismantlingInformation-ManualsForTheRemovalAndTheDisassemblyOfTheBatteryPack"@en
+    ; bp:readAccess bp:LegitimateInterestRole, bp:CommissionRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:partNumbersForComponents
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:CircularityAndResourceEfficiency
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "PartNumbersForComponents"@en
+    ; bp:readAccess bp:LegitimateInterestRole, bp:CommissionRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:informationOnSourcesOfSpareParts
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:CircularityAndResourceEfficiency
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "InformationOnSourcesOfSpareParts"@en
+    ; bp:readAccess bp:LegitimateInterestRole, bp:CommissionRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:safetyMeasures
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:CircularityAndResourceEfficiency
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "SafetyMeasures"@en
+    ; bp:readAccess bp:LegitimateInterestRole, bp:CommissionRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:preConsumerRecycledNickelShare
+    a owl:ObjectProperty
+    ; rdfs:domain bp:CircularityAndResourceEfficiency
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "Pre-consumerRecycledNickelShare"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:preConsumerRecycledCobaltShare
+    a owl:ObjectProperty
+    ; rdfs:domain bp:CircularityAndResourceEfficiency
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "Pre-consumerRecycledCobaltShare"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:preConsumerRecycledLithiumShare
+    a owl:ObjectProperty
+    ; rdfs:domain bp:CircularityAndResourceEfficiency
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "Pre-consumerRecycledLithiumShare"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:postConsumerRecycledNickelShare
+    a owl:ObjectProperty
+    ; rdfs:domain bp:CircularityAndResourceEfficiency
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "Post-consumerRecycledNickelShare"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:postConsumerRecycledCobaltShare
+    a owl:ObjectProperty
+    ; rdfs:domain bp:CircularityAndResourceEfficiency
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "Post-consumerRecycledCobaltShare"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:postConsumerRecycledLithiumShare
+    a owl:ObjectProperty
+    ; rdfs:domain bp:CircularityAndResourceEfficiency
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "Post-consumerRecycledLithiumShare"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:recycledLeadShare
+    a owl:ObjectProperty
+    ; rdfs:domain bp:CircularityAndResourceEfficiency
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "RecycledLeadShare"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:renewableContentShare
+    a owl:ObjectProperty
+    ; rdfs:domain bp:CircularityAndResourceEfficiency
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "%"
+    ; rdfs:label "RenewableContentShare"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:informationOnTheRoleOfEndUsersInContributingToWastePrevention
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:CircularityAndResourceEfficiency
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "InformationOnTheRoleOfEnd-usersInContributingToWastePrevention"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:informationOnTheRoleOfEndUsersInContributingToTheSeparateCollectionOfWasteBatteries
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:CircularityAndResourceEfficiency
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "InformationOnTheRoleOfEnd-usersInContributingToTheSeparateCollectionOfWasteBatteries"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:informationOnBatteryCollectionPreparationForSecondLifeAndOnTreatmentAtEndOfLife
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:CircularityAndResourceEfficiency
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "InformationOnBatteryCollectionPreparationForSecondLifeAndOnTreatmentAtEndOfLife"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:BatteryMaterialsAndComposition a owl:Class ;
+    rdfs:label "Battery Materials And Composition"@en ;
+    rdfs:seeAlso dpp:BatteryMaterialsAndComposition .
+
+bp:batteryChemistry
+    a owl:ObjectProperty
+    ; rdfs:domain bp:BatteryMaterialsAndComposition
+    ; rdfs:range bp:BatteryChemistry
+    ; rdfs:label "BatteryChemistry"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:criticalRawMaterials
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:BatteryMaterialsAndComposition
+    ; rdfs:range xsd:string
+    ; rdfs:label "CriticalRawMaterials"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:hazardousSubstances
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:BatteryMaterialsAndComposition
+    ; rdfs:range xsd:string
+    ; rdfs:label "HazardousSubstances"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:materialsUsedInCathodeAnodeAndElectrolyte
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:BatteryMaterialsAndComposition
+    ; rdfs:range xsd:string
+    ; rdfs:label "MaterialsUsedInCathodeAnodeAndElectrolyte"@en
+    ; bp:readAccess bp:LegitimateInterestRole, bp:CommissionRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:impactOfSubstancesOnEnvironmentHumanHealthSafetyPersons
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:BatteryMaterialsAndComposition
+    ; rdfs:range xsd:string
+    ; rdfs:label "ImpactOfSubstancesOnEnvironmentHumanHealthSafetyPersons"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:BatteryCarbonFootprint a owl:Class ;
+    rdfs:label "Battery Carbon Footprint"@en ;
+    rdfs:seeAlso dpp:BatteryCarbonFootprint .
+
+bp:contributionOfRawMaterialAcquisitionAndPreProcessingLifecycleStage
+    a owl:ObjectProperty
+    ; rdfs:domain bp:BatteryCarbonFootprint
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "kgCO2-eq/kWh"
+    ; rdfs:label "ContributionOfRawMaterialAcquisitionAndPre-processingLifecycleStage"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:batteryCarbonFootprintPerFunctionalUnit
+    a owl:ObjectProperty
+    ; rdfs:domain bp:BatteryCarbonFootprint
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "kgCO2-eq/kWh"
+    ; rdfs:label "BatteryCarbonFootprintPerFunctionalUnit"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:contributionOfMainProductProductionLifecycleStage
+    a owl:ObjectProperty
+    ; rdfs:domain bp:BatteryCarbonFootprint
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "kgCO2-eq/kWh"
+    ; rdfs:label "ContributionOfMainProductProductionLifecycleStage"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:contributionOfDistributionLifecycleStage
+    a owl:ObjectProperty
+    ; rdfs:domain bp:BatteryCarbonFootprint
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "kgCO2-eq/kWh"
+    ; rdfs:label "ContributionOfDistributionLifecycleStage"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:contributionOfEndOfLifeAndRecyclingLifecycleStage
+    a owl:ObjectProperty
+    ; rdfs:domain bp:BatteryCarbonFootprint
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "kgCO2-eq/kWh"
+    ; rdfs:label "ContributionOfEndOfLifeAndRecyclingLifecycleStage"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:carbonFootprintPerformanceClass
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:BatteryCarbonFootprint
+    ; rdfs:range xsd:string
+    ; rdfs:label "CarbonFootprintPerformanceClass"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:webLinkToPublicCarbonFootprintStudy
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:BatteryCarbonFootprint
+    ; rdfs:range xsd:anyURI
+    ; rdfs:label "WebLinkToPublicCarbonFootprintStudy"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+bp:absoluteBatteryCarbonFootprint
+    a owl:ObjectProperty
+    ; rdfs:domain bp:BatteryCarbonFootprint
+    ; rdfs:range bp:QuantityValue
+    ; bp:unit "kgCO2-eq"
+    ; rdfs:label "AbsoluteBatteryCarbonFootprint"@en
+    ; bp:readAccess bp:PublicRole
+    ; bp:writeAccess bp:EconomicOperatorRole .
+
+#################################################################
+#  Supporting classes
+#################################################################
+
+bp:BatteryChemistry a owl:Class ;
+    rdfs:label "Battery chemistry type"@en .
+
+bp:additionallyPossibleValue
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:BatteryChemistry
+    ; rdfs:range xsd:string
+    ; rdfs:label "additionallyPossibleValue"@en .
+
+bp:chemicalCodeValue
+    a owl:ObjectProperty
+    ; rdfs:domain bp:BatteryChemistry
+    ; rdfs:range bp:CustomChemicalCodes
+    ; rdfs:label "chemicalCodeValue"@en .
+
+bp:ExtinguishingAgent a owl:Class ;
+    rdfs:label "Extinguishing agent type"@en .
+
+bp:agentFireClass
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:ExtinguishingAgent
+    ; rdfs:range xsd:string
+    ; rdfs:label "agentFireClass"@en .
+
+bp:ExtinguishingAgent_extinguishingAgent
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:ExtinguishingAgent
+    ; rdfs:range xsd:string
+    ; rdfs:label "extinguishingAgent"@en .
+
+bp:OperatorInformation a owl:Class ;
+    rdfs:label "Operator information type"@en .
+
+bp:name
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:OperatorInformation
+    ; rdfs:range xsd:string
+    ; rdfs:label "name"@en .
+
+bp:registeredTradeNameOrRegisteredTrademark
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:OperatorInformation
+    ; rdfs:range xsd:string
+    ; rdfs:label "registeredTradeNameOrRegisteredTrademark"@en .
+
+bp:postalAddress
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:OperatorInformation
+    ; rdfs:range xsd:string
+    ; rdfs:label "postalAddress"@en .
+
+bp:webAddress
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:OperatorInformation
+    ; rdfs:range xsd:string
+    ; rdfs:label "webAddress"@en .
+
+bp:eMailAddress
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:OperatorInformation
+    ; rdfs:range xsd:string
+    ; rdfs:label "e-mailAddress"@en .
+
+bp:VoltCelsiusDecimal a owl:Class ;
+    rdfs:label "volt celsius decimal"@en .
+
+bp:voltValue
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:VoltCelsiusDecimal
+    ; rdfs:range xsd:decimal
+    ; rdfs:label "voltValue"@en .
+
+bp:volt
+    a owl:ObjectProperty
+    ; rdfs:domain bp:VoltCelsiusDecimal
+    ; rdfs:range bp:QuantityValue
+    ; rdfs:label "volt"@en .
+
+bp:VoltCelsiusDecimal_temperatureRangeUpperBoundary
+    a owl:ObjectProperty
+    ; rdfs:domain bp:VoltCelsiusDecimal
+    ; rdfs:range bp:QuantityValue
+    ; rdfs:label "temperatureRangeUpperBoundary"@en .
+
+bp:VoltCelsiusDecimal_temperatureRangeLowerBoundary
+    a owl:ObjectProperty
+    ; rdfs:domain bp:VoltCelsiusDecimal
+    ; rdfs:range bp:QuantityValue
+    ; rdfs:label "temperatureRangeLowerBoundary"@en .
+
+bp:VoltCelsiusDecimal_temperatureRangeUpperBoundaryValue
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:VoltCelsiusDecimal
+    ; rdfs:range xsd:integer
+    ; rdfs:label "temperatureRangeUpperBoundaryValue"@en .
+
+bp:VoltCelsiusDecimal_temperatureRangeLowerBoundaryValue
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:VoltCelsiusDecimal
+    ; rdfs:range xsd:integer
+    ; rdfs:label "temperatureRangeLowerBoundaryValue"@en .
+
+bp:WattCelciusInteger a owl:Class ;
+    rdfs:label "watt celcius integer"@en .
+
+bp:WattCelciusInteger_wattValueAt80SoC
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:WattCelciusInteger
+    ; rdfs:range xsd:integer
+    ; rdfs:label "wattValueAt80SoC"@en .
+
+bp:WattCelciusInteger_wattValueAt20SoC
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:WattCelciusInteger
+    ; rdfs:range xsd:integer
+    ; rdfs:label "wattValueAt20SoC"@en .
+
+bp:WattCelciusInteger_watt
+    a owl:ObjectProperty
+    ; rdfs:domain bp:WattCelciusInteger
+    ; rdfs:range bp:QuantityValue
+    ; rdfs:label "watt"@en .
+
+bp:WattCelciusInteger_temperatureRangeUpperBoundaryValue
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:WattCelciusInteger
+    ; rdfs:range xsd:integer
+    ; rdfs:label "temperatureRangeUpperBoundaryValue"@en .
+
+bp:WattCelciusInteger_temperatureRangeLowerBoundaryValue
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:WattCelciusInteger
+    ; rdfs:range xsd:integer
+    ; rdfs:label "temperatureRangeLowerBoundaryValue"@en .
+
+bp:WattCelciusInteger_temperatureRangeUpperBoundary
+    a owl:ObjectProperty
+    ; rdfs:domain bp:WattCelciusInteger
+    ; rdfs:range bp:QuantityValue
+    ; rdfs:label "temperatureRangeUpperBoundary"@en .
+
+bp:WattCelciusInteger_temperatureRangeLowerBoundary
+    a owl:ObjectProperty
+    ; rdfs:domain bp:WattCelciusInteger
+    ; rdfs:range bp:QuantityValue
+    ; rdfs:label "temperatureRangeLowerBoundary"@en .
+
+bp:WattCelciusInteger2 a owl:Class ;
+    rdfs:label "watt celcius integer 2"@en .
+
+bp:WattCelciusInteger2_wattValueAt80SoC
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:WattCelciusInteger2
+    ; rdfs:range xsd:integer
+    ; rdfs:label "wattValueAt80SoC"@en
+    ; bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh .
+
+bp:WattCelciusInteger2_wattValueAt20SoC
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:WattCelciusInteger2
+    ; rdfs:range xsd:integer
+    ; rdfs:label "wattValueAt20SoC"@en
+    ; bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh .
+
+bp:WattCelciusInteger2_watt
+    a owl:ObjectProperty
+    ; rdfs:domain bp:WattCelciusInteger2
+    ; rdfs:range bp:QuantityValue
+    ; rdfs:label "watt"@en
+    ; bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh .
+
+bp:WattCelciusInteger2_temperatureRangeUpperBoundaryValue
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:WattCelciusInteger2
+    ; rdfs:range xsd:integer
+    ; rdfs:label "temperatureRangeUpperBoundaryValue"@en
+    ; bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh .
+
+bp:WattCelciusInteger2_temperatureRangeLowerBoundaryValue
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:WattCelciusInteger2
+    ; rdfs:range xsd:integer
+    ; rdfs:label "temperatureRangeLowerBoundaryValue"@en
+    ; bp:applicableTo bp:EV, bp:LMT, bp:OtherIndustrialAbove2kWh, bp:StationaryIndustrialAbove2kWh .
+
+bp:WattCelsiusIntegerOnevalue a owl:Class ;
+    rdfs:label "watt celsius integer onevalue"@en .
+
+bp:wattValue
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:WattCelsiusIntegerOnevalue
+    ; rdfs:range xsd:integer
+    ; rdfs:label "wattValue"@en .
+
+bp:WattCelsiusIntegerOnevalue_watt
+    a owl:ObjectProperty
+    ; rdfs:domain bp:WattCelsiusIntegerOnevalue
+    ; rdfs:range bp:QuantityValue
+    ; rdfs:label "watt"@en .
+
+bp:WattCelsiusIntegerOnevalue_temperatureRangeUpperBoundaryValue
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:WattCelsiusIntegerOnevalue
+    ; rdfs:range xsd:integer
+    ; rdfs:label "temperatureRangeUpperBoundaryValue"@en .
+
+bp:WattCelsiusIntegerOnevalue_temperatureRangeLowerBoundaryValue
+    a owl:DatatypeProperty
+    ; rdfs:domain bp:WattCelsiusIntegerOnevalue
+    ; rdfs:range xsd:integer
+    ; rdfs:label "temperatureRangeLowerBoundaryValue"@en .
+
+bp:WattCelsiusIntegerOnevalue_temperatureRangeUpperBoundary
+    a owl:ObjectProperty
+    ; rdfs:domain bp:WattCelsiusIntegerOnevalue
+    ; rdfs:range bp:QuantityValue
+    ; rdfs:label "temperatureRangeUpperBoundary"@en .
+
+bp:WattCelsiusIntegerOnevalue_temperatureRangeLowerBoundary
+    a owl:ObjectProperty
+    ; rdfs:domain bp:WattCelsiusIntegerOnevalue
+    ; rdfs:range bp:QuantityValue
+    ; rdfs:label "temperatureRangeLowerBoundary"@en .
+

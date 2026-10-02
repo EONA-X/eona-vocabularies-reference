@@ -1,0 +1,22 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix schema: <http://schema.org/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+@prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+
+<> a dcat:Dataset, adms:Asset ;
+    dcat:version "2.2" ;
+    dcterms:title "W3C ODRL 2.2 Vocabulary"@en ;
+    dcterms:description "The Open Digital Rights Language (ODRL) 2.2 — the W3C Recommendation vocabulary for permissions, prohibitions and obligations. Bundled upstream copy."@en ;
+    dcat:type assettype:c_89b4bdb7 ;
+    adms:status status:CURRENT .
+
+<> dcterms:creator [ a foaf:Agent ; foaf:name "W3C" ] .
+
+<> schema:logo "w3c-hero.png" .
+
+[] vann:preferredNamespacePrefix "odrl" ;
+    vann:preferredNamespaceUri "http://www.w3.org/ns/odrl/2/" .

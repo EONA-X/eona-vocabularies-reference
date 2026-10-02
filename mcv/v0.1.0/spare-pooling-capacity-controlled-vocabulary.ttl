@@ -1,0 +1,312 @@
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix isothes: <http://purl.org/iso25964/skos-thes#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+@prefix mcv: <https://eona-x.eu/vocabulary/mcv/v0.1.0#> .
+
+mcv: a skos:ConceptScheme ;
+    owl:versionInfo "0.1.0" ;
+    dcterms:title "MCV - Spare Pooling Capacity"@en ;
+    dcterms:description "Spare pooling capacity use case controlled vocabulary"@en ;
+    dcterms:creator "Maxime Blanchard"@en ;
+    dcterms:publisher "EONA-X"@en ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    vann:preferredNamespacePrefix "mcv" ;
+    vann:preferredNamespaceUri "https://eona-x.eu/vocabulary/mcv/v0.1.0#" ;
+    dcterms:language "en" ;
+    skos:hasTopConcept mcv:SparePoolingCapacityControlledVocabulary .
+
+mcv:SparePoolingCapacityControlledVocabulary a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:topConceptOf mcv: ;
+    skos:prefLabel "Spare Pooling Capacity Controlled Vocabulary"@en, "Vocabulaire contrôlé du cas d'usage MCV"@fr ;
+    skos:altLabel "MCV"@en, "Mutualisation des capacités vacantes"@fr, "SPC"@en ;
+    skos:definition "This controlled vocabulary defines and disambiguates business concepts involved in the spare pooling capacity use case. Technical concepts are excluded."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:changeNote "2026-09-29 — Term created"@en, "2026-09-29 — Renamed from “NewConcept” to “SparePoolingCapacityUseCase”; Preferred label “Spare Pooling Capacity Use Case” added; Alternative label “MCV” added; Alternative label “Mutualisation des capacités vacantes (fr)” added; Alternative label “SPC” added"@en, "2026-09-29 — Renamed from “SparePoolingCapacityUseCase” to “SparePoolingCapacityUseCaseControlledVoc”; Preferred label “Spare Pooling Capacity Use Case Controlled Vocabulary” added; Preferred label “Vocabulaire contrôlé du cas d'usage MCV” added; Preferred label “Spare Pooling Capacity Use Case” removed (by Maxime Blanchard)"@en, "2026-09-29 — Renamed from “SparePoolingCapacityUseCaseControlledVoc” to “SparePoolingCapacityControlledVocabulary”; Preferred label changed from “Spare Pooling Capacity Use Case Controlled Vocabulary” to “Spare Pooling Capacity Controlled Vocabulary” (by Maxime Blanchard)"@en, "2026-09-30 — Preferred label changed from “Vocabulaire contrôlé du cas d'usage MCV” to “Vocabulaire contrôlé du cas d'usage MCV (fr)” (by Maxime Blanchard)"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en ;
+    skos:narrower mcv:Offerer, mcv:Requester, mcv:SpareCapacityOffer, mcv:SpareCapacityDemand, mcv:SpareCapacityVolume, mcv:TransportationActor, mcv:SpareCapacityPublication, mcv:AccountEligility, mcv:OriginDestination, mcv:Constraints, mcv:WeightConstraint, mcv:TransportationVehicle, mcv:Goods, mcv:TemperatureConstraint, mcv:GoodsConstraint, mcv:DeliveryConstraint, mcv:PickupConstraint, mcv:PublicationStatus, mcv:PivotModel, mcv:Pseudonymisation, mcv:OfferRequestAssociation, mcv:AssociationScore, mcv:AssociationApprovement, mcv:AssociationStatus .
+
+mcv:Offerer a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Offerer"@en, "Offreur"@fr ;
+    skos:definition "MCV platform user role that publishes spare capacity offers associated with business and technical conditions."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Logistics Actor”"@en, "2026-09-29 — Renamed from “NewConcept” to “SpareCapacityOfferer”; Preferred label “Spare Capacity Offerer” added"@en, "2026-09-29 — Renamed from “SpareCapacityOfferer” to “Offerer”; Preferred label changed from “Spare Capacity Offerer” to “Offerer”"@en, "2026-09-29 — Parent “Spare Pooling Capacity Use Case” added"@en, "2026-09-30 — Preferred label “Offreur (fr)” added; Definition added (by Maxime Blanchard)"@en, "2026-09-30 — Definition updated (by Maxime Blanchard)"@en .
+
+mcv:Requester a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Requester"@en ;
+    skos:definition "MCV platform user role that publishes spare capacity demand associated with business and technical conditions."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Logistics Actor”"@en, "2026-09-29 — Renamed from “NewConcept” to “Requester”; Preferred label “Requester” added"@en, "2026-09-29 — Parent “Spare Pooling Capacity Use Case” added"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en .
+
+mcv:SpareCapacityOffer a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Spare Capacity Offer"@en, "Offre de capacité vacante"@fr ;
+    skos:definition "A spare capacity offer is a proposal to rent some free volume in a vehicle with specific conditions (temperature, pickup, departure date, location, ...) from a logistics company to another."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Publication”"@en, "2026-09-29 — Renamed from “NewConcept” to “Offer”; Preferred label “Offer” added"@en, "2026-09-29 — Parent “Spare Pooling Capacity Use Case” added"@en, "2026-09-30 — Renamed from “Offer” to “Spare-Capacity-Offer”; Preferred label “Spare Capacity Offer” added; Preferred label “Offre de capacité vacante” added; Preferred label “Offer” removed; Definition added (by Maxime Blanchard)"@en, "2026-09-30 — Renamed from “Spare-Capacity-Offer” to “SpareCapacityOffer” (by Maxime Blanchard)"@en, "2026-09-30 — Preferred label changed from “Offre de capacité vacante” to “Offre de capacité vacante (fr)” (by Maxime Blanchard)"@en .
+
+mcv:SpareCapacityDemand a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Spare Capacity Demand"@en, "Demande de capacité vacante"@fr ;
+    skos:altLabel "Spare Capacity Request"@en ;
+    skos:definition "A spare capacity demand entity represents the public, not necessarily binding, not necessarily exclusive, announcement by an organization or person to seek a certain type of spare volume in a logistics vehicle."@en ;
+    rdfs:comment "The definition is partially drawn from http://schema.org/Demand"@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Publication”"@en, "2026-09-29 — Renamed from “NewConcept” to “Request”; Preferred label “Request” added"@en, "2026-09-29 — Parent “Spare Pooling Capacity Use Case” added"@en, "2026-09-30 — Renamed from “Request” to “SpareCapacityDemand”; Preferred label “Spare Capacity Demand” added; Preferred label “Demande de capacité vacante (fr)” added; Preferred label “Request” removed; Alternative label “Spare Capacity Request” added; Definition added (by Maxime Blanchard)"@en .
+
+mcv:SpareCapacityVolume a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Spare Capacity Volume"@en, "Volume de capacité vacante"@fr ;
+    skos:altLabel "Spare Capacity"@en, "Capacité vacante"@fr ;
+    skos:definition "Attribute describing the spare capacity in liters."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case”"@en, "2026-09-29 — Renamed from “NewConcept” to “SpareCapacity”; Preferred label “Spare Capacity” added; Preferred label “Capacité vacante (fr)” added"@en, "2026-09-29 — Preferred label “Spare Capacity Volume” added; Preferred label “Volume de capacité vacante (fr)” added; Preferred label “Spare Capacity” removed; Preferred label “Capacité vacante (fr)” removed; Alternative label “Spare Capacity” added; Alternative label “Capacité vacante (fr)” added"@en, "2026-09-30 — Renamed from “SpareCapacity” to “SpareCapacityVolume”; Definition added (by Maxime Blanchard)"@en .
+
+mcv:TransportationActor a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Logistics Actor"@en, "Opérateur de logistique"@fr ;
+    skos:definition "A company offering services of picking up and delivering goods."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case”"@en, "2026-09-29 — Renamed from “NewConcept” to “TransportationActor”; Preferred label “Transportation Actor” added; Preferred label “Opérateur de transport (fr)” added"@en, "2026-09-29 — Preferred label “Logistics Actor” added; Preferred label “Opérateur de logistique (fr)” added; Preferred label “Transportation Actor” removed; Preferred label “Opérateur de transport (fr)” removed (by Maxime Blanchard)"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en .
+
+mcv:SpareCapacityPublication a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Spare Capacity Publication"@en, "Publication de capacité vacante"@fr ;
+    skos:definition "Can be either an Offer or a Demand validated and published on MCV platform."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case”"@en, "2026-09-29 — Renamed from “NewConcept” to “SpareCapacityPublication”; Preferred label “Spare Capacity Publication” added; Preferred label “Publication de capacité vacante” added"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en, "2026-09-30 — Preferred label changed from “Publication de capacité vacante” to “Publication de capacité vacante (fr)” (by Maxime Blanchard)"@en .
+
+mcv:AccountEligility a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Account Eligility"@en, "Éligibilité du compte"@fr ;
+    skos:definition "The eligibility of an MCV platform account is subject to conditions that are evaluated against validation tests such as existing SIREN/SIRET number."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case”"@en, "2026-09-29 — Renamed from “NewConcept” to “BasicEligility”; Preferred label “Basic Eligility” added; Preferred label “Éligibilité basique (fr)” added"@en, "2026-09-29 — Preferred label “Account Eligility” added; Preferred label “Éligibilité du compte (fr)” added; Preferred label “Basic Eligility” removed; Preferred label “Éligibilité basique (fr)” removed (by Maxime Blanchard)"@en, "2026-09-29 — Renamed from “BasicEligility” to “AccountEligility” (by Maxime Blanchard)"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en .
+
+mcv:OriginDestination a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Origin/Destination"@en, "Origine/destination"@fr ;
+    skos:altLabel "O/D"@en, "O-D"@en, "Itinerary"@en, "Itinéraire"@fr ;
+    skos:definition "A one-way itinerary between a departure and an arrival."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case”"@en, "2026-09-29 — Renamed from “NewConcept” to “OriginDestination”; Preferred label “Origin/Destination” added; Preferred label “Origine/destination (fr)” added; Alternative label “O/D” added; Alternative label “O-D” added; Alternative label “Itinerary” added; Alternative label “Itinéraire (fr)” added"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en .
+
+mcv:Constraints a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Volume Constraint"@en, "Contrainte de volume"@fr ;
+    skos:definition "Volume needed specified in the demand or maximal available volume."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case”"@en, "2026-09-29 — Renamed from “NewConcept” to “Constraints”; Preferred label “Volume Constraint” added; Preferred label “Contrainte de volume (fr)” added"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en .
+
+mcv:WeightConstraint a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Weight Constraint"@en, "Contrainte de poids"@fr ;
+    skos:definition "Maximal vehicle's goods total weight."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case”"@en, "2026-09-29 — Renamed from “NewConcept” to “WeightConstraint”; Preferred label “Weight Constraint” added; Preferred label “Contrainte de poids” added; Parent “Spare Pooling Capacity Use Case” added; Parent “Basic Eligility” removed"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en, "2026-09-30 — Preferred label changed from “Contrainte de poids” to “Contrainte de poids (fr)” (by Maxime Blanchard)"@en .
+
+mcv:TransportationVehicle a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Transportation Vehicle"@en, "Véhicule de transport"@fr ;
+    skos:definition "A vehicle is a device that is designed or used to transport people or cargo over land, water, air, or through space."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case”"@en, "2026-09-29 — Renamed from “NewConcept” to “TransportationVehicle”; Preferred label “Transportation Vehicle” added; Preferred label “Véhicule de transport” added"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en, "2026-09-30 — Preferred label changed from “Véhicule de transport” to “Véhicule de transport (fr)” (by Maxime Blanchard)"@en .
+
+mcv:Goods a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Goods"@en, "Marchandise"@fr ;
+    skos:definition "Any product that is transported in a vehicle."@en ;
+    skos:example "A pair of shoes."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case”"@en, "2026-09-29 — Renamed from “NewConcept” to “Goods”; Preferred label “Goods” added; Preferred label “Marchandise (fr)” added"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en .
+
+mcv:TemperatureConstraint a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Temperature Constraint"@en, "Contrainte de température"@fr ;
+    skos:definition "Maximal temperature that must be met."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case”"@en, "2026-09-29 — Renamed from “NewConcept” to “TemperatureConstraint”; Preferred label “Temperature Constraint” added; Preferred label “Contrainte de température” added"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en, "2026-09-30 — Preferred label changed from “Contrainte de température” to “Contrainte de température (fr)” (by Maxime Blanchard)"@en .
+
+mcv:GoodsConstraint a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Goods Constraint"@en, "Contrainte de marchandise"@fr ;
+    skos:definition "Condition that must be met due to the goods' nature."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case”"@en, "2026-09-29 — Renamed from “NewConcept” to “GoodsConstraint”; Preferred label “Goods Constraint” added; Preferred label “Contrainte de marchandise (fr)” added"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en .
+
+mcv:DeliveryConstraint a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Delivery Constraint"@en, "Contrainte de livraison"@fr ;
+    skos:definition "Condition defined by a Demand that must be met, or defined by an Offer that is imposed."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case”"@en, "2026-09-29 — Renamed from “NewConcept” to “DeliveryConstraint”; Preferred label “Delivery Constraint” added; Preferred label “Contrainte de livraison (fr)” added"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en .
+
+mcv:PickupConstraint a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Pickup Constraint"@en, "Contrainte de chargement"@fr ;
+    skos:definition "Condition that must be met due to the pickup nature."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case” (by Maxime Blanchard)"@en, "2026-09-29 — Renamed from “NewConcept” to “PickupConstraint”; Preferred label “Pickup Constraint” added; Preferred label “Contrainte de chargement (fr)” added (by Maxime Blanchard)"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en .
+
+mcv:PublicationStatus a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Publication Status"@en, "Statut de la publication"@fr ;
+    skos:definition "Limited set of terms describing the state of a publication (offer or demand)."@en ;
+    skos:example "READY"@en, "PUBLISHED"@en, "ARCHIVED"@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case” (by Maxime Blanchard)"@en, "2026-09-29 — Renamed from “NewConcept” to “PublicationStatus”; Preferred label “Publication Status” added; Preferred label “Statut de la publication (fr)” added (by Maxime Blanchard)"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en .
+
+mcv:PivotModel a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Pivot Model"@en, "Modèle pivot"@fr ;
+    skos:altLabel "Standard"@en, "Schema"@en, "Vocabulary"@en, "Data Schema"@en ;
+    skos:definition "Offers and Demands are aligned to the pivot model."@en ;
+    skos:example "IATA One Record"@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case” (by Maxime Blanchard)"@en, "2026-09-29 — Renamed from “NewConcept” to “OfferFormat”; Preferred label “Format” added (by Maxime Blanchard)"@en, "2026-09-29 — Preferred label “Data Model” added; Preferred label “Modèle de données” added; Preferred label “Format” removed; Alternative label “Standard” added; Alternative label “Schema” added; Alternative label “Vocabulary” added; Alternative label “Data Schema” added (by Maxime Blanchard)"@en, "2026-09-30 — Renamed from “OfferFormat” to “PivotModel”; Preferred label “Pivot Model” added; Preferred label “Modèle pivot” added; Preferred label “Data Model” removed; Preferred label “Modèle de données” removed; Definition added (by Maxime Blanchard)"@en, "2026-09-30 — Preferred label changed from “Modèle pivot” to “Modèle pivot (fr)” (by Maxime Blanchard)"@en .
+
+mcv:Pseudonymisation a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Pseudonymisation"@en, "Pseudonymisation"@fr ;
+    skos:altLabel "Pseudonymization"@en ;
+    skos:definition "La pseudonymisation consiste à remplacer les identifiants directs par des alias ou codes, permettant une réidentification à l’aide d’informations supplémentaires conservées séparément."@fr, "Pseudonymization involves replacing direct identifiers with aliases or codes, allowing for re-identification using additional information stored separately."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case” (by Maxime Blanchard)"@en, "2026-09-29 — Renamed from “NewConcept” to “Pseudonymisation”; Preferred label “Pseudonymisation” added; Preferred label “Pseudonymisation (fr)” added; Definition added (by Maxime Blanchard)"@en, "2026-09-29 — Alternative label “Pseudonymization” added (by Maxime Blanchard)"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en .
+
+mcv:OfferRequestAssociation a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Offer-Request Association"@en, "Association offre-demande"@fr ;
+    skos:definition "A match between an offer and a demand."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case” (by Maxime Blanchard)"@en, "2026-09-29 — Renamed from “NewConcept” to “OfferRequestAssociation”; Preferred label “Offer-Request Association” added; Preferred label “Association offre-demande (fr)” added (by Maxime Blanchard)"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en .
+
+mcv:AssociationScore a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Association Score"@en, "Score d'association"@fr ;
+    skos:definition "Measures how much an offer matches a demand."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case” (by Maxime Blanchard)"@en, "2026-09-29 — Renamed from “NewConcept” to “AssociationScore”; Preferred label “Association Score” added; Preferred label “Score d'association” added (by Maxime Blanchard)"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en, "2026-09-30 — Preferred label changed from “Score d'association” to “Score d'association (fr)” (by Maxime Blanchard)"@en .
+
+mcv:AssociationApprovement a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Association Approvement"@en, "Approbation d'association"@fr ;
+    skos:definition "The action made by an Offerer or a Requester to accept or refuse an association returned by the association algorithm."@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case Controlled Vocabulary” (by Maxime Blanchard)"@en, "2026-09-29 — Renamed from “NewConcept” to “AssociationApprovement”; Preferred label “Association Approvement” added; Preferred label “Approbation d'association” added (by Maxime Blanchard)"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en, "2026-09-30 — Definition updated (by Maxime Blanchard)"@en, "2026-09-30 — Preferred label changed from “Approbation d'association” to “Approbation d'association (fr)” (by Maxime Blanchard)"@en .
+
+mcv:AssociationStatus a skos:Concept ;
+    skos:inScheme mcv: ;
+    skos:prefLabel "Association Status"@en, "Statut de l'association"@fr ;
+    skos:definition "Describes whether an Association waits to be approved, is approved by one, is approved by both parties, or is stale because one of the parties refused it"@en ;
+    dcterms:creator "Maxime Blanchard" ;
+    dcterms:created "2026-09-29"^^xsd:date ;
+    dcterms:issued "2026-09-29"^^xsd:date ;
+    dcterms:modified "2026-09-30"^^xsd:date ;
+    skos:broader mcv:SparePoolingCapacityControlledVocabulary ;
+    skos:changeNote "2026-09-29 — Term created under “Spare Pooling Capacity Use Case Controlled Vocabulary” (by Maxime Blanchard)"@en, "2026-09-29 — Renamed from “NewConcept” to “Association”; Preferred label “Association” added (by Maxime Blanchard)"@en, "2026-09-29 — Renamed from “Association” to “AssociationStatus”; Preferred label changed from “Association” to “Association Status” (by Maxime Blanchard)"@en, "2026-09-29 — Preferred label “Statut de l'association” added (by Maxime Blanchard)"@en, "2026-09-30 — Definition added (by Maxime Blanchard)"@en, "2026-09-30 — Preferred label changed from “Statut de l'association” to “Statut de l'association (fr)” (by Maxime Blanchard)"@en .

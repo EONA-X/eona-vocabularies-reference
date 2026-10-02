@@ -13,9 +13,8 @@ The crosswalk issue #446 MUST read this file to align these IRIs directly agains
 the DATEX II counterparts (see `pipelines/load-datex-ii/TERMS.md`).
 
 - Namespace prefix: `netex:`
-- Namespace URI: `https://vocab.eona-x.eu/netex/`
-- Named graph (ontology): `https://vocab.eona-x.eu/netex`
-- Named graph (catalog fragment): `https://vocab.eona-x.eu/catalog/netex`
+- Namespace URI: `https://vocabulary.eona-x.eu/ontology/netex/v0.2.0#`
+- Ontology IRI: `https://vocabulary.eona-x.eu/ontology/netex/v0.2.0#`
 - Version: `0.2.0`
 
 ## Sources (NeTEx v2.0, github.com/TransmodelEcosystem/NeTEx, branch v2.0)
@@ -31,7 +30,7 @@ the DATEX II counterparts (see `pipelines/load-datex-ii/TERMS.md`).
 
 | IRI | prefLabel / title |
 | --- | --- |
-| `https://vocab.eona-x.eu/netex/ev-charging` | NeTEx/Transmodel — EV charging & alternative-fuel (subset) |
+| `https://vocabulary.eona-x.eu/ontology/netex/v0.2.0#ev-charging` | NeTEx/Transmodel — EV charging & alternative-fuel (subset) |
 
 ## Entities (skos:Concept, dcterms:type "Entity", skos:topConceptOf)
 

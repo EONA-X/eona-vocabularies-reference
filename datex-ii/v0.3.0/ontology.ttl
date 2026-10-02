@@ -1,0 +1,3091 @@
+# Hub-curated SKOS rendering of the DATEX II EnergyInfrastructure model.
+#
+# DATEX II is published natively as XML Schema (XSD) — there is no clean,
+# canonical RDF/SKOS serialisation of its data model to mirror. The EONA-X
+# vocabulary hub therefore curates a SKOS ConceptScheme covering the
+# EnergyInfrastructure EV-charging (IRVE) terms the EMDS demo needs, modelled
+# so it is both browsable in Prez and alignable by the later crosswalk (#446).
+#
+# Faithfulness: classes, attributes, attribute value types and enumeration code
+# values below are taken from the DATEX II v3.7 EnergyInfrastructure namespace
+# (DATEXII_3_EnergyInfrastructure.xsd). The exact native DATEX II enumeration
+# literal for each "Code value" concept is preserved in skos:notation.
+#
+# UI/type encoding (Prez renders these annotations as fields):
+#   * dcterms:type  "Entity" | "Attribute" | "Code value"  (plain string)
+#   * skos:scopeNote "Value type: ..."                      (human-readable)
+#   * rdfs:range     <xsd type>            for fixed-datatype attributes
+#   * rdfs:range     <enum/entity concept> for enumeration- or reference-valued
+#                    attributes (the attribute concept doubles as its own
+#                    enumeration root; its code values are skos:narrower).
+#
+# Hierarchy: entity classes are skos:topConcept of the scheme; attributes are
+# skos:broader their entity; enumeration code values are skos:broader their
+# attribute. skos:narrower inverses are stated explicitly (no inference).
+#
+# Loaded (local=True) into its own named graph:
+#   https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#
+# The scheme IRI doubles as the OGC Records collection so Prez lists the
+# concepts below as `items` under it.
+
+@prefix datex: <https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Ontology header: version + provenance -------------------------------
+<https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#> a owl:Ontology ;
+    dcterms:title "DATEX II EnergyInfrastructure — EV-charging subset (EONA-X hub-curated)" ;
+    dcterms:description "Hub-curated SKOS rendering of the DATEX II EnergyInfrastructure model, scoped to EV charging (IRVE) for the EMDS demo: entities, attributes, attribute value types and enumeration code values." ;
+    dcterms:source "DATEX II v3.7 EnergyInfrastructure namespace (DATEXII_3_EnergyInfrastructure.xsd, https://docs.datex2.eu/v3.7/energy/) — natively XSD; this is a curated SKOS rendering. Enumeration literals preserved in skos:notation." ;
+    dcterms:creator "EONA-X Vocabulary Hub" ;
+    dcterms:created "2026-06-22"^^xsd:date ;
+    dcterms:modified "2026-08-18"^^xsd:date ;
+    owl:versionInfo "0.3.0" ;
+    rdfs:label "DATEX II EnergyInfrastructure — EV-charging subset" .
+
+# --- ConceptScheme --------------------------------------------------------
+datex:energy-infrastructure a skos:ConceptScheme ;
+    dcterms:title "DATEX II — EnergyInfrastructure (EV-charging subset)" ;
+    rdfs:label "DATEX II — EnergyInfrastructure (EV-charging subset)" ;
+    dcterms:description "EV-charging (IRVE) terms curated from the DATEX II EnergyInfrastructure model for the EMDS demo. Entities, their attributes, attribute value types and enumeration code values." ;
+    dcterms:source "Hub-curated SKOS rendering of the natively-XSD DATEX II v3.7 EnergyInfrastructure model." ;
+    skos:hasTopConcept datex:EnergyInfrastructureSite ;
+    skos:hasTopConcept datex:EnergyInfrastructureStation ;
+    skos:hasTopConcept datex:ElectricVehicleChargingPoint ;
+    skos:hasTopConcept datex:Connector ;
+    skos:hasTopConcept datex:ElectricEnergyMix .
+
+# =========================================================================
+# ENTITY: EnergyInfrastructureSite
+# =========================================================================
+datex:EnergyInfrastructureSite a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    skos:prefLabel "Energy infrastructure site"@en ;
+    skos:definition "A site where vehicles can be supplied with energy, including all buildings, stations, parking spaces and associated services. Contains one or more energy infrastructure stations." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: EnergyInfrastructureSite (extends Facility); hub-curated SKOS rendering." ;
+    skos:narrower datex:brand ;
+    skos:narrower datex:entrance ;
+    skos:narrower datex:operatingHours .
+
+datex:brand a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureSite ;
+    skos:prefLabel "Brand"@en ;
+    skos:definition "The commercial brand of the energy infrastructure site." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureSite ;
+    skos:scopeNote "Value type: xsd:string. DATEX II native type: MultilingualString." ;
+    rdfs:range xsd:string ;
+    dcterms:source "DATEX II EnergyInfrastructureSite.brand; hub-curated SKOS rendering." .
+
+# OWL enrichment note: object reference in DATEX II (DATEX II Location); modeled
+# as owl:ObjectProperty even though the referenced type is out of scope
+# for this hub-curated subset and has no rdfs:range here (see TERMS.md).
+datex:entrance a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureSite ;
+    skos:prefLabel "Entrance"@en ;
+    skos:definition "The geographic location of an entrance to the site." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureSite ;
+    skos:scopeNote "Value type: object reference (DATEX II Location)." ;
+    dcterms:source "DATEX II EnergyInfrastructureSite.entrance; hub-curated SKOS rendering." .
+
+# OWL enrichment note: object reference in DATEX II (DATEX II OperatingHours / OverallPeriod); modeled
+# as owl:ObjectProperty even though the referenced type is out of scope
+# for this hub-curated subset and has no rdfs:range here (see TERMS.md).
+datex:operatingHours a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureSite ;
+    skos:prefLabel "Operating hours"@en ;
+    skos:definition "The opening / operating hours during which the site is accessible." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureSite ;
+    skos:scopeNote "Value type: object reference (DATEX II OperatingHours / OverallPeriod), inherited from Facility." ;
+    dcterms:source "DATEX II Facility.operatingHours (inherited by EnergyInfrastructureSite); hub-curated SKOS rendering." .
+
+# =========================================================================
+# ENTITY: EnergyInfrastructureStation
+# =========================================================================
+datex:EnergyInfrastructureStation a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    skos:prefLabel "Energy infrastructure station"@en ;
+    skos:definition "A collection of associated refill points on a site (for EV charging, a charging station grouping one or more charging points). Often the vehicle space is shared between its refill points." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: EnergyInfrastructureStation (extends Facility); hub-curated SKOS rendering." ;
+    skos:narrower datex:authenticationAndIdentificationMethods ;
+    skos:narrower datex:energyProvider .
+
+# OWL enrichment note: enumeration-valued attribute whose rdfs:range is its
+# own IRI (self-referential enumeration root, per this file's existing
+# convention). Modeled as owl:DatatypeProperty rather than owl:ObjectProperty
+# because "Code value" concepts are kept as plain skos:Concept leaves, not
+# owl:NamedIndividuals (see TERMS.md "OWL enrichment" section).
+datex:authenticationAndIdentificationMethods a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureStation ;
+    skos:prefLabel "Authentication and identification methods"@en ;
+    skos:definition "The methods of identification and/or authentication accepted to start a charging session at the station." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureStation ;
+    skos:scopeNote "Value type: enumeration (AuthenticationAndIdentificationEnum) — see narrower code values." ;
+    rdfs:range datex:authenticationAndIdentificationMethods ;
+    dcterms:source "DATEX II EnergyInfrastructureStation.authenticationAndIdentificationMethods; hub-curated SKOS rendering." ;
+    skos:narrower datex:authMethod-rfid ;
+    skos:narrower datex:authMethod-nfc ;
+    skos:narrower datex:authMethod-creditCard ;
+    skos:narrower datex:authMethod-debitCard ;
+    skos:narrower datex:authMethod-cashPayment ;
+    skos:narrower datex:authMethod-apps ;
+    skos:narrower datex:authMethod-website ;
+    skos:narrower datex:authMethod-prepaidCard ;
+    skos:narrower datex:authMethod-unlimitedAccess ;
+    skos:narrower datex:authMethod-noAccess .
+
+datex:authMethod-rfid a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "RFID"@en ;
+    skos:definition "Identification by RFID token / charge card." ;
+    dcterms:type "Code value" ;
+    skos:notation "rfid" .
+
+datex:authMethod-nfc a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "NFC"@en ;
+    skos:definition "Identification by Near Field Communication." ;
+    dcterms:type "Code value" ;
+    skos:notation "nfc" .
+
+datex:authMethod-creditCard a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "Credit card"@en ;
+    skos:definition "Authentication / payment by credit card." ;
+    dcterms:type "Code value" ;
+    skos:notation "creditCard" .
+
+datex:authMethod-debitCard a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "Debit card"@en ;
+    skos:definition "Authentication / payment by debit card." ;
+    dcterms:type "Code value" ;
+    skos:notation "debitCard" .
+
+datex:authMethod-cashPayment a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "Cash payment"@en ;
+    skos:definition "Payment in cash." ;
+    dcterms:type "Code value" ;
+    skos:notation "cashPayment" .
+
+datex:authMethod-apps a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "Apps"@en ;
+    skos:definition "Authentication via a mobile application." ;
+    dcterms:type "Code value" ;
+    skos:notation "apps" .
+
+datex:authMethod-website a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "Website"@en ;
+    skos:definition "Authentication via a website." ;
+    dcterms:type "Code value" ;
+    skos:notation "website" .
+
+datex:authMethod-prepaidCard a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "Prepaid card"@en ;
+    skos:definition "Authentication / payment by prepaid card." ;
+    dcterms:type "Code value" ;
+    skos:notation "prepaidCard" .
+
+datex:authMethod-unlimitedAccess a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "Unlimited access"@en ;
+    skos:definition "Freely accessible; no authentication required." ;
+    dcterms:type "Code value" ;
+    skos:notation "unlimitedAccess" .
+
+datex:authMethod-noAccess a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "No access"@en ;
+    skos:definition "Not accessible / no public access." ;
+    dcterms:type "Code value" ;
+    skos:notation "noAccess" .
+
+# OWL enrichment note: object reference in DATEX II (DATEX II Organisation); modeled
+# as owl:ObjectProperty even though the referenced type is out of scope
+# for this hub-curated subset and has no rdfs:range here (see TERMS.md).
+datex:energyProvider a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureStation ;
+    skos:prefLabel "Energy provider"@en ;
+    skos:definition "The organisation providing the energy delivered at the station." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureStation ;
+    skos:scopeNote "Value type: object reference (DATEX II Organisation)." ;
+    dcterms:source "DATEX II EnergyInfrastructureStation.energyProvider; hub-curated SKOS rendering." .
+
+# =========================================================================
+# ENTITY: ElectricVehicleChargingPoint  (DATEX II ElectricChargingPoint)
+# =========================================================================
+datex:ElectricVehicleChargingPoint a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    skos:prefLabel "Electric Vehicle Charging Point"@en ;
+    skos:definition "Technical infrastructure at a specific location that facilitates electric charging of one vehicle at a time. A specialisation of the abstract RefillPoint." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: ElectricChargingPoint (a RefillPoint specialisation, extends Facility); hub-curated SKOS rendering." ;
+    skos:narrower datex:status ;
+    skos:narrower datex:power ;
+    skos:narrower datex:availableChargingPower ;
+    skos:narrower datex:availableVoltage ;
+    skos:narrower datex:connector ;
+    skos:narrower datex:electricEnergyMix ;
+    skos:narrower datex:location .
+
+# OWL enrichment note: enumeration-valued attribute whose rdfs:range is its
+# own IRI (self-referential enumeration root, per this file's existing
+# convention). Modeled as owl:DatatypeProperty rather than owl:ObjectProperty
+# because "Code value" concepts are kept as plain skos:Concept leaves, not
+# owl:NamedIndividuals (see TERMS.md "OWL enrichment" section).
+datex:status a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricVehicleChargingPoint ;
+    skos:prefLabel "Charging point status"@en ;
+    skos:definition "Operational / availability status of an electric vehicle charging point (e.g. available, occupied, out of service)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricVehicleChargingPoint ;
+    skos:scopeNote "Value type: enumeration — see narrower code values. Rendered from the DATEX II Facilities availability / OperatingStatus model; the code set is hub-curated to an OCPI-style status list." ;
+    rdfs:range datex:status ;
+    dcterms:source "DATEX II Facility availability / status (Facilities model); hub-curated SKOS rendering." ;
+    skos:narrower datex:status-available ;
+    skos:narrower datex:status-occupied ;
+    skos:narrower datex:status-reserved ;
+    skos:narrower datex:status-outOfService ;
+    skos:narrower datex:status-unknown .
+
+datex:status-available a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:status ;
+    skos:prefLabel "Available"@en ;
+    skos:definition "The charging point is operational and free to use." ;
+    dcterms:type "Code value" ;
+    skos:notation "available" .
+
+datex:status-occupied a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:status ;
+    skos:prefLabel "Occupied"@en ;
+    skos:definition "The charging point is currently in use by a vehicle." ;
+    dcterms:type "Code value" ;
+    skos:notation "occupied" .
+
+datex:status-reserved a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:status ;
+    skos:prefLabel "Reserved"@en ;
+    skos:definition "The charging point is reserved and not available for general use." ;
+    dcterms:type "Code value" ;
+    skos:notation "reserved" .
+
+datex:status-outOfService a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:status ;
+    skos:prefLabel "Out of service"@en ;
+    skos:definition "The charging point is not operational (technical defect or maintenance)." ;
+    dcterms:type "Code value" ;
+    skos:notation "outOfService" .
+
+datex:status-unknown a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:status ;
+    skos:prefLabel "Unknown"@en ;
+    skos:definition "The operational status of the charging point is unknown." ;
+    dcterms:type "Code value" ;
+    skos:notation "unknown" .
+
+datex:power a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricVehicleChargingPoint ;
+    skos:prefLabel "Rated power (kW)"@en ;
+    skos:definition "The rated electrical power of the charging point, expressed in kilowatts." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricVehicleChargingPoint ;
+    skos:scopeNote "Value type: xsd:decimal (kW). DATEX II native type: Watt (float), e.g. ElectricChargingPoint.availableChargingPower / Connector.maxPowerAtSocket." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II ElectricChargingPoint power (availableChargingPower / Connector.maxPowerAtSocket); hub-curated SKOS rendering." .
+
+datex:availableChargingPower a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricVehicleChargingPoint ;
+    skos:prefLabel "Available charging power (kW)"@en ;
+    skos:definition "A possible degree of charging power offered by the charging point. May be multi-valued (a charging point can support several power levels)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricVehicleChargingPoint ;
+    skos:scopeNote "Value type: xsd:decimal (kW). DATEX II native type: Watt (float), multi-valued." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II ElectricChargingPoint.availableChargingPower; hub-curated SKOS rendering." .
+
+datex:availableVoltage a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricVehicleChargingPoint ;
+    skos:prefLabel "Available voltage (V)"@en ;
+    skos:definition "A possible degree of voltage offered by the charging point. May be multi-valued." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricVehicleChargingPoint ;
+    skos:scopeNote "Value type: xsd:decimal (V). DATEX II native type: Volt (float), multi-valued." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II ElectricChargingPoint.availableVoltage; hub-curated SKOS rendering." .
+
+datex:connector a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricVehicleChargingPoint ;
+    skos:prefLabel "Connector (charging interface)"@en ;
+    skos:definition "A physical charging interface available at the charging point. A charging point may expose several connectors." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricVehicleChargingPoint ;
+    skos:scopeNote "Value type: object reference (DATEX II Connector) — see the Connector entity. Multi-valued." ;
+    rdfs:range datex:Connector ;
+    dcterms:source "DATEX II ElectricChargingPoint.connector; hub-curated SKOS rendering." .
+
+datex:electricEnergyMix a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricVehicleChargingPoint ;
+    skos:prefLabel "Electric energy mix"@en ;
+    skos:definition "The mix of energy sources of the electricity delivered at the charging point." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricVehicleChargingPoint ;
+    skos:scopeNote "Value type: object reference (DATEX II ElectricEnergyMix) — see the Electric energy mix entity." ;
+    rdfs:range datex:ElectricEnergyMix ;
+    dcterms:source "DATEX II ElectricChargingPoint.electricEnergyMix; hub-curated SKOS rendering." .
+
+# OWL enrichment note: object reference in DATEX II (DATEX II Location); modeled
+# as owl:ObjectProperty even though the referenced type is out of scope
+# for this hub-curated subset and has no rdfs:range here (see TERMS.md).
+datex:location a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricVehicleChargingPoint ;
+    skos:prefLabel "Location (latitude/longitude)"@en ;
+    skos:definition "The geographic location of the charging point, expressed as latitude and longitude coordinates." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricVehicleChargingPoint ;
+    skos:scopeNote "Value type: object reference (DATEX II Location); coordinates expressed as xsd:decimal degrees (latitude/longitude). Inherited from Facility." ;
+    dcterms:source "DATEX II Facility.location (inherited by RefillPoint/ElectricChargingPoint); hub-curated SKOS rendering." .
+
+# =========================================================================
+# ENTITY: Connector
+# =========================================================================
+datex:Connector a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    skos:prefLabel "Connector"@en ;
+    skos:definition "Parameters and description of an interface available at an electric charging point to connect vehicles (the charging interface type and cable information)." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: Connector; hub-curated SKOS rendering." ;
+    skos:narrower datex:connectorType ;
+    skos:narrower datex:chargingMode ;
+    skos:narrower datex:connectorFormat ;
+    skos:narrower datex:maxPowerAtSocket ;
+    skos:narrower datex:voltage ;
+    skos:narrower datex:maximumCurrent .
+
+# OWL enrichment note: enumeration-valued attribute whose rdfs:range is its
+# own IRI (self-referential enumeration root, per this file's existing
+# convention). Modeled as owl:DatatypeProperty rather than owl:ObjectProperty
+# because "Code value" concepts are kept as plain skos:Concept leaves, not
+# owl:NamedIndividuals (see TERMS.md "OWL enrichment" section).
+datex:connectorType a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:Connector ;
+    skos:prefLabel "Connector type"@en ;
+    skos:definition "The type of physical connector / charging interface offered (e.g. Type 2, CCS Combo 2, CHAdeMO)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:Connector ;
+    skos:scopeNote "Value type: enumeration (ConnectorTypeEnum) — see narrower code values. Required in DATEX II." ;
+    rdfs:range datex:connectorType ;
+    dcterms:source "DATEX II Connector.connectorType (ConnectorTypeEnum, per IEC 62196 / IEC 60309); hub-curated SKOS rendering." ;
+    skos:narrower datex:connectorType-iec62196T2 ;
+    skos:narrower datex:connectorType-iec62196T2COMBO ;
+    skos:narrower datex:connectorType-iec62196T1 ;
+    skos:narrower datex:connectorType-iec62196T1COMBO ;
+    skos:narrower datex:connectorType-iec62196T3A ;
+    skos:narrower datex:connectorType-iec62196T3C ;
+    skos:narrower datex:connectorType-chademo ;
+    skos:narrower datex:connectorType-yazaki ;
+    skos:narrower datex:connectorType-domestic ;
+    skos:narrower datex:connectorType-cee3 ;
+    skos:narrower datex:connectorType-cee5 ;
+    skos:narrower datex:connectorType-iec60309x2single16 ;
+    skos:narrower datex:connectorType-iec60309x2three16 ;
+    skos:narrower datex:connectorType-iec60309x2three32 ;
+    skos:narrower datex:connectorType-iec60309x2three64 ;
+    skos:narrower datex:connectorType-pantographBottomUp ;
+    skos:narrower datex:connectorType-pantographTopDown ;
+    skos:narrower datex:connectorType-teslaConnectorEurope ;
+    skos:narrower datex:connectorType-teslaConnectorAmerica ;
+    skos:narrower datex:connectorType-teslaR ;
+    skos:narrower datex:connectorType-teslaS ;
+    skos:narrower datex:connectorType-other .
+
+datex:connectorType-iec62196T2 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Type 2 / Mennekes (IEC 62196-2, AC)"@en ;
+    skos:definition "IEC 62196 Type 2 AC connector (Mennekes), the European AC charging standard." ;
+    dcterms:type "Code value" ;
+    skos:notation "iec62196T2" .
+
+datex:connectorType-iec62196T2COMBO a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "CCS Combo 2 (IEC 62196-3, DC)"@en ;
+    skos:definition "Combined Charging System Combo 2: Type 2 supplemented with two DC pins for DC fast charging." ;
+    dcterms:type "Code value" ;
+    skos:notation "iec62196T2COMBO" .
+
+datex:connectorType-iec62196T1 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Type 1 (IEC 62196-2 / SAE J1772, AC)"@en ;
+    skos:definition "IEC 62196 Type 1 single-phase AC connector (SAE J1772 / Yazaki)." ;
+    dcterms:type "Code value" ;
+    skos:notation "iec62196T1" .
+
+datex:connectorType-iec62196T1COMBO a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "CCS Combo 1 (IEC 62196-3, DC)"@en ;
+    skos:definition "Combined Charging System Combo 1: Type 1 supplemented with two DC pins (North American DC fast charging)." ;
+    dcterms:type "Code value" ;
+    skos:notation "iec62196T1COMBO" .
+
+datex:connectorType-iec62196T3A a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Type 3A (IEC 62196-2, AC)"@en ;
+    skos:definition "IEC 62196 Type 3A AC connector for light electric vehicles." ;
+    dcterms:type "Code value" ;
+    skos:notation "iec62196T3A" .
+
+datex:connectorType-iec62196T3C a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Type 3C / Scame (IEC 62196-2, AC)"@en ;
+    skos:definition "IEC 62196 Type 3C AC connector (Scame)." ;
+    dcterms:type "Code value" ;
+    skos:notation "iec62196T3C" .
+
+datex:connectorType-chademo a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "CHAdeMO"@en ;
+    skos:definition "CHAdeMO DC fast-charging connector (Japanese standard, bidirectional V2G/V2H capable)." ;
+    dcterms:type "Code value" ;
+    skos:notation "chademo" .
+
+datex:connectorType-yazaki a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Yazaki (SAE J1772)"@en ;
+    skos:definition "Yazaki connector (the original SAE J1772 Type 1 AC design)." ;
+    dcterms:type "Code value" ;
+    skos:notation "yazaki" .
+
+datex:connectorType-domestic a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Domestic socket"@en ;
+    skos:definition "A standard household / domestic socket. (DATEX II also defines regional variants domesticA–domesticO, omitted here for brevity.)" ;
+    dcterms:type "Code value" ;
+    skos:notation "domestic" .
+
+datex:connectorType-cee3 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "CEE 3-pin (single phase)"@en ;
+    skos:definition "CEE 3-pin single-phase industrial socket (blue)." ;
+    dcterms:type "Code value" ;
+    skos:notation "cee3" .
+
+datex:connectorType-cee5 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "CEE 5-pin (three phase)"@en ;
+    skos:definition "CEE 5-pin three-phase industrial socket (red)." ;
+    dcterms:type "Code value" ;
+    skos:notation "cee5" .
+
+datex:connectorType-iec60309x2single16 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "IEC 60309 single-phase 16 A"@en ;
+    skos:definition "IEC 60309 industrial connector, single phase, 16 A." ;
+    dcterms:type "Code value" ;
+    skos:notation "iec60309x2single16" .
+
+datex:connectorType-iec60309x2three16 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "IEC 60309 three-phase 16 A"@en ;
+    skos:definition "IEC 60309 industrial connector, three phase, 16 A." ;
+    dcterms:type "Code value" ;
+    skos:notation "iec60309x2three16" .
+
+datex:connectorType-iec60309x2three32 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "IEC 60309 three-phase 32 A"@en ;
+    skos:definition "IEC 60309 industrial connector, three phase, 32 A." ;
+    dcterms:type "Code value" ;
+    skos:notation "iec60309x2three32" .
+
+datex:connectorType-iec60309x2three64 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "IEC 60309 three-phase 64 A"@en ;
+    skos:definition "IEC 60309 industrial connector, three phase, 64 A." ;
+    dcterms:type "Code value" ;
+    skos:notation "iec60309x2three64" .
+
+datex:connectorType-pantographBottomUp a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Pantograph (bottom-up)"@en ;
+    skos:definition "Bottom-up pantograph charging interface (e.g. for electric buses)." ;
+    dcterms:type "Code value" ;
+    skos:notation "pantographBottomUp" .
+
+datex:connectorType-pantographTopDown a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Pantograph (top-down)"@en ;
+    skos:definition "Top-down pantograph charging interface (e.g. for electric buses)." ;
+    dcterms:type "Code value" ;
+    skos:notation "pantographTopDown" .
+
+datex:connectorType-teslaConnectorEurope a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Tesla connector (Europe)"@en ;
+    skos:definition "Tesla proprietary connector, European variant." ;
+    dcterms:type "Code value" ;
+    skos:notation "teslaConnectorEurope" .
+
+datex:connectorType-teslaConnectorAmerica a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Tesla connector (America)"@en ;
+    skos:definition "Tesla proprietary connector, North American variant." ;
+    dcterms:type "Code value" ;
+    skos:notation "teslaConnectorAmerica" .
+
+datex:connectorType-teslaR a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Tesla Roadster connector"@en ;
+    skos:definition "Tesla Roadster charging connector." ;
+    dcterms:type "Code value" ;
+    skos:notation "teslaR" .
+
+datex:connectorType-teslaS a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Tesla Model S connector"@en ;
+    skos:definition "Tesla Model S charging connector." ;
+    dcterms:type "Code value" ;
+    skos:notation "teslaS" .
+
+datex:connectorType-other a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Other connector type"@en ;
+    skos:definition "A connector type not covered by the enumerated values." ;
+    dcterms:type "Code value" ;
+    skos:notation "other" .
+
+# OWL enrichment note: enumeration-valued attribute whose rdfs:range is its
+# own IRI (self-referential enumeration root, per this file's existing
+# convention). Modeled as owl:DatatypeProperty rather than owl:ObjectProperty
+# because "Code value" concepts are kept as plain skos:Concept leaves, not
+# owl:NamedIndividuals (see TERMS.md "OWL enrichment" section).
+datex:chargingMode a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:Connector ;
+    skos:prefLabel "Charging mode"@en ;
+    skos:definition "The charging mode supported at the connector, per IEC 61851-1." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:Connector ;
+    skos:scopeNote "Value type: enumeration (ChargingModeEnum) — see narrower code values." ;
+    rdfs:range datex:chargingMode ;
+    dcterms:source "DATEX II Connector.chargingMode (ChargingModeEnum, per IEC 61851-1); hub-curated SKOS rendering." ;
+    skos:narrower datex:chargingMode-mode1AC1p ;
+    skos:narrower datex:chargingMode-mode1AC3p ;
+    skos:narrower datex:chargingMode-mode2AC1p ;
+    skos:narrower datex:chargingMode-mode2AC3p ;
+    skos:narrower datex:chargingMode-mode3AC3p ;
+    skos:narrower datex:chargingMode-mode4DC ;
+    skos:narrower datex:chargingMode-legacyInductive ;
+    skos:narrower datex:chargingMode-ccs ;
+    skos:narrower datex:chargingMode-other ;
+    skos:narrower datex:chargingMode-unknown .
+
+datex:chargingMode-mode1AC1p a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:chargingMode ;
+    skos:prefLabel "Mode 1 — AC single-phase"@en ;
+    skos:definition "IEC 61851-1 Mode 1 charging, AC single-phase (no in-cable control)." ;
+    dcterms:type "Code value" ;
+    skos:notation "mode1AC1p" .
+
+datex:chargingMode-mode1AC3p a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:chargingMode ;
+    skos:prefLabel "Mode 1 — AC three-phase"@en ;
+    skos:definition "IEC 61851-1 Mode 1 charging, AC three-phase." ;
+    dcterms:type "Code value" ;
+    skos:notation "mode1AC3p" .
+
+datex:chargingMode-mode2AC1p a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:chargingMode ;
+    skos:prefLabel "Mode 2 — AC single-phase"@en ;
+    skos:definition "IEC 61851-1 Mode 2 charging, AC single-phase (in-cable control and protection device)." ;
+    dcterms:type "Code value" ;
+    skos:notation "mode2AC1p" .
+
+datex:chargingMode-mode2AC3p a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:chargingMode ;
+    skos:prefLabel "Mode 2 — AC three-phase"@en ;
+    skos:definition "IEC 61851-1 Mode 2 charging, AC three-phase." ;
+    dcterms:type "Code value" ;
+    skos:notation "mode2AC3p" .
+
+datex:chargingMode-mode3AC3p a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:chargingMode ;
+    skos:prefLabel "Mode 3 — AC three-phase"@en ;
+    skos:definition "IEC 61851-1 Mode 3 charging, AC three-phase via a dedicated EVSE (the common public AC mode)." ;
+    dcterms:type "Code value" ;
+    skos:notation "mode3AC3p" .
+
+datex:chargingMode-mode4DC a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:chargingMode ;
+    skos:prefLabel "Mode 4 — DC"@en ;
+    skos:definition "IEC 61851-1 Mode 4 charging: DC fast charging with an off-board charger." ;
+    dcterms:type "Code value" ;
+    skos:notation "mode4DC" .
+
+datex:chargingMode-legacyInductive a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:chargingMode ;
+    skos:prefLabel "Legacy inductive"@en ;
+    skos:definition "Legacy inductive (wireless) charging." ;
+    dcterms:type "Code value" ;
+    skos:notation "legacyInductive" .
+
+datex:chargingMode-ccs a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:chargingMode ;
+    skos:prefLabel "CCS combined charging"@en ;
+    skos:definition "Combined Charging System mode." ;
+    dcterms:type "Code value" ;
+    skos:notation "ccs" .
+
+datex:chargingMode-other a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:chargingMode ;
+    skos:prefLabel "Other charging mode"@en ;
+    skos:definition "A charging mode not covered by the enumerated values." ;
+    dcterms:type "Code value" ;
+    skos:notation "other" .
+
+datex:chargingMode-unknown a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:chargingMode ;
+    skos:prefLabel "Unknown charging mode"@en ;
+    skos:definition "The charging mode is unknown." ;
+    dcterms:type "Code value" ;
+    skos:notation "unknown" .
+
+# OWL enrichment note: enumeration-valued attribute whose rdfs:range is its
+# own IRI (self-referential enumeration root, per this file's existing
+# convention). Modeled as owl:DatatypeProperty rather than owl:ObjectProperty
+# because "Code value" concepts are kept as plain skos:Concept leaves, not
+# owl:NamedIndividuals (see TERMS.md "OWL enrichment" section).
+datex:connectorFormat a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:Connector ;
+    skos:prefLabel "Connector format"@en ;
+    skos:definition "Whether the connector is offered as a captive cable or as a socket, including the cable type." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:Connector ;
+    skos:scopeNote "Value type: enumeration (ConnectorFormatTypeEnum) — see narrower code values." ;
+    rdfs:range datex:connectorFormat ;
+    dcterms:source "DATEX II Connector.connectorFormat (ConnectorFormatTypeEnum); hub-curated SKOS rendering." ;
+    skos:narrower datex:connectorFormat-socket ;
+    skos:narrower datex:connectorFormat-cableMode2 ;
+    skos:narrower datex:connectorFormat-cableMode3 ;
+    skos:narrower datex:connectorFormat-otherCable .
+
+datex:connectorFormat-socket a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorFormat ;
+    skos:prefLabel "Socket"@en ;
+    skos:definition "A socket; the driver supplies their own cable." ;
+    dcterms:type "Code value" ;
+    skos:notation "socket" .
+
+datex:connectorFormat-cableMode2 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorFormat ;
+    skos:prefLabel "Captive cable (Mode 2)"@en ;
+    skos:definition "A permanently attached cable with Mode 2 in-cable control." ;
+    dcterms:type "Code value" ;
+    skos:notation "cableMode2" .
+
+datex:connectorFormat-cableMode3 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorFormat ;
+    skos:prefLabel "Captive cable (Mode 3)"@en ;
+    skos:definition "A permanently attached cable for Mode 3 charging." ;
+    dcterms:type "Code value" ;
+    skos:notation "cableMode3" .
+
+datex:connectorFormat-otherCable a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorFormat ;
+    skos:prefLabel "Other captive cable"@en ;
+    skos:definition "A permanently attached cable of another type." ;
+    dcterms:type "Code value" ;
+    skos:notation "otherCable" .
+
+datex:maxPowerAtSocket a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:Connector ;
+    skos:prefLabel "Maximum power at socket (kW)"@en ;
+    skos:definition "The maximum power available at the connector/socket. Required in DATEX II." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:Connector ;
+    skos:scopeNote "Value type: xsd:decimal (kW). DATEX II native type: Watt (float)." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II Connector.maxPowerAtSocket; hub-curated SKOS rendering." .
+
+datex:voltage a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:Connector ;
+    skos:prefLabel "Voltage (V)"@en ;
+    skos:definition "The voltage available at the connector." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:Connector ;
+    skos:scopeNote "Value type: xsd:decimal (V). DATEX II native type: Volt (float)." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II Connector.voltage; hub-curated SKOS rendering." .
+
+datex:maximumCurrent a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:Connector ;
+    skos:prefLabel "Maximum current (A)"@en ;
+    skos:definition "The maximum current available at the connector." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:Connector ;
+    skos:scopeNote "Value type: xsd:decimal (A). DATEX II native type: Ampere (float)." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II Connector.maximumCurrent; hub-curated SKOS rendering." .
+
+# =========================================================================
+# ENTITY: ElectricEnergyMix
+# =========================================================================
+datex:ElectricEnergyMix a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    skos:prefLabel "Electric energy mix"@en ;
+    skos:definition "The mix of energy sources of the electricity delivered at an electric charging point, optionally with per-source ratios." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: ElectricEnergyMix / ElectricEnergySourceRatio; hub-curated SKOS rendering." ;
+    skos:narrower datex:energySourceType ;
+    skos:narrower datex:energySourceRatio .
+
+# OWL enrichment note: enumeration-valued attribute whose rdfs:range is its
+# own IRI (self-referential enumeration root, per this file's existing
+# convention). Modeled as owl:DatatypeProperty rather than owl:ObjectProperty
+# because "Code value" concepts are kept as plain skos:Concept leaves, not
+# owl:NamedIndividuals (see TERMS.md "OWL enrichment" section).
+datex:energySourceType a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricEnergyMix ;
+    skos:prefLabel "Energy source type"@en ;
+    skos:definition "The type of energy source in the electric energy mix." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricEnergyMix ;
+    skos:scopeNote "Value type: enumeration (ElectricEnergySourceTypeEnum) — see narrower code values." ;
+    rdfs:range datex:energySourceType ;
+    dcterms:source "DATEX II ElectricEnergySourceRatio.energySourceType (ElectricEnergySourceTypeEnum); hub-curated SKOS rendering." ;
+    skos:narrower datex:energySourceType-solar ;
+    skos:narrower datex:energySourceType-wind ;
+    skos:narrower datex:energySourceType-water ;
+    skos:narrower datex:energySourceType-biogas ;
+    skos:narrower datex:energySourceType-nuclear ;
+    skos:narrower datex:energySourceType-coal ;
+    skos:narrower datex:energySourceType-gas ;
+    skos:narrower datex:energySourceType-generalGreen ;
+    skos:narrower datex:energySourceType-generalFossil ;
+    skos:narrower datex:energySourceType-other .
+
+datex:energySourceType-solar a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:energySourceType ;
+    skos:prefLabel "Solar"@en ;
+    skos:definition "Electricity from solar sources." ;
+    dcterms:type "Code value" ;
+    skos:notation "solar" .
+
+datex:energySourceType-wind a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:energySourceType ;
+    skos:prefLabel "Wind"@en ;
+    skos:definition "Electricity from wind sources." ;
+    dcterms:type "Code value" ;
+    skos:notation "wind" .
+
+datex:energySourceType-water a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:energySourceType ;
+    skos:prefLabel "Water"@en ;
+    skos:definition "Electricity from hydro / water sources." ;
+    dcterms:type "Code value" ;
+    skos:notation "water" .
+
+datex:energySourceType-biogas a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:energySourceType ;
+    skos:prefLabel "Biogas"@en ;
+    skos:definition "Electricity from biogas." ;
+    dcterms:type "Code value" ;
+    skos:notation "biogas" .
+
+datex:energySourceType-nuclear a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:energySourceType ;
+    skos:prefLabel "Nuclear"@en ;
+    skos:definition "Electricity from nuclear sources." ;
+    dcterms:type "Code value" ;
+    skos:notation "nuclear" .
+
+datex:energySourceType-coal a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:energySourceType ;
+    skos:prefLabel "Coal"@en ;
+    skos:definition "Electricity from coal." ;
+    dcterms:type "Code value" ;
+    skos:notation "coal" .
+
+datex:energySourceType-gas a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:energySourceType ;
+    skos:prefLabel "Gas"@en ;
+    skos:definition "Electricity from gas." ;
+    dcterms:type "Code value" ;
+    skos:notation "gas" .
+
+datex:energySourceType-generalGreen a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:energySourceType ;
+    skos:prefLabel "General green"@en ;
+    skos:definition "Electricity from a general green / renewable mix." ;
+    dcterms:type "Code value" ;
+    skos:notation "generalGreen" .
+
+datex:energySourceType-generalFossil a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:energySourceType ;
+    skos:prefLabel "General fossil"@en ;
+    skos:definition "Electricity from a general fossil mix." ;
+    dcterms:type "Code value" ;
+    skos:notation "generalFossil" .
+
+datex:energySourceType-other a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:energySourceType ;
+    skos:prefLabel "Other energy source"@en ;
+    skos:definition "An energy source not covered by the enumerated values." ;
+    dcterms:type "Code value" ;
+    skos:notation "other" .
+
+datex:energySourceRatio a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricEnergyMix ;
+    skos:prefLabel "Energy source ratio (%)"@en ;
+    skos:definition "The percentage share of a given energy source within the electric energy mix." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricEnergyMix ;
+    skos:scopeNote "Value type: xsd:decimal (percentage). DATEX II native type: Percentage (float)." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II ElectricEnergySourceRatio.energySourceRatio; hub-curated SKOS rendering." .
+
+
+# =========================================================================
+# FULL NATIVE SCOPE EXPANSION (added 2026-08-18)
+# =========================================================================
+# Everything from here to the end of the file is ADDITIVE: new concepts, and
+# new triples on the five ORIGINAL entities above (new skos:narrower /
+# rdfs:subClassOf edges, expressed as separate statements so as not to touch
+# a single character of the original blocks). No existing triple is removed
+# or altered.
+#
+# Source: primary XSD, fetched live and read directly (no secondary
+# description needed -- the primary schema was reachable):
+#   https://docs.datex2.eu/_static/data/v3.7/DATEXII_3_EnergyInfrastructure.xsd
+# (same DATEX II v3.7 EnergyInfrastructure namespace already cited by this
+# file's ontology header). Cross-checked against the DATEX II Documentation
+# Portal's "Mastering > Energy" narrative pages (docs.datex2.eu/levels/
+# mastering/energy/) for definitions/context, and against the imported
+# DATEXII_3_Facilities.xsd / DATEXII_3_Common.xsd schemas (also fetched) to
+# resolve inherited/external type names cited in scope notes below.
+#
+# Scope rule applied: every class and attribute defined DIRECTLY in
+# DATEXII_3_EnergyInfrastructure.xsd is modelled (all 15 non-enum,
+# non-envelope complexTypes not already covered by the original 5 entities;
+# see the per-entity dcterms:source below for the exact XSD complexType).
+# Deliberately EXCLUDED, as genuinely out of the domain model:
+#   - the four XML/message *envelope* complexTypes:
+#     EnergyInfrastructureTable, EnergyInfrastructureTablePublication,
+#     EnergyInfrastructureStatusPublication, and the
+#     _EnergyInfrastructureTableVersionedReference helper -- these are
+#     exchange-message wrappers (com:PayloadPublication descendants,
+#     id/version envelopes), not domain concepts, matching this file's
+#     pre-existing choice not to model com:PayloadPublication/
+#     HeaderInformation either;
+#   - the "_XyzEnum" extensibility wrapper complexTypes (one per enum) --
+#     an XSD open-enumeration mechanism (an "_extendedValue" escape hatch),
+#     not real classes;
+#   - the "_extended" enumeration literal present on every native enum --
+#     matches this file's pre-existing choice to omit it from the original
+#     6 enumerations;
+#   - the AFIR-branded sibling namespace/extension (AfirEnergyInfrastructure,
+#     DATEXII_3_AfirEnergyInfrastructure.xsd) -- a SEPARATE DATEX II
+#     extension/namespace (confirmed via docs.datex2.eu/downloads/modelv37/),
+#     not "the EnergyInfrastructure model" this file already scopes to;
+#   - attributes/types that live in the imported Facilities/Common/
+#     LocationReferencing namespaces (fac:/com:/loc:) and are not modelled
+#     in this file -- kept out of scope exactly like the original file's
+#     entrance/operatingHours/energyProvider/location precedent: rendered as
+#     owl:ObjectProperty or owl:DatatypeProperty with NO invented
+#     rdfs:range/code values, and a "(external, out of scope)" scopeNote.
+#
+# Attribute-naming collisions: DATEX II XSD element names are locally scoped
+# per complexType, so several native names recur across more than one class
+# in this same extension (e.g. "energyProvider" on both
+# EnergyInfrastructureStation and ElectricEnergyMix; "serviceType" on
+# EnergyInfrastructureStation, RefillPoint AND as ServiceType's own scalar
+# field; "status" on the pre-existing hub-curated ElectricVehicleChargingPoint
+# attribute AND natively again on the new RefillPointStatus class). Since
+# this file's convention is one bare-name IRI per attribute with a single
+# rdfs:domain, a second/third use of the same native name is disambiguated
+# with a short, readable suffix (documented per-attribute below with a
+# "# Naming note:" comment); the first/pre-existing or most-central usage
+# always keeps the bare native name.
+
+# ===========================================================================
+# New attributes on the five ORIGINAL entities (full native scope)
+# ===========================================================================
+
+# --- EnergyInfrastructureSite: additional native attributes ---
+# (separate statement -- the original skos:narrower block above is untouched)
+datex:EnergyInfrastructureSite skos:narrower datex:typeOfSite , datex:exclusiveUsers ,
+    datex:preferredUsers , datex:exit , datex:energyInfrastructureStation .
+
+datex:typeOfSite a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureSite ;
+    skos:prefLabel "Type of site"@en ;
+    skos:definition "The physical type of the energy infrastructure site (e.g. roofed station, in a building, open space, on-street, on a company site)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureSite ;
+    skos:scopeNote "Value type: enumeration (EnergyInfrastructureSiteTypeEnum) — see narrower code values." ;
+    rdfs:range datex:typeOfSite ;
+    dcterms:source "DATEX II EnergyInfrastructureSite.typeOfSite (EnergyInfrastructureSiteTypeEnum); hub-curated SKOS rendering." ;
+    skos:narrower datex:typeOfSite-roofedStation ;
+    skos:narrower datex:typeOfSite-inBuilding ;
+    skos:narrower datex:typeOfSite-openSpace ;
+    skos:narrower datex:typeOfSite-onstreet ;
+    skos:narrower datex:typeOfSite-onCompanySite ;
+    skos:narrower datex:typeOfSite-other .
+
+datex:typeOfSite-roofedStation a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:typeOfSite ;
+    skos:prefLabel "Roofed station"@en ;
+    skos:definition "The site is a roofed station." ;
+    dcterms:type "Code value" ;
+    skos:notation "roofedStation" .
+
+datex:typeOfSite-inBuilding a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:typeOfSite ;
+    skos:prefLabel "In building"@en ;
+    skos:definition "The site is located inside a building." ;
+    dcterms:type "Code value" ;
+    skos:notation "inBuilding" .
+
+datex:typeOfSite-openSpace a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:typeOfSite ;
+    skos:prefLabel "Open space"@en ;
+    skos:definition "The site is an open, unroofed space." ;
+    dcterms:type "Code value" ;
+    skos:notation "openSpace" .
+
+datex:typeOfSite-onstreet a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:typeOfSite ;
+    skos:prefLabel "On-street"@en ;
+    skos:definition "The site is located on-street." ;
+    dcterms:type "Code value" ;
+    skos:notation "onstreet" .
+
+datex:typeOfSite-onCompanySite a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:typeOfSite ;
+    skos:prefLabel "On company site"@en ;
+    skos:definition "The site is located on a company's premises." ;
+    dcterms:type "Code value" ;
+    skos:notation "onCompanySite" .
+
+datex:typeOfSite-other a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:typeOfSite ;
+    skos:prefLabel "Other site type"@en ;
+    skos:definition "A site type not covered by the enumerated values." ;
+    dcterms:type "Code value" ;
+    skos:notation "other" .
+
+datex:exclusiveUsers a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureSite ;
+    skos:prefLabel "Exclusive users"@en ;
+    skos:definition "The user group(s) exclusively allowed to use this site (e.g. employees, hotel guests). External enumeration (DATEX II Facilities UserTypeEnum) — code values are not modelled in this hub-curated subset (out of scope, Facilities namespace)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureSite ;
+    skos:scopeNote "Value type: enumeration (DATEX II Facilities UserTypeEnum; external, out of scope — code values not modelled). Multi-valued." ;
+    dcterms:source "DATEX II EnergyInfrastructureSite.exclusiveUsers (fac:_UserTypeEnum, DATEX II Facilities namespace); hub-curated SKOS rendering." .
+
+datex:preferredUsers a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureSite ;
+    skos:prefLabel "Preferred users"@en ;
+    skos:definition "The user group(s) for whom this site is preferentially intended (non-exclusive). External enumeration (DATEX II Facilities UserTypeEnum) — code values are not modelled in this hub-curated subset (out of scope, Facilities namespace)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureSite ;
+    skos:scopeNote "Value type: enumeration (DATEX II Facilities UserTypeEnum; external, out of scope — code values not modelled). Multi-valued." ;
+    dcterms:source "DATEX II EnergyInfrastructureSite.preferredUsers (fac:_UserTypeEnum, DATEX II Facilities namespace); hub-curated SKOS rendering." .
+
+# OWL enrichment note: object reference in DATEX II (DATEX II Location), same
+# pattern as the pre-existing datex:entrance; modeled as owl:ObjectProperty
+# with no invented rdfs:range (out of scope, see TERMS.md).
+datex:exit a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureSite ;
+    skos:prefLabel "Exit"@en ;
+    skos:definition "The geographic location of an exit from the site." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureSite ;
+    skos:scopeNote "Value type: object reference (DATEX II Location; external, out of scope — see the pre-existing datex:entrance for the same pattern). Multi-valued." ;
+    dcterms:source "DATEX II EnergyInfrastructureSite.exit; hub-curated SKOS rendering." .
+
+datex:energyInfrastructureStation a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureSite ;
+    skos:prefLabel "Energy infrastructure station (containment)"@en ;
+    skos:definition "The energy infrastructure station(s) located on this site. The containment edge from Site down to Station." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureSite ;
+    skos:scopeNote "Value type: object reference (DATEX II EnergyInfrastructureStation) — see the EnergyInfrastructureStation entity. Multi-valued." ;
+    rdfs:range datex:EnergyInfrastructureStation ;
+    dcterms:source "DATEX II EnergyInfrastructureSite.energyInfrastructureStation; hub-curated SKOS rendering." .
+
+# --- EnergyInfrastructureStation: additional native attributes ---
+# (separate statement -- the original skos:narrower block above is untouched)
+datex:EnergyInfrastructureStation skos:narrower datex:numberOfRefillPoints , datex:refillPointByReference ,
+    datex:userInterfaceLanguage , datex:energyDistributor , datex:stationServiceType , datex:refillPoint .
+
+datex:numberOfRefillPoints a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureStation ;
+    skos:prefLabel "Number of refill points"@en ;
+    skos:definition "The number of refill points (e.g. charging points) available at the station." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureStation ;
+    skos:scopeNote "Value type: xsd:nonNegativeInteger. DATEX II native type: NonNegativeInteger." ;
+    rdfs:range xsd:nonNegativeInteger ;
+    dcterms:source "DATEX II EnergyInfrastructureStation.numberOfRefillPoints; hub-curated SKOS rendering." .
+
+datex:refillPointByReference a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureStation ;
+    skos:prefLabel "Refill point (by reference)"@en ;
+    skos:definition "A refill point of this station, referenced by identifier rather than embedded inline (e.g. one already published separately)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureStation ;
+    skos:scopeNote "Value type: object reference (DATEX II VersionedReference targeting a RefillPoint) — see the RefillPoint entity. Multi-valued." ;
+    rdfs:range datex:RefillPoint ;
+    dcterms:source "DATEX II EnergyInfrastructureStation.refillPointByReference; hub-curated SKOS rendering." .
+
+datex:userInterfaceLanguage a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureStation ;
+    skos:prefLabel "User interface language"@en ;
+    skos:definition "A language supported by the station's user interface / payment terminal." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureStation ;
+    skos:scopeNote "Value type: xsd:language. DATEX II native type: Language (ISO 639-1 code). Multi-valued." ;
+    rdfs:range xsd:language ;
+    dcterms:source "DATEX II EnergyInfrastructureStation.userInterfaceLanguage; hub-curated SKOS rendering." .
+
+# OWL enrichment note: object reference in DATEX II (DATEX II Organisation),
+# same pattern as the pre-existing datex:energyProvider; modeled as
+# owl:ObjectProperty with no invented rdfs:range (out of scope, see TERMS.md).
+datex:energyDistributor a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureStation ;
+    skos:prefLabel "Energy distributor"@en ;
+    skos:definition "The organisation distributing the energy at the station (as distinct from the energy provider/producer)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureStation ;
+    skos:scopeNote "Value type: object reference (DATEX II Organisation; external, out of scope — same pattern as the pre-existing datex:energyProvider)." ;
+    dcterms:source "DATEX II EnergyInfrastructureStation.energyDistributor; hub-curated SKOS rendering." .
+
+# Naming note: DATEX II's native element name is "serviceType", reused
+# across EnergyInfrastructureStation, RefillPoint and ServiceType's own
+# scalar field; disambiguated here as "stationServiceType" (this attribute)
+# vs. datex:serviceType (RefillPoint's own attribute of the same native
+# name) vs. datex:serviceTypeCode (ServiceType's own enumeration field).
+datex:stationServiceType a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureStation ;
+    skos:prefLabel "Station service type"@en ;
+    skos:definition "The way the station's refill points are serviced (full service, self-service, or unattended)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureStation ;
+    skos:scopeNote "Value type: object reference (DATEX II ServiceType) — see the ServiceType entity." ;
+    rdfs:range datex:ServiceType ;
+    dcterms:source "DATEX II EnergyInfrastructureStation.serviceType; hub-curated SKOS rendering." .
+
+datex:refillPoint a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureStation ;
+    skos:prefLabel "Refill point (containment)"@en ;
+    skos:definition "A refill point of this station, embedded inline. The containment edge from Station down to RefillPoint (and its specialisations, e.g. ElectricVehicleChargingPoint)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureStation ;
+    skos:scopeNote "Value type: object reference (DATEX II RefillPoint) — see the RefillPoint entity and its specialisations. Multi-valued." ;
+    rdfs:range datex:RefillPoint ;
+    dcterms:source "DATEX II EnergyInfrastructureStation.refillPoint; hub-curated SKOS rendering." .
+
+# --- ElectricVehicleChargingPoint: additional native attributes + generalisation ---
+# (separate statement -- the original skos:narrower block above is untouched)
+datex:ElectricVehicleChargingPoint skos:narrower datex:usageType , datex:vehicleToGridCommunicationType ,
+    datex:vehicleSpace ;
+    rdfs:subClassOf datex:RefillPoint .
+
+datex:usageType a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricVehicleChargingPoint ;
+    skos:prefLabel "Usage type"@en ;
+    skos:definition "The kind of vehicle/device the charging point is intended for (e.g. electric vehicle, electric bike, electric boat)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricVehicleChargingPoint ;
+    skos:scopeNote "Value type: enumeration (ChargingPointUsageTypeEnum) — see narrower code values. Multi-valued." ;
+    rdfs:range datex:usageType ;
+    dcterms:source "DATEX II ElectricChargingPoint.usageType (ChargingPointUsageTypeEnum); hub-curated SKOS rendering." ;
+    skos:narrower datex:usageType-electricBoat ;
+    skos:narrower datex:usageType-electricBike ;
+    skos:narrower datex:usageType-electricalDevices ;
+    skos:narrower datex:usageType-electricMotorcycle ;
+    skos:narrower datex:usageType-electricVehicle ;
+    skos:narrower datex:usageType-lorryPowerConsumption ;
+    skos:narrower datex:usageType-motorhomeOrCaravanSupply ;
+    skos:narrower datex:usageType-overheadLineDrivenVehicles ;
+    skos:narrower datex:usageType-other .
+
+datex:usageType-electricBoat a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:usageType ;
+    skos:prefLabel "Electric boat"@en ;
+    skos:definition "Intended for charging electric boats." ;
+    dcterms:type "Code value" ;
+    skos:notation "electricBoat" .
+
+datex:usageType-electricBike a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:usageType ;
+    skos:prefLabel "Electric bike"@en ;
+    skos:definition "Intended for charging electric bikes." ;
+    dcterms:type "Code value" ;
+    skos:notation "electricBike" .
+
+datex:usageType-electricalDevices a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:usageType ;
+    skos:prefLabel "Electrical devices"@en ;
+    skos:definition "Intended for charging small electrical devices." ;
+    dcterms:type "Code value" ;
+    skos:notation "electricalDevices" .
+
+datex:usageType-electricMotorcycle a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:usageType ;
+    skos:prefLabel "Electric motorcycle"@en ;
+    skos:definition "Intended for charging electric motorcycles." ;
+    dcterms:type "Code value" ;
+    skos:notation "electricMotorcycle" .
+
+datex:usageType-electricVehicle a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:usageType ;
+    skos:prefLabel "Electric vehicle"@en ;
+    skos:definition "Intended for charging electric vehicles (cars)." ;
+    dcterms:type "Code value" ;
+    skos:notation "electricVehicle" .
+
+datex:usageType-lorryPowerConsumption a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:usageType ;
+    skos:prefLabel "Lorry power consumption"@en ;
+    skos:definition "Intended for supplying lorry auxiliary power consumption." ;
+    dcterms:type "Code value" ;
+    skos:notation "lorryPowerConsumption" .
+
+datex:usageType-motorhomeOrCaravanSupply a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:usageType ;
+    skos:prefLabel "Motorhome or caravan supply"@en ;
+    skos:definition "Intended for supplying motorhomes or caravans." ;
+    dcterms:type "Code value" ;
+    skos:notation "motorhomeOrCaravanSupply" .
+
+datex:usageType-overheadLineDrivenVehicles a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:usageType ;
+    skos:prefLabel "Overhead-line-driven vehicles"@en ;
+    skos:definition "Intended for overhead-line-driven vehicles (e.g. electric trucks/buses)." ;
+    dcterms:type "Code value" ;
+    skos:notation "overheadLineDrivenVehicles" .
+
+datex:usageType-other a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:usageType ;
+    skos:prefLabel "Other usage type"@en ;
+    skos:definition "A usage type not covered by the enumerated values." ;
+    dcterms:type "Code value" ;
+    skos:notation "other" .
+
+datex:vehicleToGridCommunicationType a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricVehicleChargingPoint ;
+    skos:prefLabel "Vehicle-to-grid communication type"@en ;
+    skos:definition "The vehicle-to-grid (V2G) communication protocol supported at the charging point." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricVehicleChargingPoint ;
+    skos:scopeNote "Value type: enumeration (VehicleToGridCommunicationTypeEnum) — see narrower code values. Multi-valued." ;
+    rdfs:range datex:vehicleToGridCommunicationType ;
+    dcterms:source "DATEX II ElectricChargingPoint.vehicleToGridCommunicationType (VehicleToGridCommunicationTypeEnum); hub-curated SKOS rendering." ;
+    skos:narrower datex:vehicleToGridCommunicationType-none ;
+    skos:narrower datex:vehicleToGridCommunicationType-iso15118 ;
+    skos:narrower datex:vehicleToGridCommunicationType-iec619802 ;
+    skos:narrower datex:vehicleToGridCommunicationType-other ;
+    skos:narrower datex:vehicleToGridCommunicationType-unknown .
+
+datex:vehicleToGridCommunicationType-none a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:vehicleToGridCommunicationType ;
+    skos:prefLabel "None"@en ;
+    skos:definition "No vehicle-to-grid communication is supported." ;
+    dcterms:type "Code value" ;
+    skos:notation "none" .
+
+datex:vehicleToGridCommunicationType-iso15118 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:vehicleToGridCommunicationType ;
+    skos:prefLabel "ISO 15118"@en ;
+    skos:definition "Vehicle-to-grid communication per ISO 15118." ;
+    dcterms:type "Code value" ;
+    skos:notation "iso15118" .
+
+datex:vehicleToGridCommunicationType-iec619802 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:vehicleToGridCommunicationType ;
+    skos:prefLabel "IEC 61980-2"@en ;
+    skos:definition "Vehicle-to-grid communication per IEC 61980-2." ;
+    dcterms:type "Code value" ;
+    skos:notation "iec619802" .
+
+datex:vehicleToGridCommunicationType-other a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:vehicleToGridCommunicationType ;
+    skos:prefLabel "Other V2G communication"@en ;
+    skos:definition "A vehicle-to-grid communication type not covered by the enumerated values." ;
+    dcterms:type "Code value" ;
+    skos:notation "other" .
+
+datex:vehicleToGridCommunicationType-unknown a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:vehicleToGridCommunicationType ;
+    skos:prefLabel "Unknown V2G communication"@en ;
+    skos:definition "The vehicle-to-grid communication type is unknown." ;
+    dcterms:type "Code value" ;
+    skos:notation "unknown" .
+
+datex:vehicleSpace a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricVehicleChargingPoint ;
+    skos:prefLabel "Vehicle space"@en ;
+    skos:definition "An adjacent vehicle space (parking space) usually directly linked with the charging point." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricVehicleChargingPoint ;
+    skos:scopeNote "Value type: object reference (DATEX II VehicleSpace) — see the VehicleSpace entity. Multi-valued." ;
+    rdfs:range datex:VehicleSpace ;
+    dcterms:source "DATEX II ElectricChargingPoint.vehicleSpace; hub-curated SKOS rendering." .
+
+# --- Connector: additional native attributes ---
+# (separate statement -- the original skos:narrower block above is untouched)
+datex:Connector skos:narrower datex:otherConnector , datex:countryOfDomesticSocket .
+
+datex:otherConnector a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:Connector ;
+    skos:prefLabel "Other connector (free text)"@en ;
+    skos:definition "Free-text description of the connector type when datex:connectorType is 'other'." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:Connector ;
+    skos:scopeNote "Value type: xsd:string. DATEX II native type: String." ;
+    rdfs:range xsd:string ;
+    dcterms:source "DATEX II Connector.otherConnector; hub-curated SKOS rendering." .
+
+datex:countryOfDomesticSocket a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:Connector ;
+    skos:prefLabel "Country of domestic socket"@en ;
+    skos:definition "The country whose domestic socket standard the connector implements (relevant when datex:connectorType is a domestic socket variant)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:Connector ;
+    skos:scopeNote "Value type: xsd:string. DATEX II native type: CountryCode (ISO 3166-1 alpha-2). Multi-valued." ;
+    rdfs:range xsd:string ;
+    dcterms:source "DATEX II Connector.countryOfDomesticSocket; hub-curated SKOS rendering." .
+
+# --- ElectricEnergyMix: additional native attributes ---
+# (separate statement -- the original skos:narrower block above is untouched)
+datex:ElectricEnergyMix skos:narrower datex:energyProductName , datex:isGreenEnergy ,
+    datex:carbonDioxideImpact , datex:nuclearWasteImpact , datex:notAvailable ,
+    datex:energyMixProvider , datex:energyMixRates , datex:energyMixIndex ,
+    datex:electricEnergySourceRatio .
+
+datex:energyProductName a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricEnergyMix ;
+    skos:prefLabel "Energy product name"@en ;
+    skos:definition "The commercial name of the energy product (electricity tariff/mix product)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricEnergyMix ;
+    skos:scopeNote "Value type: xsd:string. DATEX II native type: MultilingualString." ;
+    rdfs:range xsd:string ;
+    dcterms:source "DATEX II ElectricEnergyMix.energyProductName; hub-curated SKOS rendering." .
+
+datex:isGreenEnergy a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricEnergyMix ;
+    skos:prefLabel "Is green energy"@en ;
+    skos:definition "Whether the energy mix is marketed/certified as green (renewable) energy." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricEnergyMix ;
+    skos:scopeNote "Value type: xsd:boolean. DATEX II native type: Boolean." ;
+    rdfs:range xsd:boolean ;
+    dcterms:source "DATEX II ElectricEnergyMix.isGreenEnergy; hub-curated SKOS rendering." .
+
+datex:carbonDioxideImpact a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricEnergyMix ;
+    skos:prefLabel "Carbon dioxide impact"@en ;
+    skos:definition "The carbon dioxide impact of the energy mix." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricEnergyMix ;
+    skos:scopeNote "Value type: xsd:decimal. DATEX II native type: Float." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II ElectricEnergyMix.carbonDioxideImpact; hub-curated SKOS rendering." .
+
+datex:nuclearWasteImpact a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricEnergyMix ;
+    skos:prefLabel "Nuclear waste impact"@en ;
+    skos:definition "The nuclear waste impact of the energy mix." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricEnergyMix ;
+    skos:scopeNote "Value type: xsd:decimal. DATEX II native type: Float." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II ElectricEnergyMix.nuclearWasteImpact; hub-curated SKOS rendering." .
+
+datex:notAvailable a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricEnergyMix ;
+    skos:prefLabel "Not available"@en ;
+    skos:definition "Whether energy-mix information is not available for this charging point." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricEnergyMix ;
+    skos:scopeNote "Value type: xsd:boolean. DATEX II native type: Boolean." ;
+    rdfs:range xsd:boolean ;
+    dcterms:source "DATEX II ElectricEnergyMix.notAvailable; hub-curated SKOS rendering." .
+
+# Naming note: DATEX II's native element name is "energyProvider", already
+# used by the pre-existing datex:energyProvider (domain
+# EnergyInfrastructureStation); disambiguated here as "energyMixProvider"
+# since this is a second, distinct usage of the same native name on a
+# different class (ElectricEnergyMix).
+#
+# OWL enrichment note: object reference in DATEX II (DATEX II Organisation);
+# modeled as owl:ObjectProperty with no invented rdfs:range (out of scope,
+# see TERMS.md).
+datex:energyMixProvider a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricEnergyMix ;
+    skos:prefLabel "Energy mix provider"@en ;
+    skos:definition "The organisation providing this specific energy mix." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricEnergyMix ;
+    skos:scopeNote "Value type: object reference (DATEX II Organisation; external, out of scope — same pattern as the pre-existing datex:energyProvider)." ;
+    dcterms:source "DATEX II ElectricEnergyMix.energyProvider; hub-curated SKOS rendering." .
+
+# Naming note: DATEX II's native element name is "rates"; qualified here as
+# "energyMixRates" for readability alongside this file's other attribute
+# names (no collision with an existing IRI).
+#
+# OWL enrichment note: object reference in DATEX II (DATEX II Facilities
+# Rates, an abstract class); modeled as owl:ObjectProperty with no invented
+# rdfs:range (out of scope, see TERMS.md).
+datex:energyMixRates a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricEnergyMix ;
+    skos:prefLabel "Energy mix rates"@en ;
+    skos:definition "The pricing/rates applicable to this energy mix." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricEnergyMix ;
+    skos:scopeNote "Value type: object reference (DATEX II Facilities Rates; external, out of scope)." ;
+    dcterms:source "DATEX II ElectricEnergyMix.rates; hub-curated SKOS rendering." .
+
+datex:energyMixIndex a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricEnergyMix ;
+    skos:prefLabel "Energy mix index"@en ;
+    skos:definition "The index (ordinal) of this energy mix entry among the charging point's possible energy mixes." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricEnergyMix ;
+    skos:scopeNote "Value type: xsd:integer. DATEX II native type: Integer (XML attribute). Required in DATEX II." ;
+    rdfs:range xsd:integer ;
+    dcterms:source "DATEX II ElectricEnergyMix/@energyMixIndex; hub-curated SKOS rendering." .
+
+# OWL enrichment note: the pre-existing datex:energySourceType /
+# datex:energySourceRatio attributes already render a flattened view of this
+# same information directly on ElectricEnergyMix (a deliberate earlier
+# simplification, left untouched). This attribute adds the fully faithful,
+# properly-nested rendering (source + ratio + free-text "other" source
+# paired per entry) alongside it, without altering the flattened original.
+datex:electricEnergySourceRatio a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricEnergyMix ;
+    skos:prefLabel "Electric energy source ratio (containment)"@en ;
+    skos:definition "A source/ratio pair making up this energy mix (e.g. 40% solar). The containment edge from ElectricEnergyMix down to ElectricEnergySourceRatio." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricEnergyMix ;
+    skos:scopeNote "Value type: object reference (DATEX II ElectricEnergySourceRatio) — see the ElectricEnergySourceRatio entity. Multi-valued." ;
+    rdfs:range datex:ElectricEnergySourceRatio ;
+    dcterms:source "DATEX II ElectricEnergyMix.electricEnergySourceRatio; hub-curated SKOS rendering." .
+
+
+# ===========================================================================
+# Missing code values on two ORIGINAL enumeration attributes (full native scope)
+# ===========================================================================
+
+# The native AuthenticationAndIdentificationEnum (XSD) has 19 literals; the
+# original hub-curated subset modelled 10. Adding the missing 9 as new
+# skos:Concept code values, narrower of the pre-existing
+# datex:authenticationAndIdentificationMethods (a separate statement --
+# its original skos:narrower block above is untouched).
+datex:authenticationAndIdentificationMethods skos:narrower datex:authMethod-activeRFIDChip ,
+    datex:authMethod-calypso , datex:authMethod-mifareClassic , datex:authMethod-mifareDesfire ,
+    datex:authMethod-overTheAir , datex:authMethod-phoneDialog , datex:authMethod-phoneSMS ,
+    datex:authMethod-pinpad , datex:authMethod-plc .
+
+datex:authMethod-activeRFIDChip a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "Active RFID chip"@en ;
+    skos:definition "Identification by an active (powered) RFID chip." ;
+    dcterms:type "Code value" ;
+    skos:notation "activeRFIDChip" .
+
+datex:authMethod-calypso a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "Calypso"@en ;
+    skos:definition "Identification via the Calypso contactless ticketing standard." ;
+    dcterms:type "Code value" ;
+    skos:notation "calypso" .
+
+datex:authMethod-mifareClassic a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "MIFARE Classic"@en ;
+    skos:definition "Identification via a MIFARE Classic contactless card." ;
+    dcterms:type "Code value" ;
+    skos:notation "mifareClassic" .
+
+datex:authMethod-mifareDesfire a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "MIFARE DESFire"@en ;
+    skos:definition "Identification via a MIFARE DESFire contactless card." ;
+    dcterms:type "Code value" ;
+    skos:notation "mifareDesfire" .
+
+datex:authMethod-overTheAir a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "Over the air"@en ;
+    skos:definition "Identification/authentication performed over the air (remote activation)." ;
+    dcterms:type "Code value" ;
+    skos:notation "overTheAir" .
+
+datex:authMethod-phoneDialog a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "Phone dialog"@en ;
+    skos:definition "Identification/authentication via an interactive phone call." ;
+    dcterms:type "Code value" ;
+    skos:notation "phoneDialog" .
+
+datex:authMethod-phoneSMS a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "Phone SMS"@en ;
+    skos:definition "Identification/authentication via SMS text message." ;
+    dcterms:type "Code value" ;
+    skos:notation "phoneSMS" .
+
+datex:authMethod-pinpad a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "PIN pad"@en ;
+    skos:definition "Identification/authentication via a PIN pad." ;
+    dcterms:type "Code value" ;
+    skos:notation "pinpad" .
+
+datex:authMethod-plc a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:authenticationAndIdentificationMethods ;
+    skos:prefLabel "PLC"@en ;
+    skos:definition "Identification/authentication via Power Line Communication (ISO 15118)." ;
+    dcterms:type "Code value" ;
+    skos:notation "plc" .
+
+# The native ConnectorTypeEnum (XSD) also defines 15 regional domestic-socket
+# variants (domesticA-domesticO); the original hub-curated subset modelled
+# only the generic datex:connectorType-domestic and noted the variants were
+# "omitted here for brevity" (that pre-existing definition text is left
+# untouched). Adding the 15 variants now as new skos:Concept code values,
+# narrower of the pre-existing datex:connectorType (a separate statement --
+# its original skos:narrower block above is untouched).
+datex:connectorType skos:narrower datex:connectorType-domesticA , datex:connectorType-domesticB ,
+    datex:connectorType-domesticC , datex:connectorType-domesticD , datex:connectorType-domesticE ,
+    datex:connectorType-domesticF , datex:connectorType-domesticG , datex:connectorType-domesticH ,
+    datex:connectorType-domesticI , datex:connectorType-domesticJ , datex:connectorType-domesticK ,
+    datex:connectorType-domesticL , datex:connectorType-domesticM , datex:connectorType-domesticN ,
+    datex:connectorType-domesticO .
+
+datex:connectorType-domesticA a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Domestic socket type A"@en ;
+    skos:definition "IEC/CEE domestic socket type A, a regional household-socket variant of datex:connectorType-domestic." ;
+    dcterms:type "Code value" ;
+    skos:notation "domesticA" .
+
+datex:connectorType-domesticB a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Domestic socket type B"@en ;
+    skos:definition "IEC/CEE domestic socket type B, a regional household-socket variant of datex:connectorType-domestic." ;
+    dcterms:type "Code value" ;
+    skos:notation "domesticB" .
+
+datex:connectorType-domesticC a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Domestic socket type C"@en ;
+    skos:definition "IEC/CEE domestic socket type C, a regional household-socket variant of datex:connectorType-domestic." ;
+    dcterms:type "Code value" ;
+    skos:notation "domesticC" .
+
+datex:connectorType-domesticD a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Domestic socket type D"@en ;
+    skos:definition "IEC/CEE domestic socket type D, a regional household-socket variant of datex:connectorType-domestic." ;
+    dcterms:type "Code value" ;
+    skos:notation "domesticD" .
+
+datex:connectorType-domesticE a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Domestic socket type E"@en ;
+    skos:definition "IEC/CEE domestic socket type E, a regional household-socket variant of datex:connectorType-domestic." ;
+    dcterms:type "Code value" ;
+    skos:notation "domesticE" .
+
+datex:connectorType-domesticF a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Domestic socket type F"@en ;
+    skos:definition "IEC/CEE domestic socket type F, a regional household-socket variant of datex:connectorType-domestic." ;
+    dcterms:type "Code value" ;
+    skos:notation "domesticF" .
+
+datex:connectorType-domesticG a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Domestic socket type G"@en ;
+    skos:definition "IEC/CEE domestic socket type G, a regional household-socket variant of datex:connectorType-domestic." ;
+    dcterms:type "Code value" ;
+    skos:notation "domesticG" .
+
+datex:connectorType-domesticH a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Domestic socket type H"@en ;
+    skos:definition "IEC/CEE domestic socket type H, a regional household-socket variant of datex:connectorType-domestic." ;
+    dcterms:type "Code value" ;
+    skos:notation "domesticH" .
+
+datex:connectorType-domesticI a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Domestic socket type I"@en ;
+    skos:definition "IEC/CEE domestic socket type I, a regional household-socket variant of datex:connectorType-domestic." ;
+    dcterms:type "Code value" ;
+    skos:notation "domesticI" .
+
+datex:connectorType-domesticJ a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Domestic socket type J"@en ;
+    skos:definition "IEC/CEE domestic socket type J, a regional household-socket variant of datex:connectorType-domestic." ;
+    dcterms:type "Code value" ;
+    skos:notation "domesticJ" .
+
+datex:connectorType-domesticK a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Domestic socket type K"@en ;
+    skos:definition "IEC/CEE domestic socket type K, a regional household-socket variant of datex:connectorType-domestic." ;
+    dcterms:type "Code value" ;
+    skos:notation "domesticK" .
+
+datex:connectorType-domesticL a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Domestic socket type L"@en ;
+    skos:definition "IEC/CEE domestic socket type L, a regional household-socket variant of datex:connectorType-domestic." ;
+    dcterms:type "Code value" ;
+    skos:notation "domesticL" .
+
+datex:connectorType-domesticM a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Domestic socket type M"@en ;
+    skos:definition "IEC/CEE domestic socket type M, a regional household-socket variant of datex:connectorType-domestic." ;
+    dcterms:type "Code value" ;
+    skos:notation "domesticM" .
+
+datex:connectorType-domesticN a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Domestic socket type N"@en ;
+    skos:definition "IEC/CEE domestic socket type N, a regional household-socket variant of datex:connectorType-domestic." ;
+    dcterms:type "Code value" ;
+    skos:notation "domesticN" .
+
+datex:connectorType-domesticO a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:connectorType ;
+    skos:prefLabel "Domestic socket type O"@en ;
+    skos:definition "IEC/CEE domestic socket type O, a regional household-socket variant of datex:connectorType-domestic." ;
+    dcterms:type "Code value" ;
+    skos:notation "domesticO" .
+
+
+# ===========================================================================
+# Additional skos:hasTopConcept for the 15 new Entity classes
+# ===========================================================================
+
+# (separate statement -- the original skos:hasTopConcept block above is
+# untouched; each new entity below also states skos:topConceptOf itself,
+# matching the original entities' own pattern)
+datex:energy-infrastructure skos:hasTopConcept datex:RefillPoint , datex:DieselRefillPoint ,
+    datex:PetrolRefillPoint , datex:OrganicGasRefillPoint , datex:HydrogenRefillPoint ,
+    datex:RefillPointStatus , datex:ElectricChargingPointStatus , datex:EnergyInfrastructureSiteStatus ,
+    datex:EnergyInfrastructureStationStatus , datex:ServiceType , datex:ElectricChargingEquipment ,
+    datex:VehicleSpace , datex:EnergyPricingPolicy , datex:AssociatedParking ,
+    datex:ElectricEnergySourceRatio .
+
+# ===========================================================================
+# ENTITY: RefillPoint (abstract)
+# ===========================================================================
+
+datex:RefillPoint a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    skos:prefLabel "Refill point (abstract)"@en ;
+    skos:definition "Technical infrastructure at a specific location that facilitates refilling one vehicle at a time with any form of energy (electricity, diesel, petrol, organic gas, hydrogen). Abstract superclass of ElectricVehicleChargingPoint (already modelled above) and of DieselRefillPoint, PetrolRefillPoint, OrganicGasRefillPoint and HydrogenRefillPoint (modelled below)." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: RefillPoint (abstract, extends Facility); hub-curated SKOS rendering." ;
+    skos:narrower datex:deliveryUnit ;
+    skos:narrower datex:maximumDeliveryAmount ;
+    skos:narrower datex:minimumDeliveryAmount ;
+    skos:narrower datex:modelType ;
+    skos:narrower datex:reservation ;
+    skos:narrower datex:serviceType .
+
+datex:deliveryUnit a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:RefillPoint ;
+    skos:prefLabel "Delivery unit"@en ;
+    skos:definition "The unit in which energy/fuel is delivered at the refill point (e.g. litre, kWh, kg)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:RefillPoint ;
+    skos:scopeNote "Value type: enumeration (DeliveryUnitEnum) — see narrower code values." ;
+    rdfs:range datex:deliveryUnit ;
+    dcterms:source "DATEX II RefillPoint.deliveryUnit (DeliveryUnitEnum); hub-curated SKOS rendering." ;
+    skos:narrower datex:deliveryUnit-litre ;
+    skos:narrower datex:deliveryUnit-kWh ;
+    skos:narrower datex:deliveryUnit-kg ;
+    skos:narrower datex:deliveryUnit-m3 ;
+    skos:narrower datex:deliveryUnit-imperialGallon ;
+    skos:narrower datex:deliveryUnit-usGallon ;
+    skos:narrower datex:deliveryUnit-gasGallonEquivalent .
+
+datex:deliveryUnit-litre a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:deliveryUnit ;
+    skos:prefLabel "Litre"@en ;
+    skos:definition "Delivery measured in litres." ;
+    dcterms:type "Code value" ;
+    skos:notation "litre" .
+
+datex:deliveryUnit-kWh a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:deliveryUnit ;
+    skos:prefLabel "Kilowatt-hour"@en ;
+    skos:definition "Delivery measured in kilowatt-hours." ;
+    dcterms:type "Code value" ;
+    skos:notation "kWh" .
+
+datex:deliveryUnit-kg a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:deliveryUnit ;
+    skos:prefLabel "Kilogram"@en ;
+    skos:definition "Delivery measured in kilograms." ;
+    dcterms:type "Code value" ;
+    skos:notation "kg" .
+
+datex:deliveryUnit-m3 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:deliveryUnit ;
+    skos:prefLabel "Cubic metre"@en ;
+    skos:definition "Delivery measured in cubic metres." ;
+    dcterms:type "Code value" ;
+    skos:notation "m3" .
+
+datex:deliveryUnit-imperialGallon a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:deliveryUnit ;
+    skos:prefLabel "Imperial gallon"@en ;
+    skos:definition "Delivery measured in imperial gallons." ;
+    dcterms:type "Code value" ;
+    skos:notation "imperialGallon" .
+
+datex:deliveryUnit-usGallon a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:deliveryUnit ;
+    skos:prefLabel "US gallon"@en ;
+    skos:definition "Delivery measured in US gallons." ;
+    dcterms:type "Code value" ;
+    skos:notation "usGallon" .
+
+datex:deliveryUnit-gasGallonEquivalent a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:deliveryUnit ;
+    skos:prefLabel "Gas gallon equivalent"@en ;
+    skos:definition "Delivery measured in gas gallon equivalent (GGE)." ;
+    dcterms:type "Code value" ;
+    skos:notation "gasGallonEquivalent" .
+
+datex:maximumDeliveryAmount a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:RefillPoint ;
+    skos:prefLabel "Maximum delivery amount"@en ;
+    skos:definition "The maximum amount of energy/fuel that can be delivered in a single session, in the unit given by datex:deliveryUnit." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:RefillPoint ;
+    skos:scopeNote "Value type: xsd:decimal. DATEX II native type: Units (float)." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II RefillPoint.maximumDeliveryAmount; hub-curated SKOS rendering." .
+
+datex:minimumDeliveryAmount a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:RefillPoint ;
+    skos:prefLabel "Minimum delivery amount"@en ;
+    skos:definition "The minimum amount of energy/fuel that can be delivered in a single session, in the unit given by datex:deliveryUnit." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:RefillPoint ;
+    skos:scopeNote "Value type: xsd:decimal. DATEX II native type: Units (float)." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II RefillPoint.minimumDeliveryAmount; hub-curated SKOS rendering." .
+
+datex:modelType a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:RefillPoint ;
+    skos:prefLabel "Model type"@en ;
+    skos:definition "The manufacturer's model designation of the refill point." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:RefillPoint ;
+    skos:scopeNote "Value type: xsd:string. DATEX II native type: MultilingualString." ;
+    rdfs:range xsd:string ;
+    dcterms:source "DATEX II RefillPoint.modelType; hub-curated SKOS rendering." .
+
+datex:reservation a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:RefillPoint ;
+    skos:prefLabel "Reservation"@en ;
+    skos:definition "Whether the refill point can be reserved in advance. External enumeration (DATEX II Facilities ReservationTypeEnum: optional, mandatory, notAvailable, partly, unknown, unspecified) — code values are not modelled in this hub-curated subset (out of scope, Facilities namespace)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:RefillPoint ;
+    skos:scopeNote "Value type: enumeration (DATEX II Facilities ReservationTypeEnum; external, out of scope — code values not modelled)." ;
+    dcterms:source "DATEX II RefillPoint.reservation (fac:_ReservationTypeEnum, DATEX II Facilities namespace); hub-curated SKOS rendering." .
+
+# Naming note: DATEX II's native element name is "serviceType", reused
+# across RefillPoint, EnergyInfrastructureStation and ServiceType's own
+# scalar field; this is the primary/bare-name usage (RefillPoint is the
+# class this attribute is native to; the EnergyInfrastructureStation usage
+# is disambiguated as datex:stationServiceType, and ServiceType's own
+# enumeration field as datex:serviceTypeCode).
+datex:serviceType a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:RefillPoint ;
+    skos:prefLabel "Service type"@en ;
+    skos:definition "The way the refill point is serviced (full service, self-service, or unattended)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:RefillPoint ;
+    skos:scopeNote "Value type: object reference (DATEX II ServiceType) — see the ServiceType entity." ;
+    rdfs:range datex:ServiceType ;
+    dcterms:source "DATEX II RefillPoint.serviceType; hub-curated SKOS rendering." .
+
+# ===========================================================================
+# ENTITY: DieselRefillPoint
+# ===========================================================================
+
+datex:DieselRefillPoint a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    rdfs:subClassOf datex:RefillPoint ;
+    skos:prefLabel "Diesel refill point"@en ;
+    skos:definition "A refill point specialised for dispensing diesel fuel." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: DieselRefillPoint (extends RefillPoint); hub-curated SKOS rendering." ;
+    skos:narrower datex:dieselType ;
+    skos:narrower datex:cetane .
+
+datex:dieselType a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:DieselRefillPoint ;
+    skos:prefLabel "Diesel type"@en ;
+    skos:definition "The type(s) of diesel fuel dispensed (e.g. car diesel, truck diesel, biodiesel)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:DieselRefillPoint ;
+    skos:scopeNote "Value type: enumeration (DieselTypeEnum) — see narrower code values. Multi-valued." ;
+    rdfs:range datex:dieselType ;
+    dcterms:source "DATEX II DieselRefillPoint.dieselType (DieselTypeEnum); hub-curated SKOS rendering." ;
+    skos:narrower datex:dieselType-carDiesel ;
+    skos:narrower datex:dieselType-truckDiesel ;
+    skos:narrower datex:dieselType-bioDiesel ;
+    skos:narrower datex:dieselType-unknown .
+
+datex:dieselType-carDiesel a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:dieselType ;
+    skos:prefLabel "Car diesel"@en ;
+    skos:definition "Diesel fuel for passenger cars." ;
+    dcterms:type "Code value" ;
+    skos:notation "carDiesel" .
+
+datex:dieselType-truckDiesel a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:dieselType ;
+    skos:prefLabel "Truck diesel"@en ;
+    skos:definition "Diesel fuel for trucks." ;
+    dcterms:type "Code value" ;
+    skos:notation "truckDiesel" .
+
+datex:dieselType-bioDiesel a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:dieselType ;
+    skos:prefLabel "Biodiesel"@en ;
+    skos:definition "Biodiesel fuel." ;
+    dcterms:type "Code value" ;
+    skos:notation "bioDiesel" .
+
+datex:dieselType-unknown a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:dieselType ;
+    skos:prefLabel "Unknown diesel type"@en ;
+    skos:definition "The diesel type is unknown." ;
+    dcterms:type "Code value" ;
+    skos:notation "unknown" .
+
+datex:cetane a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:DieselRefillPoint ;
+    skos:prefLabel "Cetane number"@en ;
+    skos:definition "The cetane number of the diesel fuel dispensed." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:DieselRefillPoint ;
+    skos:scopeNote "Value type: xsd:nonNegativeInteger. DATEX II native type: NonNegativeInteger." ;
+    rdfs:range xsd:nonNegativeInteger ;
+    dcterms:source "DATEX II DieselRefillPoint.cetane; hub-curated SKOS rendering." .
+
+# ===========================================================================
+# ENTITY: PetrolRefillPoint
+# ===========================================================================
+
+datex:PetrolRefillPoint a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    rdfs:subClassOf datex:RefillPoint ;
+    skos:prefLabel "Petrol refill point"@en ;
+    skos:definition "A refill point specialised for dispensing petrol (gasoline) fuel." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: PetrolRefillPoint (extends RefillPoint); hub-curated SKOS rendering." ;
+    skos:narrower datex:petrolType ;
+    skos:narrower datex:octane ;
+    skos:narrower datex:bioethanolPercentage ;
+    skos:narrower datex:bioethanolType .
+
+datex:petrolType a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:PetrolRefillPoint ;
+    skos:prefLabel "Petrol type"@en ;
+    skos:definition "The type(s) of petrol fuel dispensed (e.g. octane 95, octane 98, unleaded)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:PetrolRefillPoint ;
+    skos:scopeNote "Value type: enumeration (PetrolTypeEnum) — see narrower code values. Multi-valued." ;
+    rdfs:range datex:petrolType ;
+    dcterms:source "DATEX II PetrolRefillPoint.petrolType (PetrolTypeEnum); hub-curated SKOS rendering." ;
+    skos:narrower datex:petrolType-all ;
+    skos:narrower datex:petrolType-octane95 ;
+    skos:narrower datex:petrolType-octane98 ;
+    skos:narrower datex:petrolType-leaded ;
+    skos:narrower datex:petrolType-unleaded ;
+    skos:narrower datex:petrolType-superE5 ;
+    skos:narrower datex:petrolType-superE10 ;
+    skos:narrower datex:petrolType-other ;
+    skos:narrower datex:petrolType-unknown .
+
+datex:petrolType-all a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:petrolType ;
+    skos:prefLabel "All petrol types"@en ;
+    skos:definition "All petrol types are dispensed." ;
+    dcterms:type "Code value" ;
+    skos:notation "all" .
+
+datex:petrolType-octane95 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:petrolType ;
+    skos:prefLabel "Octane 95"@en ;
+    skos:definition "Petrol with an octane rating of 95." ;
+    dcterms:type "Code value" ;
+    skos:notation "octane95" .
+
+datex:petrolType-octane98 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:petrolType ;
+    skos:prefLabel "Octane 98"@en ;
+    skos:definition "Petrol with an octane rating of 98." ;
+    dcterms:type "Code value" ;
+    skos:notation "octane98" .
+
+datex:petrolType-leaded a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:petrolType ;
+    skos:prefLabel "Leaded"@en ;
+    skos:definition "Leaded petrol." ;
+    dcterms:type "Code value" ;
+    skos:notation "leaded" .
+
+datex:petrolType-unleaded a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:petrolType ;
+    skos:prefLabel "Unleaded"@en ;
+    skos:definition "Unleaded petrol." ;
+    dcterms:type "Code value" ;
+    skos:notation "unleaded" .
+
+datex:petrolType-superE5 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:petrolType ;
+    skos:prefLabel "Super E5"@en ;
+    skos:definition "Petrol with up to 5% ethanol content." ;
+    dcterms:type "Code value" ;
+    skos:notation "superE5" .
+
+datex:petrolType-superE10 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:petrolType ;
+    skos:prefLabel "Super E10"@en ;
+    skos:definition "Petrol with up to 10% ethanol content." ;
+    dcterms:type "Code value" ;
+    skos:notation "superE10" .
+
+datex:petrolType-other a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:petrolType ;
+    skos:prefLabel "Other petrol type"@en ;
+    skos:definition "A petrol type not covered by the enumerated values." ;
+    dcterms:type "Code value" ;
+    skos:notation "other" .
+
+datex:petrolType-unknown a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:petrolType ;
+    skos:prefLabel "Unknown petrol type"@en ;
+    skos:definition "The petrol type is unknown." ;
+    dcterms:type "Code value" ;
+    skos:notation "unknown" .
+
+datex:octane a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:PetrolRefillPoint ;
+    skos:prefLabel "Octane number"@en ;
+    skos:definition "The octane number of the petrol fuel dispensed." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:PetrolRefillPoint ;
+    skos:scopeNote "Value type: xsd:nonNegativeInteger. DATEX II native type: NonNegativeInteger." ;
+    rdfs:range xsd:nonNegativeInteger ;
+    dcterms:source "DATEX II PetrolRefillPoint.octane; hub-curated SKOS rendering." .
+
+datex:bioethanolPercentage a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:PetrolRefillPoint ;
+    skos:prefLabel "Bioethanol percentage"@en ;
+    skos:definition "The percentage of bioethanol in the petrol fuel dispensed." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:PetrolRefillPoint ;
+    skos:scopeNote "Value type: xsd:decimal (percentage). DATEX II native type: Percentage (float)." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II PetrolRefillPoint.bioethanolPercentage; hub-curated SKOS rendering." .
+
+datex:bioethanolType a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:PetrolRefillPoint ;
+    skos:prefLabel "Bioethanol type"@en ;
+    skos:definition "The type of bioethanol blend dispensed (e.g. Super E5, Super E10)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:PetrolRefillPoint ;
+    skos:scopeNote "Value type: enumeration (BioethanolTypeEnum) — see narrower code values." ;
+    rdfs:range datex:bioethanolType ;
+    dcterms:source "DATEX II PetrolRefillPoint.bioethanolType (BioethanolTypeEnum); hub-curated SKOS rendering." ;
+    skos:narrower datex:bioethanolType-superE5 ;
+    skos:narrower datex:bioethanolType-superE10 ;
+    skos:narrower datex:bioethanolType-unknown ;
+    skos:narrower datex:bioethanolType-other .
+
+datex:bioethanolType-superE5 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:bioethanolType ;
+    skos:prefLabel "Super E5"@en ;
+    skos:definition "Bioethanol blend with up to 5% ethanol content." ;
+    dcterms:type "Code value" ;
+    skos:notation "superE5" .
+
+datex:bioethanolType-superE10 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:bioethanolType ;
+    skos:prefLabel "Super E10"@en ;
+    skos:definition "Bioethanol blend with up to 10% ethanol content." ;
+    dcterms:type "Code value" ;
+    skos:notation "superE10" .
+
+datex:bioethanolType-unknown a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:bioethanolType ;
+    skos:prefLabel "Unknown bioethanol type"@en ;
+    skos:definition "The bioethanol type is unknown." ;
+    dcterms:type "Code value" ;
+    skos:notation "unknown" .
+
+datex:bioethanolType-other a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:bioethanolType ;
+    skos:prefLabel "Other bioethanol type"@en ;
+    skos:definition "A bioethanol type not covered by the enumerated values." ;
+    dcterms:type "Code value" ;
+    skos:notation "other" .
+
+# ===========================================================================
+# ENTITY: OrganicGasRefillPoint
+# ===========================================================================
+
+datex:OrganicGasRefillPoint a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    rdfs:subClassOf datex:RefillPoint ;
+    skos:prefLabel "Organic gas refill point"@en ;
+    skos:definition "A refill point specialised for dispensing organic/natural gas fuel (CNG, LNG, LPG, biogas)." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: OrganicGasRefillPoint (extends RefillPoint); hub-curated SKOS rendering." ;
+    skos:narrower datex:organicGasType .
+
+datex:organicGasType a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:OrganicGasRefillPoint ;
+    skos:prefLabel "Organic gas type"@en ;
+    skos:definition "The type(s) of organic gas fuel dispensed (e.g. CNG, LNG, LPG, biogas)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:OrganicGasRefillPoint ;
+    skos:scopeNote "Value type: enumeration (OrganicGasTypeEnum) — see narrower code values. Multi-valued." ;
+    rdfs:range datex:organicGasType ;
+    dcterms:source "DATEX II OrganicGasRefillPoint.organicGasType (OrganicGasTypeEnum); hub-curated SKOS rendering." ;
+    skos:narrower datex:organicGasType-all ;
+    skos:narrower datex:organicGasType-cng ;
+    skos:narrower datex:organicGasType-lng ;
+    skos:narrower datex:organicGasType-lpg ;
+    skos:narrower datex:organicGasType-biogas ;
+    skos:narrower datex:organicGasType-other ;
+    skos:narrower datex:organicGasType-unknown .
+
+datex:organicGasType-all a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:organicGasType ;
+    skos:prefLabel "All organic gas types"@en ;
+    skos:definition "All organic gas types are dispensed." ;
+    dcterms:type "Code value" ;
+    skos:notation "all" .
+
+datex:organicGasType-cng a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:organicGasType ;
+    skos:prefLabel "CNG"@en ;
+    skos:definition "Compressed Natural Gas." ;
+    dcterms:type "Code value" ;
+    skos:notation "cng" .
+
+datex:organicGasType-lng a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:organicGasType ;
+    skos:prefLabel "LNG"@en ;
+    skos:definition "Liquefied Natural Gas." ;
+    dcterms:type "Code value" ;
+    skos:notation "lng" .
+
+datex:organicGasType-lpg a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:organicGasType ;
+    skos:prefLabel "LPG"@en ;
+    skos:definition "Liquefied Petroleum Gas." ;
+    dcterms:type "Code value" ;
+    skos:notation "lpg" .
+
+datex:organicGasType-biogas a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:organicGasType ;
+    skos:prefLabel "Biogas"@en ;
+    skos:definition "Biogas." ;
+    dcterms:type "Code value" ;
+    skos:notation "biogas" .
+
+datex:organicGasType-other a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:organicGasType ;
+    skos:prefLabel "Other organic gas type"@en ;
+    skos:definition "An organic gas type not covered by the enumerated values." ;
+    dcterms:type "Code value" ;
+    skos:notation "other" .
+
+datex:organicGasType-unknown a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:organicGasType ;
+    skos:prefLabel "Unknown organic gas type"@en ;
+    skos:definition "The organic gas type is unknown." ;
+    dcterms:type "Code value" ;
+    skos:notation "unknown" .
+
+# ===========================================================================
+# ENTITY: HydrogenRefillPoint
+# ===========================================================================
+
+datex:HydrogenRefillPoint a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    rdfs:subClassOf datex:RefillPoint ;
+    skos:prefLabel "Hydrogen refill point"@en ;
+    skos:definition "A refill point specialised for dispensing hydrogen fuel." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: HydrogenRefillPoint (extends RefillPoint); hub-curated SKOS rendering." ;
+    skos:narrower datex:refillSolution ;
+    skos:narrower datex:processProtocol ;
+    skos:narrower datex:renewableSourcesRatio .
+
+datex:refillSolution a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:HydrogenRefillPoint ;
+    skos:prefLabel "Refill solution"@en ;
+    skos:definition "The hydrogen refuelling solution offered (pressure/temperature/vehicle-class combination, e.g. gaseous hydrogen at 700 bar for cars)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:HydrogenRefillPoint ;
+    skos:scopeNote "Value type: enumeration (RefillSolutionHydrogenEnum) — see narrower code values. Required in DATEX II." ;
+    rdfs:range datex:refillSolution ;
+    dcterms:source "DATEX II HydrogenRefillPoint.refillSolution (RefillSolutionHydrogenEnum); hub-curated SKOS rendering." ;
+    skos:narrower datex:refillSolution-gaseousHydrogen350barCar ;
+    skos:narrower datex:refillSolution-gaseousHydrogen350barTruck ;
+    skos:narrower datex:refillSolution-gaseousHydrogen700barCar ;
+    skos:narrower datex:refillSolution-gaseousHydrogen700barTruck ;
+    skos:narrower datex:refillSolution-liquidHydrogen ;
+    skos:narrower datex:refillSolution-cryoCompressedHydrogren ;
+    skos:narrower datex:refillSolution-unknown .
+
+datex:refillSolution-gaseousHydrogen350barCar a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillSolution ;
+    skos:prefLabel "Gaseous hydrogen 350 bar (car)"@en ;
+    skos:definition "Gaseous hydrogen at 350 bar, for cars." ;
+    dcterms:type "Code value" ;
+    skos:notation "gaseousHydrogen350barCar" .
+
+datex:refillSolution-gaseousHydrogen350barTruck a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillSolution ;
+    skos:prefLabel "Gaseous hydrogen 350 bar (truck)"@en ;
+    skos:definition "Gaseous hydrogen at 350 bar, for trucks." ;
+    dcterms:type "Code value" ;
+    skos:notation "gaseousHydrogen350barTruck" .
+
+datex:refillSolution-gaseousHydrogen700barCar a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillSolution ;
+    skos:prefLabel "Gaseous hydrogen 700 bar (car)"@en ;
+    skos:definition "Gaseous hydrogen at 700 bar, for cars." ;
+    dcterms:type "Code value" ;
+    skos:notation "gaseousHydrogen700barCar" .
+
+datex:refillSolution-gaseousHydrogen700barTruck a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillSolution ;
+    skos:prefLabel "Gaseous hydrogen 700 bar (truck)"@en ;
+    skos:definition "Gaseous hydrogen at 700 bar, for trucks." ;
+    dcterms:type "Code value" ;
+    skos:notation "gaseousHydrogen700barTruck" .
+
+datex:refillSolution-liquidHydrogen a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillSolution ;
+    skos:prefLabel "Liquid hydrogen"@en ;
+    skos:definition "Liquid hydrogen." ;
+    dcterms:type "Code value" ;
+    skos:notation "liquidHydrogen" .
+
+datex:refillSolution-cryoCompressedHydrogren a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillSolution ;
+    skos:prefLabel "Cryo-compressed hydrogen"@en ;
+    skos:definition "Cryo-compressed hydrogen. (Native DATEX II enumeration literal is misspelled 'cryoCompressedHydrogren'; preserved verbatim in skos:notation for fidelity.)" ;
+    dcterms:type "Code value" ;
+    skos:notation "cryoCompressedHydrogren" .
+
+datex:refillSolution-unknown a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillSolution ;
+    skos:prefLabel "Unknown refill solution"@en ;
+    skos:definition "The refill solution is unknown." ;
+    dcterms:type "Code value" ;
+    skos:notation "unknown" .
+
+datex:processProtocol a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:HydrogenRefillPoint ;
+    skos:prefLabel "Fuelling process protocol"@en ;
+    skos:definition "The hydrogen fuelling process protocol used (e.g. an SAE J2601 revision)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:HydrogenRefillPoint ;
+    skos:scopeNote "Value type: enumeration (HydrogenFuellingProcessProtocolEnum) — see narrower code values." ;
+    rdfs:range datex:processProtocol ;
+    dcterms:source "DATEX II HydrogenRefillPoint.processProtocol (HydrogenFuellingProcessProtocolEnum); hub-curated SKOS rendering." ;
+    skos:narrower datex:processProtocol-sae2601v2010 ;
+    skos:narrower datex:processProtocol-sae2601v2014 ;
+    skos:narrower datex:processProtocol-sae2601v2016 ;
+    skos:narrower datex:processProtocol-mcMethod ;
+    skos:narrower datex:processProtocol-unknown .
+
+datex:processProtocol-sae2601v2010 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:processProtocol ;
+    skos:prefLabel "SAE J2601:2010"@en ;
+    skos:definition "Hydrogen fuelling per SAE J2601, 2010 revision." ;
+    dcterms:type "Code value" ;
+    skos:notation "sae2601v2010" .
+
+datex:processProtocol-sae2601v2014 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:processProtocol ;
+    skos:prefLabel "SAE J2601:2014"@en ;
+    skos:definition "Hydrogen fuelling per SAE J2601, 2014 revision." ;
+    dcterms:type "Code value" ;
+    skos:notation "sae2601v2014" .
+
+datex:processProtocol-sae2601v2016 a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:processProtocol ;
+    skos:prefLabel "SAE J2601:2016"@en ;
+    skos:definition "Hydrogen fuelling per SAE J2601, 2016 revision." ;
+    dcterms:type "Code value" ;
+    skos:notation "sae2601v2016" .
+
+datex:processProtocol-mcMethod a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:processProtocol ;
+    skos:prefLabel "MC method"@en ;
+    skos:definition "Hydrogen fuelling using the MC (Mass Consumption / Manufacturer's Chart) method." ;
+    dcterms:type "Code value" ;
+    skos:notation "mcMethod" .
+
+datex:processProtocol-unknown a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:processProtocol ;
+    skos:prefLabel "Unknown fuelling protocol"@en ;
+    skos:definition "The fuelling process protocol is unknown." ;
+    dcterms:type "Code value" ;
+    skos:notation "unknown" .
+
+datex:renewableSourcesRatio a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:HydrogenRefillPoint ;
+    skos:prefLabel "Renewable sources ratio"@en ;
+    skos:definition "The percentage of the dispensed hydrogen produced from renewable sources." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:HydrogenRefillPoint ;
+    skos:scopeNote "Value type: xsd:decimal (percentage). DATEX II native type: Percentage (float)." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II HydrogenRefillPoint.renewableSourcesRatio; hub-curated SKOS rendering." .
+
+
+# ===========================================================================
+# ENTITY: RefillPointStatus
+# ===========================================================================
+
+datex:RefillPointStatus a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    skos:prefLabel "Refill point status"@en ;
+    skos:definition "The dynamic operational status of a refill point (availability, stock level, waiting time). The status counterpart of RefillPoint." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: RefillPointStatus (extends Facilities FacilityStatus); hub-curated SKOS rendering." ;
+    skos:narrower datex:refillPointStatusCode ;
+    skos:narrower datex:unitsInStock ;
+    skos:narrower datex:waitingTime .
+
+# Naming note: DATEX II's native element name is "status", already used by
+# the pre-existing datex:status (domain ElectricVehicleChargingPoint, a
+# hub-curated OCPI-style simplification, left untouched); disambiguated here
+# as "refillPointStatusCode" since this is the faithful native
+# RefillPointStatusEnum (13 values) on a different class.
+datex:refillPointStatusCode a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:RefillPointStatus ;
+    skos:prefLabel "Refill point status code"@en ;
+    skos:definition "The native DATEX II operational status of the refill point (e.g. available, occupied, faulted, out of order)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:RefillPointStatus ;
+    skos:scopeNote "Value type: enumeration (RefillPointStatusEnum) — see narrower code values. Required in DATEX II." ;
+    rdfs:range datex:refillPointStatusCode ;
+    dcterms:source "DATEX II RefillPointStatus.status (RefillPointStatusEnum); hub-curated SKOS rendering." ;
+    skos:narrower datex:refillPointStatusCode-available ;
+    skos:narrower datex:refillPointStatusCode-blocked ;
+    skos:narrower datex:refillPointStatusCode-charging ;
+    skos:narrower datex:refillPointStatusCode-faulted ;
+    skos:narrower datex:refillPointStatusCode-inoperative ;
+    skos:narrower datex:refillPointStatusCode-occupied ;
+    skos:narrower datex:refillPointStatusCode-outOfOrder ;
+    skos:narrower datex:refillPointStatusCode-outOfStock ;
+    skos:narrower datex:refillPointStatusCode-planned ;
+    skos:narrower datex:refillPointStatusCode-removed ;
+    skos:narrower datex:refillPointStatusCode-reserved ;
+    skos:narrower datex:refillPointStatusCode-unavailable ;
+    skos:narrower datex:refillPointStatusCode-unknown .
+
+datex:refillPointStatusCode-available a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillPointStatusCode ;
+    skos:prefLabel "Available"@en ;
+    skos:definition "The refill point is operational and free to use." ;
+    dcterms:type "Code value" ;
+    skos:notation "available" .
+
+datex:refillPointStatusCode-blocked a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillPointStatusCode ;
+    skos:prefLabel "Blocked"@en ;
+    skos:definition "The refill point is blocked (physically or administratively)." ;
+    dcterms:type "Code value" ;
+    skos:notation "blocked" .
+
+datex:refillPointStatusCode-charging a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillPointStatusCode ;
+    skos:prefLabel "Charging"@en ;
+    skos:definition "The refill point is currently delivering energy." ;
+    dcterms:type "Code value" ;
+    skos:notation "charging" .
+
+datex:refillPointStatusCode-faulted a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillPointStatusCode ;
+    skos:prefLabel "Faulted"@en ;
+    skos:definition "The refill point has a fault." ;
+    dcterms:type "Code value" ;
+    skos:notation "faulted" .
+
+datex:refillPointStatusCode-inoperative a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillPointStatusCode ;
+    skos:prefLabel "Inoperative"@en ;
+    skos:definition "The refill point is not operative." ;
+    dcterms:type "Code value" ;
+    skos:notation "inoperative" .
+
+datex:refillPointStatusCode-occupied a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillPointStatusCode ;
+    skos:prefLabel "Occupied"@en ;
+    skos:definition "The refill point is occupied by a vehicle." ;
+    dcterms:type "Code value" ;
+    skos:notation "occupied" .
+
+datex:refillPointStatusCode-outOfOrder a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillPointStatusCode ;
+    skos:prefLabel "Out of order"@en ;
+    skos:definition "The refill point is out of order." ;
+    dcterms:type "Code value" ;
+    skos:notation "outOfOrder" .
+
+datex:refillPointStatusCode-outOfStock a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillPointStatusCode ;
+    skos:prefLabel "Out of stock"@en ;
+    skos:definition "The refill point has no fuel/energy in stock." ;
+    dcterms:type "Code value" ;
+    skos:notation "outOfStock" .
+
+datex:refillPointStatusCode-planned a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillPointStatusCode ;
+    skos:prefLabel "Planned"@en ;
+    skos:definition "The refill point is planned but not yet in service." ;
+    dcterms:type "Code value" ;
+    skos:notation "planned" .
+
+datex:refillPointStatusCode-removed a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillPointStatusCode ;
+    skos:prefLabel "Removed"@en ;
+    skos:definition "The refill point has been removed." ;
+    dcterms:type "Code value" ;
+    skos:notation "removed" .
+
+datex:refillPointStatusCode-reserved a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillPointStatusCode ;
+    skos:prefLabel "Reserved"@en ;
+    skos:definition "The refill point is reserved." ;
+    dcterms:type "Code value" ;
+    skos:notation "reserved" .
+
+datex:refillPointStatusCode-unavailable a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillPointStatusCode ;
+    skos:prefLabel "Unavailable"@en ;
+    skos:definition "The refill point is unavailable." ;
+    dcterms:type "Code value" ;
+    skos:notation "unavailable" .
+
+datex:refillPointStatusCode-unknown a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:refillPointStatusCode ;
+    skos:prefLabel "Unknown"@en ;
+    skos:definition "The refill point's status is unknown." ;
+    dcterms:type "Code value" ;
+    skos:notation "unknown" .
+
+datex:unitsInStock a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:RefillPointStatus ;
+    skos:prefLabel "Units in stock"@en ;
+    skos:definition "The number of delivery units currently in stock at the refill point, in the unit given by the owning RefillPoint's datex:deliveryUnit." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:RefillPointStatus ;
+    skos:scopeNote "Value type: xsd:decimal. DATEX II native type: Units (float)." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II RefillPointStatus.unitsInStock; hub-curated SKOS rendering." .
+
+# OWL enrichment note: object reference in DATEX II (DATEX II Facilities
+# DurationValue); modeled as owl:ObjectProperty with no invented rdfs:range
+# (out of scope, see TERMS.md).
+datex:waitingTime a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:RefillPointStatus ;
+    skos:prefLabel "Waiting time"@en ;
+    skos:definition "The estimated waiting time to use the refill point." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:RefillPointStatus ;
+    skos:scopeNote "Value type: object reference (DATEX II Facilities DurationValue; external, out of scope)." ;
+    dcterms:source "DATEX II RefillPointStatus.waitingTime; hub-curated SKOS rendering." .
+
+# ===========================================================================
+# ENTITY: ElectricChargingPointStatus
+# ===========================================================================
+
+datex:ElectricChargingPointStatus a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    rdfs:subClassOf datex:RefillPointStatus ;
+    skos:prefLabel "Electric charging point status"@en ;
+    skos:definition "The dynamic operational status of an electric vehicle charging point (remaining charging time, current voltage/power, next available slots). The status counterpart of ElectricVehicleChargingPoint, specialising RefillPointStatus." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: ElectricChargingPointStatus (extends RefillPointStatus); hub-curated SKOS rendering." ;
+    skos:narrower datex:remainingChargingTime ;
+    skos:narrower datex:currentVoltage ;
+    skos:narrower datex:currentChargingPower ;
+    skos:narrower datex:nextAvailableChargingSlots ;
+    skos:narrower datex:electricEnergyMixOverride .
+
+datex:remainingChargingTime a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricChargingPointStatus ;
+    skos:prefLabel "Remaining charging time"@en ;
+    skos:definition "The estimated remaining time of the current charging session." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricChargingPointStatus ;
+    skos:scopeNote "Value type: xsd:decimal (seconds). DATEX II native type: Seconds (float)." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II ElectricChargingPointStatus.remainingChargingTime; hub-curated SKOS rendering." .
+
+datex:currentVoltage a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricChargingPointStatus ;
+    skos:prefLabel "Current voltage"@en ;
+    skos:definition "The voltage currently being delivered at the charging point." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricChargingPointStatus ;
+    skos:scopeNote "Value type: xsd:decimal (V). DATEX II native type: Volt (float)." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II ElectricChargingPointStatus.currentVoltage; hub-curated SKOS rendering." .
+
+datex:currentChargingPower a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricChargingPointStatus ;
+    skos:prefLabel "Current charging power"@en ;
+    skos:definition "The power currently being delivered at the charging point." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricChargingPointStatus ;
+    skos:scopeNote "Value type: xsd:decimal (kW). DATEX II native type: Watt (float)." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II ElectricChargingPointStatus.currentChargingPower; hub-curated SKOS rendering." .
+
+datex:nextAvailableChargingSlots a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricChargingPointStatus ;
+    skos:prefLabel "Next available charging slots"@en ;
+    skos:definition "The date/time(s) at which the charging point is next expected to become available." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricChargingPointStatus ;
+    skos:scopeNote "Value type: xsd:dateTime. DATEX II native type: DateTime. Multi-valued." ;
+    rdfs:range xsd:dateTime ;
+    dcterms:source "DATEX II ElectricChargingPointStatus.nextAvailableChargingSlots; hub-curated SKOS rendering." .
+
+datex:electricEnergyMixOverride a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricChargingPointStatus ;
+    skos:prefLabel "Electric energy mix override"@en ;
+    skos:definition "A real-time override of the charging point's normal electric energy mix (e.g. reflecting the current grid mix rather than the static/contractual one)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricChargingPointStatus ;
+    skos:scopeNote "Value type: object reference (DATEX II ElectricEnergyMix) — see the ElectricEnergyMix entity. Multi-valued." ;
+    rdfs:range datex:ElectricEnergyMix ;
+    dcterms:source "DATEX II ElectricChargingPointStatus.electricEnergyMixOverride; hub-curated SKOS rendering." .
+
+# ===========================================================================
+# ENTITY: EnergyInfrastructureSiteStatus
+# ===========================================================================
+
+datex:EnergyInfrastructureSiteStatus a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    skos:prefLabel "Energy infrastructure site status"@en ;
+    skos:definition "The dynamic operational status of an energy infrastructure site (available parking places, and the status of its stations). The status counterpart of EnergyInfrastructureSite." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: EnergyInfrastructureSiteStatus (extends Facilities FacilityStatus); hub-curated SKOS rendering." ;
+    skos:narrower datex:availableCarParkingPlaces ;
+    skos:narrower datex:availableTruckParkingPlaces ;
+    skos:narrower datex:energyInfrastructureStationStatus .
+
+datex:availableCarParkingPlaces a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureSiteStatus ;
+    skos:prefLabel "Available car parking places"@en ;
+    skos:definition "The number of car parking places currently available at the site." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureSiteStatus ;
+    skos:scopeNote "Value type: xsd:nonNegativeInteger. DATEX II native type: NonNegativeInteger." ;
+    rdfs:range xsd:nonNegativeInteger ;
+    dcterms:source "DATEX II EnergyInfrastructureSiteStatus.availableCarParkingPlaces; hub-curated SKOS rendering." .
+
+datex:availableTruckParkingPlaces a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureSiteStatus ;
+    skos:prefLabel "Available truck parking places"@en ;
+    skos:definition "The number of truck parking places currently available at the site." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureSiteStatus ;
+    skos:scopeNote "Value type: xsd:nonNegativeInteger. DATEX II native type: NonNegativeInteger." ;
+    rdfs:range xsd:nonNegativeInteger ;
+    dcterms:source "DATEX II EnergyInfrastructureSiteStatus.availableTruckParkingPlaces; hub-curated SKOS rendering." .
+
+datex:energyInfrastructureStationStatus a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureSiteStatus ;
+    skos:prefLabel "Energy infrastructure station status (containment)"@en ;
+    skos:definition "The status of a station at this site. The containment edge from SiteStatus down to StationStatus." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureSiteStatus ;
+    skos:scopeNote "Value type: object reference (DATEX II EnergyInfrastructureStationStatus) — see that entity. Multi-valued." ;
+    rdfs:range datex:EnergyInfrastructureStationStatus ;
+    dcterms:source "DATEX II EnergyInfrastructureSiteStatus.energyInfrastructureStationStatus; hub-curated SKOS rendering." .
+
+# ===========================================================================
+# ENTITY: EnergyInfrastructureStationStatus
+# ===========================================================================
+
+datex:EnergyInfrastructureStationStatus a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    skos:prefLabel "Energy infrastructure station status"@en ;
+    skos:definition "The dynamic operational status of an energy infrastructure station (overall availability and the status of its refill points). The status counterpart of EnergyInfrastructureStation." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: EnergyInfrastructureStationStatus (extends Facilities FacilityStatus); hub-curated SKOS rendering." ;
+    skos:narrower datex:isAvailable ;
+    skos:narrower datex:refillPointStatus .
+
+datex:isAvailable a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureStationStatus ;
+    skos:prefLabel "Is available"@en ;
+    skos:definition "Whether the station as a whole is currently available." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureStationStatus ;
+    skos:scopeNote "Value type: xsd:boolean. DATEX II native type: Boolean." ;
+    rdfs:range xsd:boolean ;
+    dcterms:source "DATEX II EnergyInfrastructureStationStatus.isAvailable; hub-curated SKOS rendering." .
+
+datex:refillPointStatus a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyInfrastructureStationStatus ;
+    skos:prefLabel "Refill point status (containment)"@en ;
+    skos:definition "The status of a refill point at this station. The containment edge from StationStatus down to RefillPointStatus (and its specialisation ElectricChargingPointStatus)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyInfrastructureStationStatus ;
+    skos:scopeNote "Value type: object reference (DATEX II RefillPointStatus) — see that entity and its specialisation. Multi-valued." ;
+    rdfs:range datex:RefillPointStatus ;
+    dcterms:source "DATEX II EnergyInfrastructureStationStatus.refillPointStatus; hub-curated SKOS rendering." .
+
+# ===========================================================================
+# ENTITY: ServiceType
+# ===========================================================================
+
+datex:ServiceType a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    skos:prefLabel "Service type"@en ;
+    skos:definition "How a refill point or station is serviced: full service, self-service, or unattended." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: ServiceType; hub-curated SKOS rendering." ;
+    skos:narrower datex:serviceTypeCode .
+
+datex:serviceTypeCode a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ServiceType ;
+    skos:prefLabel "Service type code"@en ;
+    skos:definition "The native DATEX II service-type value (full service, self-service, or unattended)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ServiceType ;
+    skos:scopeNote "Value type: enumeration (ServiceTypeEnum) — see narrower code values. Multi-valued." ;
+    rdfs:range datex:serviceTypeCode ;
+    dcterms:source "DATEX II ServiceType.serviceType (ServiceTypeEnum); hub-curated SKOS rendering." ;
+    skos:narrower datex:serviceTypeCode-fullService ;
+    skos:narrower datex:serviceTypeCode-selfService ;
+    skos:narrower datex:serviceTypeCode-unattended .
+
+datex:serviceTypeCode-fullService a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:serviceTypeCode ;
+    skos:prefLabel "Full service"@en ;
+    skos:definition "The refill point/station is fully serviced by staff." ;
+    dcterms:type "Code value" ;
+    skos:notation "fullService" .
+
+datex:serviceTypeCode-selfService a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:serviceTypeCode ;
+    skos:prefLabel "Self-service"@en ;
+    skos:definition "The refill point/station is self-service." ;
+    dcterms:type "Code value" ;
+    skos:notation "selfService" .
+
+datex:serviceTypeCode-unattended a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:serviceTypeCode ;
+    skos:prefLabel "Unattended"@en ;
+    skos:definition "The refill point/station is unattended." ;
+    dcterms:type "Code value" ;
+    skos:notation "unattended" .
+
+# ===========================================================================
+# ENTITY: ElectricChargingEquipment
+# ===========================================================================
+
+datex:ElectricChargingEquipment a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    skos:prefLabel "Electric charging equipment"@en ;
+    skos:definition "A physical unit of electric-vehicle charging equipment, modelled as a DATEX II Facilities SupplementalFacility that wraps a single ElectricVehicleChargingPoint. The DATEX II native counterpart closest to a physical charge point/EVSE unit as distinct from the (Vehicle)ChargingPoint concept itself." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: ElectricChargingEquipment (extends Facilities SupplementalFacility); hub-curated SKOS rendering." ;
+    skos:narrower datex:electricChargingPoint .
+
+datex:electricChargingPoint a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricChargingEquipment ;
+    skos:prefLabel "Electric charging point (containment)"@en ;
+    skos:definition "The electric vehicle charging point embedded in this piece of equipment." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricChargingEquipment ;
+    skos:scopeNote "Value type: object reference (DATEX II ElectricChargingPoint) — see the ElectricVehicleChargingPoint entity. Required in DATEX II." ;
+    rdfs:range datex:ElectricVehicleChargingPoint ;
+    dcterms:source "DATEX II ElectricChargingEquipment.electricChargingPoint; hub-curated SKOS rendering." .
+
+# ===========================================================================
+# ENTITY: VehicleSpace
+# ===========================================================================
+
+datex:VehicleSpace a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    skos:prefLabel "Vehicle space"@en ;
+    skos:definition "An adjacent space for a single vehicle, usually directly linked with an electric charging point." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: VehicleSpace (extends Facilities Facility); hub-curated SKOS rendering." ;
+    skos:narrower datex:parkingAllowedAfterCharging .
+
+datex:parkingAllowedAfterCharging a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:VehicleSpace ;
+    skos:prefLabel "Parking allowed after charging"@en ;
+    skos:definition "Whether parking in this vehicle space is allowed to continue after charging has finished." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:VehicleSpace ;
+    skos:scopeNote "Value type: xsd:boolean. DATEX II native type: Boolean." ;
+    rdfs:range xsd:boolean ;
+    dcterms:source "DATEX II VehicleSpace.parkingAllowedAfterCharging; hub-curated SKOS rendering." .
+
+# ===========================================================================
+# ENTITY: EnergyPricingPolicy
+# ===========================================================================
+
+datex:EnergyPricingPolicy a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    skos:prefLabel "Energy pricing policy"@en ;
+    skos:definition "The pricing policy applied to energy delivered at a refill point/station (pricing basis, discounts, minimum/maximum delivery fees), extending the DATEX II Facilities Rates class." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: EnergyPricingPolicy (referenced from Facilities Rates.energyPricingPolicy); hub-curated SKOS rendering." ;
+    skos:narrower datex:pricingPolicy ;
+    skos:narrower datex:combinationWithParkingFee ;
+    skos:narrower datex:discount ;
+    skos:narrower datex:maximumDeliveryFee ;
+    skos:narrower datex:minimumDeliveryFee ;
+    skos:narrower datex:additionalInformation .
+
+datex:pricingPolicy a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyPricingPolicy ;
+    skos:prefLabel "Pricing policy"@en ;
+    skos:definition "The basis on which energy is priced (e.g. per charging time, per delivery unit, flat rate, free)." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyPricingPolicy ;
+    skos:scopeNote "Value type: enumeration (PricingPolicyEnum) — see narrower code values. Multi-valued." ;
+    rdfs:range datex:pricingPolicy ;
+    dcterms:source "DATEX II EnergyPricingPolicy.pricingPolicy (PricingPolicyEnum); hub-curated SKOS rendering." ;
+    skos:narrower datex:pricingPolicy-pricePerChargingTime ;
+    skos:narrower datex:pricingPolicy-pricePerDeliveryUnit ;
+    skos:narrower datex:pricingPolicy-contract ;
+    skos:narrower datex:pricingPolicy-flatRate ;
+    skos:narrower datex:pricingPolicy-unknown ;
+    skos:narrower datex:pricingPolicy-free ;
+    skos:narrower datex:pricingPolicy-other .
+
+datex:pricingPolicy-pricePerChargingTime a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:pricingPolicy ;
+    skos:prefLabel "Price per charging time"@en ;
+    skos:definition "Priced per unit of charging time." ;
+    dcterms:type "Code value" ;
+    skos:notation "pricePerChargingTime" .
+
+datex:pricingPolicy-pricePerDeliveryUnit a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:pricingPolicy ;
+    skos:prefLabel "Price per delivery unit"@en ;
+    skos:definition "Priced per delivery unit (e.g. per kWh, per litre)." ;
+    dcterms:type "Code value" ;
+    skos:notation "pricePerDeliveryUnit" .
+
+datex:pricingPolicy-contract a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:pricingPolicy ;
+    skos:prefLabel "Contract"@en ;
+    skos:definition "Priced according to a contract." ;
+    dcterms:type "Code value" ;
+    skos:notation "contract" .
+
+datex:pricingPolicy-flatRate a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:pricingPolicy ;
+    skos:prefLabel "Flat rate"@en ;
+    skos:definition "A flat rate applies." ;
+    dcterms:type "Code value" ;
+    skos:notation "flatRate" .
+
+datex:pricingPolicy-unknown a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:pricingPolicy ;
+    skos:prefLabel "Unknown pricing policy"@en ;
+    skos:definition "The pricing policy is unknown." ;
+    dcterms:type "Code value" ;
+    skos:notation "unknown" .
+
+datex:pricingPolicy-free a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:pricingPolicy ;
+    skos:prefLabel "Free"@en ;
+    skos:definition "The energy is provided free of charge." ;
+    dcterms:type "Code value" ;
+    skos:notation "free" .
+
+datex:pricingPolicy-other a skos:Concept ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:pricingPolicy ;
+    skos:prefLabel "Other pricing policy"@en ;
+    skos:definition "A pricing policy not covered by the enumerated values." ;
+    dcterms:type "Code value" ;
+    skos:notation "other" .
+
+datex:combinationWithParkingFee a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyPricingPolicy ;
+    skos:prefLabel "Combination with parking fee"@en ;
+    skos:definition "Whether the energy price is combined with a parking fee." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyPricingPolicy ;
+    skos:scopeNote "Value type: xsd:boolean. DATEX II native type: Boolean." ;
+    rdfs:range xsd:boolean ;
+    dcterms:source "DATEX II EnergyPricingPolicy.combinationWithParkingFee; hub-curated SKOS rendering." .
+
+datex:discount a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyPricingPolicy ;
+    skos:prefLabel "Discount"@en ;
+    skos:definition "A discount percentage applied to the energy price." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyPricingPolicy ;
+    skos:scopeNote "Value type: xsd:decimal (percentage). DATEX II native type: Percentage (float)." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II EnergyPricingPolicy.discount; hub-curated SKOS rendering." .
+
+# OWL enrichment note: object reference in DATEX II (DATEX II Facilities
+# AmountOfMoney); modeled as owl:ObjectProperty with no invented rdfs:range
+# (out of scope, see TERMS.md).
+datex:maximumDeliveryFee a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyPricingPolicy ;
+    skos:prefLabel "Maximum delivery fee"@en ;
+    skos:definition "The maximum fee charged for a delivery under this pricing policy." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyPricingPolicy ;
+    skos:scopeNote "Value type: object reference (DATEX II Facilities AmountOfMoney; external, out of scope)." ;
+    dcterms:source "DATEX II EnergyPricingPolicy.maximumDeliveryFee; hub-curated SKOS rendering." .
+
+# OWL enrichment note: object reference in DATEX II (DATEX II Facilities
+# AmountOfMoney); modeled as owl:ObjectProperty with no invented rdfs:range
+# (out of scope, see TERMS.md).
+datex:minimumDeliveryFee a skos:Concept, owl:ObjectProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyPricingPolicy ;
+    skos:prefLabel "Minimum delivery fee"@en ;
+    skos:definition "The minimum fee charged for a delivery under this pricing policy." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyPricingPolicy ;
+    skos:scopeNote "Value type: object reference (DATEX II Facilities AmountOfMoney; external, out of scope)." ;
+    dcterms:source "DATEX II EnergyPricingPolicy.minimumDeliveryFee; hub-curated SKOS rendering." .
+
+datex:additionalInformation a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:EnergyPricingPolicy ;
+    skos:prefLabel "Additional information"@en ;
+    skos:definition "Free-text additional information about the pricing policy." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:EnergyPricingPolicy ;
+    skos:scopeNote "Value type: xsd:string. DATEX II native type: MultilingualString." ;
+    rdfs:range xsd:string ;
+    dcterms:source "DATEX II EnergyPricingPolicy.additionalInformation; hub-curated SKOS rendering." .
+
+# ===========================================================================
+# ENTITY: AssociatedParking
+# ===========================================================================
+
+datex:AssociatedParking a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    skos:prefLabel "Associated parking"@en ;
+    skos:definition "Parking capacity associated with an energy infrastructure facility, broken down by vehicle class." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: AssociatedParking (extends Facilities AssociatedFacility); hub-curated SKOS rendering." ;
+    skos:narrower datex:carParkingCapacity ;
+    skos:narrower datex:truckParkingCapacity ;
+    skos:narrower datex:bikeParkingCapacity .
+
+datex:carParkingCapacity a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:AssociatedParking ;
+    skos:prefLabel "Car parking capacity"@en ;
+    skos:definition "The number of car parking places in the associated parking." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:AssociatedParking ;
+    skos:scopeNote "Value type: xsd:nonNegativeInteger. DATEX II native type: NonNegativeInteger." ;
+    rdfs:range xsd:nonNegativeInteger ;
+    dcterms:source "DATEX II AssociatedParking.carParkingCapacity; hub-curated SKOS rendering." .
+
+datex:truckParkingCapacity a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:AssociatedParking ;
+    skos:prefLabel "Truck parking capacity"@en ;
+    skos:definition "The number of truck parking places in the associated parking." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:AssociatedParking ;
+    skos:scopeNote "Value type: xsd:nonNegativeInteger. DATEX II native type: NonNegativeInteger." ;
+    rdfs:range xsd:nonNegativeInteger ;
+    dcterms:source "DATEX II AssociatedParking.truckParkingCapacity; hub-curated SKOS rendering." .
+
+datex:bikeParkingCapacity a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:AssociatedParking ;
+    skos:prefLabel "Bike parking capacity"@en ;
+    skos:definition "The number of bike parking places in the associated parking." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:AssociatedParking ;
+    skos:scopeNote "Value type: xsd:nonNegativeInteger. DATEX II native type: NonNegativeInteger." ;
+    rdfs:range xsd:nonNegativeInteger ;
+    dcterms:source "DATEX II AssociatedParking.bikeParkingCapacity; hub-curated SKOS rendering." .
+
+# ===========================================================================
+# ENTITY: ElectricEnergySourceRatio
+# ===========================================================================
+
+datex:ElectricEnergySourceRatio a skos:Concept, owl:Class ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:topConceptOf datex:energy-infrastructure ;
+    skos:prefLabel "Electric energy source ratio"@en ;
+    skos:definition "A single energy-source/ratio pairing within an electric energy mix (e.g. '40% solar'). Referenced by the pre-existing ElectricEnergyMix entity via the new datex:electricEnergySourceRatio containment attribute; provides a fully faithful, properly-nested alternative to that entity's pre-existing flattened datex:energySourceType/datex:energySourceRatio attributes." ;
+    dcterms:type "Entity" ;
+    dcterms:source "DATEX II EnergyInfrastructure: ElectricEnergySourceRatio; hub-curated SKOS rendering." ;
+    skos:narrower datex:energySource ;
+    skos:narrower datex:otherEnergySource ;
+    skos:narrower datex:sourceRatioValue .
+
+# OWL enrichment note: kept as owl:DatatypeProperty (not owl:ObjectProperty),
+# consistent with this file's existing rule for enumeration-valued
+# attributes (see TERMS.md "OWL enrichment"): its rdfs:range is the
+# pre-existing datex:energySourceType enumeration ROOT concept -- itself a
+# skos:Concept/owl:DatatypeProperty, not an owl:Class -- reused rather than
+# duplicated under a new IRI, so this attribute has no code values of its
+# own (see datex:energySourceType's narrower list instead).
+datex:energySource a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricEnergySourceRatio ;
+    skos:prefLabel "Energy source"@en ;
+    skos:definition "The type of energy source for this source/ratio pairing. Reuses the pre-existing datex:energySourceType enumeration root (ElectricEnergySourceTypeEnum) as its range rather than duplicating its 10 code values under a new IRI." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricEnergySourceRatio ;
+    skos:scopeNote "Value type: enumeration (DATEX II ElectricEnergySourceTypeEnum) — reuses the pre-existing datex:energySourceType enumeration (see its narrower code values). Required in DATEX II." ;
+    rdfs:range datex:energySourceType ;
+    dcterms:source "DATEX II ElectricEnergySourceRatio.energySource (ElectricEnergySourceTypeEnum); hub-curated SKOS rendering." .
+
+datex:otherEnergySource a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricEnergySourceRatio ;
+    skos:prefLabel "Other energy source (free text)"@en ;
+    skos:definition "Free-text description of the energy source when datex:energySource is 'other'." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricEnergySourceRatio ;
+    skos:scopeNote "Value type: xsd:string. DATEX II native type: String." ;
+    rdfs:range xsd:string ;
+    dcterms:source "DATEX II ElectricEnergySourceRatio.otherEnergySource; hub-curated SKOS rendering." .
+
+# Naming note: DATEX II's native element name is "sourceRatioValue"; kept
+# distinct from the pre-existing datex:energySourceRatio (domain
+# ElectricEnergyMix, the flattened rendering of the same idea) since the two
+# have different domains under this file's one-domain-per-attribute
+# convention.
+datex:sourceRatioValue a skos:Concept, owl:DatatypeProperty ;
+    skos:inScheme datex:energy-infrastructure ;
+    skos:broader datex:ElectricEnergySourceRatio ;
+    skos:prefLabel "Source ratio value"@en ;
+    skos:definition "The percentage share of this energy source within the electric energy mix." ;
+    dcterms:type "Attribute" ;
+    rdfs:domain datex:ElectricEnergySourceRatio ;
+    skos:scopeNote "Value type: xsd:decimal (percentage). DATEX II native type: PercentageValue. Required in DATEX II." ;
+    rdfs:range xsd:decimal ;
+    dcterms:source "DATEX II ElectricEnergySourceRatio.sourceRatioValue; hub-curated SKOS rendering." .
+
+

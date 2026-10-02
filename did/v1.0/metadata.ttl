@@ -1,0 +1,18 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix schema: <http://schema.org/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+@prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
+
+<> a dcat:Dataset, adms:Asset ;
+    dcat:version "1.0" ;
+    dcterms:title "W3C Decentralized Identifiers (DID) v1.0 Vocabulary"@en ;
+    dcterms:description "RDF vocabulary for describing DID documents and services, from the W3C Decentralized Identifiers (DIDs) v1.0 Recommendation. Used by the Gaia-X ICAM (Identity, Credential & Access Management) semantic model for participant identity."@en ;
+    dcat:type assettype:c_89b4bdb7 ;
+    adms:status status:CURRENT .
+
+<> dcterms:creator [ a foaf:Agent ; foaf:name "W3C" ] .
+
+<> schema:logo "w3c-hero.png" .

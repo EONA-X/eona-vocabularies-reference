@@ -8,26 +8,25 @@ Downstream issues #445 / #446 MUST read this file to stay consistent with the
 exact IRIs and labels below.
 
 - Namespace prefix: `datex:`
-- Namespace URI: `https://vocab.eona-x.eu/datex-ii/`
-- Named graph (ontology): `https://vocab.eona-x.eu/datex-ii`
-- Named graph (catalog fragment): `https://vocab.eona-x.eu/catalog/datex-ii`
+- Namespace URI: `https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#`
+- Ontology IRI: `https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#`
 - Version: `0.1.0`
 
 ## ConceptScheme
 
 | IRI | prefLabel / title |
 | --- | --- |
-| `https://vocab.eona-x.eu/datex-ii/energy-infrastructure` | DATEX II — EnergyInfrastructure (EV-charging subset) |
+| `https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#energy-infrastructure` | DATEX II — EnergyInfrastructure (EV-charging subset) |
 
 ## Concepts (skos:Concept, skos:inScheme energy-infrastructure)
 
 | IRI | skos:prefLabel |
 | --- | --- |
-| `https://vocab.eona-x.eu/datex-ii/ElectricVehicleChargingPoint` | Electric Vehicle Charging Point |
-| `https://vocab.eona-x.eu/datex-ii/status` | Charging point status |
-| `https://vocab.eona-x.eu/datex-ii/power` | Rated power (kW) |
-| `https://vocab.eona-x.eu/datex-ii/connectorType` | Connector type |
-| `https://vocab.eona-x.eu/datex-ii/location` | Location (latitude/longitude) |
+| `https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#ElectricVehicleChargingPoint` | Electric Vehicle Charging Point |
+| `https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#status` | Charging point status |
+| `https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#power` | Rated power (kW) |
+| `https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#connectorType` | Connector type |
+| `https://vocabulary.eona-x.eu/ontology/datex-ii/v0.3.0#location` | Location (latitude/longitude) |
 
 `datex:ElectricVehicleChargingPoint` is the scheme's `skos:topConceptOf` /
 `skos:hasTopConcept`.

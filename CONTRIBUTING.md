@@ -7,15 +7,21 @@ publishes, plus the metadata describing each one.
 
 ## What lives here
 
-One directory per ontology, named by its slug:
+One directory per asset, named by its slug, holding one directory per version:
 
 ```
 <slug>/
-├── ontology.ttl          # the vocabulary itself — owl:versionInfo is its version of record
-├── catalog-fragment.ttl  # optional: additional catalog/display metadata (see below)
-├── metadata.ttl          # title, description, classification, upstream attribution
-└── TERMS.md              # optional: field-by-field documentation
+├── v<version>/               # one per published version, e.g. v0.1.0/ — v + its dcat:version
+│   ├── ontology.ttl          # the graph (alignment.ttl for a crosswalk; another name if metadata.ttl declares it)
+│   └── metadata.ttl          # title, description, classification, dcat:version, upstream attribution
+├── v<next-version>/          # a new version goes next to the previous ones, which stay published
+└── TERMS.md                  # optional: field-by-field documentation of the asset
 ```
+
+To release a new version, copy the current version directory to `v<new-version>/`,
+change it there, and bump `dcat:version` (and, for a vocabulary minted under
+`https://eona-x.eu/`, `owl:versionInfo` and the version in its IRIs). Earlier
+versions stay as they are: their IRIs are in use.
 
 ### `metadata.ttl`
 
@@ -32,9 +38,10 @@ self-describing (eona-x/backlog#793). Every asset is modeled as **both**
 @prefix vann: <http://purl.org/vocab/vann/> .
 @prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
 @prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
-@prefix eona: <https://vocab.eona-x.eu/> .
+@prefix schema: <http://schema.org/> .
 
 <> a dcat:Dataset, adms:Asset ;
+    dcat:version "0.1.0" ;
     dcterms:title "Example Vocabulary"@en ;
     dcterms:description "One-line description shown in the catalog."@en ;
     dcat:type assettype:c_89b4bdb7 ;
@@ -45,12 +52,13 @@ self-describing (eona-x/backlog#793). Every asset is modeled as **both**
 <> dcterms:creator [ a foaf:Agent ; foaf:name "Standards Body Name" ] .
 
 # Optional hero/logo image for the catalog card — a plain filename literal,
-# resolved by generate.py into assets/<value> exactly like the old
-# metadata.toml upstream.logo did. It's a build-relative filename, not a
-# dereferenceable IRI at authoring time, so a literal on the custom eona:logo
-# property (reusing the eona: prefix rather than stretching foaf:depiction's
-# resource-typed range) is the pragmatic choice.
-<> eona:logo "logo-filename.png" .
+# resolved by the publishing pipeline into assets/<value>. schema:logo accepts
+# text as well as a URL, so a build-relative filename needs no custom term.
+<> schema:logo "logo-filename.png" .
+
+# Optional — only when the graph file is not ontology.ttl (alignment.ttl for a
+# crosswalk): name it as this asset's distribution, relative to this file.
+# <> dcat:distribution [ a dcat:Distribution ; dcat:downloadURL <my-graph.ttl> ; dcat:mediaType "text/turtle" ] .
 
 # Optional — only when this vocabulary needs a Prez curie prefix binding for
 # its own namespace (most vocabularies don't need one).
@@ -66,6 +74,7 @@ self-describing (eona-x/backlog#793). Every asset is modeled as **both**
 | `"owl"` (or absent) | `assettype:c_89b4bdb7` "Formal ontology" | an OWL/RDFS ontology |
 | `"shacl"` | `assettype:c_3948c2ed` "Markup schema" | a SHACL shapes graph |
 | `"crosswalk"` | `assettype:c_bba2bb35` "Alignment" | a SKOS crosswalk between two vocabularies (confirmed in eona-x/backlog#800) |
+| — | `assettype:c_64714767` "Terminology" | a SKOS-based vocabulary defining terms (concepts, collections), not classes or properties — e.g. the Eona-X ODRL profile |
 
 `assettype:` expands to
 `<http://publications.europa.eu/resource/authority/asset-classification/>`.
@@ -75,7 +84,7 @@ authority table (`status:` = `<http://publications.europa.eu/resource/authority/
 Every vocabulary currently published here is `status:CURRENT`; the full table
 also has `DRAFT`, `DEPRECATED`, `RETIRED`, `CANDIDATE`, `PLANNED`, `REVISED`,
 `WAITING` (and `*_DEPRECATED` variants) for when one is actually superseded or
-withdrawn. `eonax-metadata-profile/ontology.ttl` (see below) SHACL-validates
+withdrawn. `eonax-metadata-profile/v<newest>/ontology.ttl` (see below) SHACL-validates
 `dcat:type` and `adms:status` against exactly the concepts the hub currently
 uses, defaulting `adms:status` to `status:CURRENT` — read its `rdfs:comment`/
 `skos:definition` annotations for the reasoning behind each constraint before
@@ -84,26 +93,63 @@ picking a value outside that set.
 EuroVoc theming (`dcat:theme`) is intentionally **not** part of `metadata.ttl`
 — it's a ~400MB thesaurus, deferred as too heavy for this pass (eona-x/backlog#791).
 
-### `catalog-fragment.ttl`
+### IRIs: `https://eona-x.eu/…` or `https://vocabulary.eona-x.eu/…`
 
-Per-vocabulary Prez curie-prefix bindings (`vann:preferredNamespacePrefix` /
-`vann:preferredNamespaceUri`) now live inline in `metadata.ttl` (see above)
-rather than in a separate `catalog-fragment.ttl`. A `catalog-fragment.ttl`
-sibling is still used where it carries more than that — e.g. merging a
-vocabulary's browsable `skos:ConceptScheme`(s) into the shared `eona:catalog`
-via `dcterms:hasPart`, with their own title/description so Prez renders them
-as collections. Both files load into the same named graph
-(`https://vocab.eona-x.eu/catalog/<slug>`), so there's no need to duplicate
-that catalog-membership content into `metadata.ttl`.
+Vocabularies minted on an Eona-X host are published at one of two bases, with the
+same path:
+
+```
+https://eona-x.eu/<asset-type>/<slug>/<version>#<term>             vocabularies Eona-X authors
+https://vocabulary.eona-x.eu/<asset-type>/<slug>/<version>#<term>  Eona-X's RDF representations of external standards
+```
+
+Which one is read from `metadata.ttl`: an asset that names its upstream body as
+`dcterms:creator` (an organization or other agent, e.g. CEN for NeTEx, DATEX II,
+BatteryPass) is a representation Eona-X hosts so its IRIs dereference, and belongs on
+`vocabulary.eona-x.eu`; an asset with no such creator is Eona-X's own and belongs on
+`eona-x.eu`. Crediting the people who wrote an Eona-X vocabulary as
+`dcterms:creator [ a foaf:Person ; foaf:name "…" ]` does not change that. One
+`<asset-type>/<slug>` lives on one host only.
+
+- `<asset-type>` is one of `ontology`, `shape`, `crosswalk`, `vocabulary`,
+  `codelist`, and must cover the asset's `dcat:type`: `ontology` ⇐ Formal
+  ontology; `shape` ⇐ Application profile, Markup schema; `crosswalk` ⇐
+  Alignment; `vocabulary` ⇐ Terminology, Thesaurus, Glossary, Dictionary,
+  Lexicon, Synonym ring, Folksonomy, Categorisation; `codelist` ⇐ Code list,
+  Authority file.
+- `<version>` is `v` + the root's `owl:versionInfo`, e.g. `v0.1.0`.
+- The root (`owl:Ontology`, or `skos:ConceptScheme` for a code list or
+  thesaurus) is the namespace itself, `…/<version>#`; code lists embedded in the
+  vocabulary live under it (`…/<version>#StatusCodes`, `…/<version>#StatusCodes/active`).
+
+No other IRI on an Eona-X host (`eona-x.eu` and its subdomains, `w3id.org/eonax/`)
+is accepted. Vocabularies maintained elsewhere keep their own upstream namespaces.
+
+### Checks on every pull request
+
+`tools/vocabulary-check` runs on every pull request (and is what the publishing
+pipeline builds with); run it locally with
+
+```
+cargo run --manifest-path tools/vocabulary-check/Cargo.toml -- .
+```
+
+It reports every finding at once: Turtle that does not parse, an asset not in a
+`<slug>/v<version>/` directory or whose `dcat:version` does not name it, a `metadata.ttl`
+without `dcterms:title`, a Formal ontology without `owl:Ontology`, a crosswalk
+whose `void:Linkset` does not reach two published vocabularies, a reference to
+an ontology of this repository that has no `metadata.ttl`, and any IRI on an
+Eona-X host that is not the convention above. A second job validates every
+`metadata.ttl` against the newest `eonax-metadata-profile/v*/ontology.ttl` with pySHACL.
 
 ## Kinds of contribution
 
 - **Fix an error** in an existing ontology (a wrong domain/range, a missing
   label, a broken `owl:versionInfo`) — open a PR against the relevant
-  `<slug>/ontology.ttl`.
-- **Update to a newer upstream release** — bump the bundled Turtle and
-  `owl:versionInfo` together, and note the upstream version in your PR
-  description.
+  `<slug>/v<version>/ontology.ttl` — or, if the version is already in use downstream, release the fix as a new version (see above).
+- **Update to a newer upstream release** — add it as a new version directory,
+  `<slug>/v<upstream-version>/`, with its own `metadata.ttl` (`dcat:version` set
+  to the upstream version); the earlier version stays published next to it.
 - **Add a new vocabulary** — open an issue first describing what it is and
   why it belongs here; once agreed, add a new `<slug>/` directory following
   the layout above.
@@ -115,22 +161,19 @@ that catalog-membership content into `metadata.ttl`.
 - Keep each ontology's Turtle **self-contained**: no `owl:imports` of
   something not itself vendored here or resolvable without network access at
   build time (downstream builds are offline by design).
-- Validate your Turtle parses before opening a PR (any RDF library will do,
-  e.g. `python3 -c "import rdflib; rdflib.Graph().parse('slug/ontology.ttl')"`
-  or `riot --validate slug/ontology.ttl` from Apache Jena).
+- Run the checks above before opening a PR; they include Turtle parsing.
 - One logical change per PR — a metadata fix and an ontology content change
   are easier to review separately.
 - By contributing, you agree your contribution is licensed under this
   repository's [Apache 2.0 license](./LICENSE). If you're contributing an
   upstream standard's own Turtle, make sure its license permits
   redistribution here and note that in `metadata.ttl`/`TERMS.md`.
-- `metadata.ttl` changes should also satisfy `eonax-metadata-profile/ontology.ttl`,
+- `metadata.ttl` changes should also satisfy the newest `eonax-metadata-profile/v*/ontology.ttl`,
   the hub-wide SHACL profile for this file (see `## What lives here` above);
-  validate with e.g. `pyshacl -s eonax-metadata-profile/ontology.ttl -d <slug>/metadata.ttl`
-  if you have pySHACL installed. Either way, when validating any `.ttl` file
-  with rdflib, pass `publicID='https://vocab.eona-x.eu/catalog/<slug>'` — that's
-  the base IRI the consuming `generate.py` loads it with, and it's what makes
-  the relative `<>` subject in `metadata.ttl` resolve correctly.
+  validate with e.g. `pyshacl -s eonax-metadata-profile/v1.3.0/ontology.ttl -d <slug>/<version>/metadata.ttl`
+  if you have pySHACL installed. The relative `<>` subject in `metadata.ttl`
+  is the asset itself: tools resolve it against any base they choose (the
+  catalog uses `https://vocabulary.eona-x.eu/catalog/<slug>`).
 
 ## Questions
 
