@@ -1,0 +1,368 @@
+# The Eona-X ODRL Profile
+#
+# The *supported* subset of W3C ODRL 2.2 used to author and, above all, ENFORCE
+# access & usage policies in the Eona-X dataspace connectors (Eclipse EDC based).
+#
+# This profile is descriptive of what the runtime actually supports:
+#   - the ODRL core terms the connector's policy engine binds and evaluates, and
+#   - three custom constraint leftOperands in the eox-policy: namespace, backed by
+#     the repo's dynamic constraint functions:
+#       * Membership              -> MembershipConstraintFunction
+#       * GenericClaim            -> JsonPathCredentialConstraintFunction
+#       * RestrictedDiscoveryClaim-> CatalogDiscoveryConstraintFunction
+#
+# Term IRIs are minted under https://eona-x.eu/vocabulary/odrl-profile/v0.0.3# (prefix
+# "eox-policy"). The connector does not emit these IRIs yet: it still prefixes its
+# left operands with the legacy namespace https://w3id.org/eonax/policy/
+# (CoreConstants.DSE_POLICY_NS); reconciling the two is tracked in eona-x/backlog#799.
+#
+# 0.0.3 adds an AUTHORING vocabulary next to the enforced subset: the ODRL
+# actions, rule kinds, left operands, operators and rule properties a provider
+# may write in obligations, permissions and prohibitions, each with a placeholder
+# for the connector support it is waiting for, plus rewrite rules that keep a
+# policy intact through the connector's JSON-LD ingestion. Authoring terms are NOT
+# enforced; the enforced subset below is unchanged.
+#
+# 0.0.2 widens interoperability with other ODRL/EDC policy dialects and records an
+# audit of 0.0.1 against the connector source (dataspace-ecosystem cadd0f6,
+# extensions/common/policies):
+#   - operators: odrl:isPartOf is what EDC's IN operator serialises to; odrl:isAnyOf
+#     (EDC IS_ANY_OF) is rejected by every constraint function, so 0.0.1 listed the
+#     wrong IRI for set membership;
+#   - odrl:hasPart is implemented (no longer a target), with containment — not
+#     substring — semantics;
+#   - per-operand operator coverage, claim-shape rules and fail-closed behaviour
+#     are stated explicitly, since other dialects differ on each of them;
+#   - odrl:isNoneOf is declared as a target operator (common deny-list idiom);
+#   - claim-name correspondences let foreign participant-credential policies be
+#     rewritten onto GenericClaim.
+#
+# Normative base: W3C ODRL 2.2 (Information Model + Vocabulary,
+# <http://www.w3.org/ns/odrl/2/>). Only the terms enumerated here are in scope for
+# the current policy engine; anything outside this profile is unsupported.
+
+@base <https://eona-x.eu/vocabulary/odrl-profile/v0.0.3#> .
+@prefix eox-policy: <https://eona-x.eu/vocabulary/odrl-profile/v0.0.3#> .
+@prefix eox-cred: <https://eona-x.eu/ontology/credentials/v0.1.0#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+#  Profile (ontology)
+#################################################################
+
+eox-policy:
+    a owl:Ontology ;
+    rdfs:label "Eona-X ODRL Profile"@en ;
+    dct:title "Eona-X ODRL Profile"@en ;
+    owl:versionInfo "0.0.3" ;
+    owl:priorVersion <https://eona-x.eu/vocabulary/odrl-profile/v0.0.2#> ;
+    dct:conformsTo <http://www.w3.org/ns/odrl/2/> ;
+    dct:description """An ODRL 2.2 profile describing the exact subset of ODRL the Eona-X connector supports to express and enforce access & usage policies, extended with three credential-claim leftOperands evaluated by the connector's policy engine against presented Verifiable Credentials."""@en ;
+    rdfs:comment """Descriptive, enforcement-scoped profile: it lists precisely the ODRL terms the connector binds and evaluates. Rules are enforced for odrl:Permission only (the constraint functions are registered for the Permission rule type). Evaluation always runs as a side effect of a Dataspace-Protocol interaction (catalog, contract negotiation, transfer) or catalog discovery — never as a standalone call."""@en ;
+    skos:changeNote """0.0.3: authoring vocabulary for obligations, permissions and prohibitions (actions, rule kinds, left operands, operators, rule properties), each with a connector-support placeholder; new left operand eox-policy:acceptedTerms; rewrite rules for lossless ingestion."""@en ;
+    skos:changeNote """0.0.2: odrl:isAnyOf replaced by odrl:isPartOf (the IRI EDC's IN operator actually reads); odrl:hasPart moved from target to supported, with containment semantics; operator coverage and claim-shape rules stated per left operand; Duty/Prohibition behaviour stated; odrl:isNoneOf added as a target operator; claim correspondences for foreign participant credentials added."""@en ;
+    rdfs:seeAlso <http://www.w3.org/ns/odrl/2/> ;
+    dct:source "https://eona-x.eu/vocabulary/odrl-profile/v0.0.3#"^^xsd:anyURI .
+
+#################################################################
+#  Custom constraint left operands (this profile's own terms)
+#################################################################
+
+eox-policy:Membership
+    a odrl:LeftOperand, skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    rdfs:label "Membership"@en ;
+    skos:definition "Constraint left operand asserting that the presenting participant holds a valid MembershipCredential in the dataspace."@en ;
+    skos:note """Usage: leftOperand eox-policy:Membership, operator odrl:eq, rightOperand \"active\". Satisfied when the presented credentials contain at least one credential whose type is MembershipCredential (presence == active; the right operand MUST be the literal \"active\"). Bound to the transfer, catalog, contract.negotiation and catalog.discovery rule scopes."""@en ;
+    skos:scopeNote "Operators: odrl:eq only."@en ;
+    skos:example "eox-policy:Membership eq \"active\""@en .
+
+eox-policy:GenericClaim
+    a odrl:LeftOperand, skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    rdfs:label "Generic Claim"@en ;
+    skos:definition "Constraint left operand that addresses an arbitrary claim inside a presented credential's credentialSubject and compares it against the right operand."@en ;
+    skos:note """Addressing form: eox-policy:GenericClaim.$.<CredentialType>.<jsonPath> — e.g. eox-policy:GenericClaim.$.MembershipCredential.groups. After the $ the first segment selects the credential type; the remaining dotted path selects a field in the claims of credentialSubject[0]. The credential type is matched by suffix on the VC's type array, so any credential type a trusted issuer signs can be addressed, not only Eona-X ones. When the holder presents several credentials of that type, only the first one is evaluated. Bound to the contract.negotiation and transfer rule scopes — not to catalog, so the constraint does not hide an offer from the provider's own catalog."""@en ;
+    skos:scopeNote """Operators and claim shapes:
+- scalar claim: odrl:eq, odrl:neq, odrl:isPartOf (claim is one of a right-operand list), odrl:hasPart (equality — a single-element list claim arrives as a scalar after JSON-LD compaction);
+- list claim: odrl:hasPart only (the list contains the right-operand value); every other operator is rejected;
+- missing claim or missing credential: the constraint is NOT satisfied, for every operator including odrl:neq (fail closed).
+odrl:hasPart is containment, never substring matching: \"Example\" does not match a claim \"Example Name\"."""@en ;
+    skos:example "eox-policy:GenericClaim.$.MembershipCredential.groups hasPart \"EMDS\""@en ,
+        "eox-policy:GenericClaim.$.MembershipCredential.name isPartOf [\"Org A\", \"Org B\"]"@en .
+
+eox-policy:RestrictedDiscoveryClaim
+    a odrl:LeftOperand, skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    rdfs:label "Restricted Discovery Claim"@en ;
+    skos:definition "Constraint left operand equivalent to GenericClaim but evaluated in the catalog-discovery path, so that a dataset's visibility in the federated catalog is gated on a credential claim."@en ;
+    skos:note """Addressing form: eox-policy:RestrictedDiscoveryClaim.$.<CredentialType>.<jsonPath>. Bound to the catalog.discovery, contract.negotiation and transfer rule scopes; it is the discovery-time counterpart of eox-policy:GenericClaim. A participant whose membershipType is not FullMember is denied by default unless the policy carries a top-level RestrictedDiscoveryClaim.$.MembershipCredential.membership.membershipType eq \"<that type>\" constraint."""@en ;
+    skos:scopeNote "Operators and claim shapes: identical to eox-policy:GenericClaim."@en ;
+    skos:example "eox-policy:RestrictedDiscoveryClaim.$.MembershipCredential.groups hasPart \"EMDS\""@en .
+
+#################################################################
+#  Supported ODRL core terms (reused as-is from ODRL 2.2)
+#################################################################
+#  The collections below enumerate exactly which ODRL core terms this profile
+#  reuses. The terms themselves are NOT redefined here — they are dereferenced
+#  from the ODRL 2.2 vocabulary at <http://www.w3.org/ns/odrl/2/>.
+
+eox-policy:supportedPolicyTypes
+    a skos:Collection ;
+    skos:prefLabel "Supported policy types"@en ;
+    skos:scopeNote "ODRL policy subclasses the connector processes."@en ;
+    skos:member odrl:Set, odrl:Offer, odrl:Agreement .
+
+eox-policy:supportedRules
+    a skos:Collection ;
+    skos:prefLabel "Supported rules"@en ;
+    skos:scopeNote """Only odrl:Permission is enforced: the credential constraint functions are registered for the Permission rule type. An eox-policy constraint placed in an odrl:obligation (Duty) or odrl:prohibition finds no function; the EDC evaluator then compares the left-operand string with the right operand literally, so the rule fails and the negotiation is refused. Duties and prohibitions with other left operands are contractual statements only: nothing in the connector checks them."""@en ;
+    skos:member odrl:Permission, odrl:permission .
+
+eox-policy:supportedActions
+    a skos:Collection ;
+    skos:prefLabel "Supported actions"@en ;
+    skos:scopeNote "Actions bound into every rule scope by PolicyEvaluationExtension: the base odrl:use plus transfer, share and distribute. A rule whose action is not bound is dropped by the EDC scope filter before evaluation, so its constraints are silently not enforced. NOTE: odrl:share is deprecated in ODRL 2.2 but is still bound by the connector."@en ;
+    skos:member odrl:use, odrl:transfer, odrl:share, odrl:distribute .
+
+eox-policy:supportedOperators
+    a skos:Collection ;
+    skos:prefLabel "Supported operators"@en ;
+    skos:scopeNote """Operators the constraint functions accept (per-operand coverage on each left operand). odrl:eq and odrl:neq are scalar equality. odrl:isPartOf is set membership (a scalar claim is one of the right-operand list) — it is the IRI EDC's IN operator reads and writes. odrl:hasPart is set containment (a list claim contains the right-operand value). odrl:isAnyOf maps to a different EDC operator (IS_ANY_OF) that every constraint function rejects; author odrl:isPartOf instead."""@en ;
+    skos:member odrl:eq, odrl:neq, odrl:isPartOf, odrl:hasPart .
+
+eox-policy:targetOperators
+    a skos:Collection ;
+    skos:prefLabel "Target operators"@en ;
+    skos:scopeNote """Operators other ODRL dialects commonly use on credential claims, which the connector does not evaluate yet. A policy using one of them is refused at negotiation (unsupported operator); it is not ignored. odrl:isNoneOf (deny-list: a scalar claim is none of the right-operand list) is the first candidate, as the complement of odrl:isPartOf."""@en ;
+    skos:member odrl:isNoneOf .
+
+eox-policy:supportedConstraintTerms
+    a skos:Collection ;
+    skos:prefLabel "Supported constraint & relation terms"@en ;
+    skos:scopeNote "ODRL relation and constraint properties used when authoring policies in this profile. Note: odrl:assigner (and odrl:assignee where present) MUST be a Decentralized Identifier (did:...), validated by OdrlPolicyDidValidator."@en ;
+    skos:member odrl:target, odrl:assigner, odrl:assignee, odrl:action,
+                odrl:constraint, odrl:Constraint, odrl:LogicalConstraint, odrl:or,
+                odrl:leftOperand, odrl:operator, odrl:rightOperand .
+
+eox-policy:leftOperands
+    a skos:Collection ;
+    skos:prefLabel "Eona-X constraint left operands"@en ;
+    skos:scopeNote "The custom credential-claim left operands defined by this profile."@en ;
+    skos:member eox-policy:Membership, eox-policy:GenericClaim, eox-policy:RestrictedDiscoveryClaim .
+
+#################################################################
+#  Compatibility: claims of foreign participant credentials
+#################################################################
+#  Other dataspaces gate access on a participant credential whose claims carry
+#  the same facts as Eona-X credential claims under other names (typically
+#  legalName, dataspaceId, type, website). These correspondences let such a
+#  policy be rewritten as an eox-policy:GenericClaim constraint. They are
+#  closeMatch, not exactMatch: the issuer, and so the trust behind each value,
+#  differs.
+
+eox-policy:participantClaimCorrespondences
+    a skos:Collection ;
+    skos:prefLabel "Participant-claim correspondences"@en ;
+    skos:scopeNote """Rewrite rule: a foreign constraint <ForeignCredential>.<claim> <op> <value> becomes eox-policy:GenericClaim.$.<EonaXCredential>.<eona-claim> <op> <value> when the claim has a correspondent below, or eox-policy:GenericClaim.$.<ForeignCredential>.<claim> <op> <value> when the Eona-X connector trusts the foreign issuer and the holder presents that credential. In both cases check the operator against eox-policy:supportedOperators: a substring-style hasPart and a deny-list isNoneOf do not carry over."""@en ;
+    skos:member eox-policy:legalNameClaim, eox-policy:dataspaceIdClaim, eox-policy:participantTypeClaim, eox-policy:websiteClaim .
+
+eox-policy:legalNameClaim
+    a skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    skos:prefLabel "Participant legal name claim"@en ;
+    skos:altLabel "legalName"@en ;
+    skos:definition "The registered legal name of the participant, as asserted by a credential claim."@en ;
+    skos:closeMatch eox-cred:legalName ;
+    skos:scopeNote "The issuer writes this fact as credentialSubject.name, not legalName (the name eox-cred gives it), so the claim path is MembershipCredential.name."@en ;
+    skos:example "eox-policy:GenericClaim.$.MembershipCredential.name eq \"Org A\""@en .
+
+eox-policy:dataspaceIdClaim
+    a skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    skos:prefLabel "Home dataspace claim"@en ;
+    skos:altLabel "dataspaceId"@en ;
+    skos:definition "The identifier of the dataspace the participant was onboarded into."@en ;
+    skos:closeMatch eox-cred:homeDataspace ;
+    skos:scopeNote "eox-cred:homeDataspace belongs to the FederationCredential, which is modelled but not issued yet. Until it is, a constraint on the home dataspace can only address the foreign credential; inside Eona-X, eox-policy:Membership already implies it."@en .
+
+eox-policy:participantTypeClaim
+    a skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    skos:prefLabel "Participant type claim"@en ;
+    skos:altLabel "type"@en, "membershipType"@en ;
+    skos:definition "The class of participation the participant holds in the dataspace."@en ;
+    skos:closeMatch eox-cred:membershipType ;
+    skos:scopeNote "Value sets differ between dataspaces (for example FullMember versus DataspaceParticipant); map the values, not only the claim."@en ;
+    skos:example "eox-policy:GenericClaim.$.MembershipCredential.membership.membershipType eq \"FullMember\""@en .
+
+eox-policy:websiteClaim
+    a skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    skos:prefLabel "Participant website claim"@en ;
+    skos:altLabel "website"@en ;
+    skos:definition "The participant's public website URL."@en ;
+    skos:scopeNote "No Eona-X credential carries this claim: a policy on it can only be expressed against the foreign credential itself."@en .
+
+#################################################################
+#  Connector support (placeholder status)
+#################################################################
+#  Every collection below carries eox-policy:connectorSupport. The enforced subset
+#  above is Enforced; the authoring vocabulary is AwaitingConnectorSupport, with
+#  skos:editorialNote naming the connector change it waits for. When the connector
+#  gains that support, the term moves into the enforced collections in a new
+#  profile version.
+
+eox-policy:connectorSupport
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy eox-policy: ;
+    rdfs:label "connector support"@en ;
+    skos:definition "Whether the Eona-X connector enforces the terms of a collection, or accepts them for authoring only while the support is pending."@en .
+
+eox-policy:connectorSupportStatus
+    a skos:Collection ;
+    skos:prefLabel "Connector support status"@en ;
+    skos:member eox-policy:Enforced, eox-policy:AwaitingConnectorSupport .
+
+eox-policy:Enforced
+    a skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    skos:prefLabel "Enforced"@en ;
+    skos:definition "The connector evaluates the term during catalog, negotiation or transfer, and refuses the request when it is not satisfied."@en .
+
+eox-policy:AwaitingConnectorSupport
+    a skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    skos:prefLabel "Awaiting connector support"@en ;
+    skos:definition "Placeholder: the term may be written in a policy and travels in offers and agreements, but the connector does not evaluate it. It binds the parties contractually only."@en .
+
+eox-policy:supportedRules eox-policy:connectorSupport eox-policy:Enforced .
+eox-policy:supportedActions eox-policy:connectorSupport eox-policy:Enforced .
+eox-policy:supportedOperators eox-policy:connectorSupport eox-policy:Enforced .
+eox-policy:leftOperands eox-policy:connectorSupport eox-policy:Enforced .
+eox-policy:targetOperators eox-policy:connectorSupport eox-policy:AwaitingConnectorSupport .
+
+#################################################################
+#  Authoring vocabulary: obligations, permissions, prohibitions
+#################################################################
+#  ODRL 2.2 terms a provider may write in the rules of an Eona-X policy beyond the
+#  enforced subset. They are reused as-is from <http://www.w3.org/ns/odrl/2/>.
+
+eox-policy:authoringRuleKinds
+    a skos:Collection ;
+    skos:prefLabel "Authoring rule kinds"@en ;
+    skos:scopeNote "Rule kinds and rule-to-rule links beyond the enforced odrl:permission: policy-level obligations, duties attached to a permission, prohibitions, and the remedies of a prohibition."@en ;
+    skos:member odrl:obligation, odrl:duty, odrl:prohibition, odrl:remedy ;
+    eox-policy:connectorSupport eox-policy:AwaitingConnectorSupport ;
+    skos:editorialNote "Waits for Duty and Prohibition evaluation functions in the connector. Remedies are already kept on ingestion with their prohibition; nothing executes them."@en .
+
+eox-policy:authoringActions
+    a skos:Collection ;
+    skos:prefLabel "Authoring actions"@en ;
+    skos:scopeNote "Actions accepted in obligations, permissions, duties, prohibitions and remedies, in addition to the enforced odrl:use, odrl:transfer, odrl:share and odrl:distribute."@en ;
+    skos:member odrl:read, odrl:display, odrl:present, odrl:print, odrl:archive, odrl:index,
+                odrl:aggregate, odrl:derive, odrl:extract, odrl:reproduce,
+                odrl:sell, odrl:give, odrl:grantUse,
+                odrl:delete, odrl:reviewPolicy, odrl:attribute, odrl:acceptTracking ;
+    eox-policy:connectorSupport eox-policy:AwaitingConnectorSupport ;
+    skos:editorialNote "Waits for the connector to bind these actions into its rule scopes. Until then the EDC scope filter drops every rule whose action is one of them, with the rule's constraints and duties, before evaluation."@en .
+
+eox-policy:authoringLeftOperands
+    a skos:Collection ;
+    skos:prefLabel "Authoring left operands"@en ;
+    skos:scopeNote "Left operands accepted in the constraints of obligations, duties and permissions, in addition to the enforced credential-claim operands."@en ;
+    skos:member odrl:elapsedTime, eox-policy:acceptedTerms ;
+    eox-policy:connectorSupport eox-policy:AwaitingConnectorSupport ;
+    skos:editorialNote "Waits for constraint functions for these operands. A constraint on an operand the connector has not bound is dropped by the scope filter before evaluation."@en .
+
+eox-policy:authoringOperators
+    a skos:Collection ;
+    skos:prefLabel "Authoring operators"@en ;
+    skos:scopeNote "Operators accepted with the authoring left operands, in addition to the enforced operators: odrl:lteq bounds a duration such as odrl:elapsedTime (right operand typed xsd:duration)."@en ;
+    skos:member odrl:lteq ;
+    eox-policy:connectorSupport eox-policy:AwaitingConnectorSupport ;
+    skos:editorialNote "Waits for a constraint function that compares durations."@en .
+
+eox-policy:authoringRuleProperties
+    a skos:Collection ;
+    skos:prefLabel "Authoring rule properties"@en ;
+    skos:scopeNote "Properties written on a rule rather than on the policy: a rule's own target, the output of a derive-type action, and the parties of a duty's action (who must be attributed, who tracks)."@en ;
+    skos:member odrl:target, odrl:output, odrl:attributedParty, odrl:trackingParty ;
+    eox-policy:connectorSupport eox-policy:AwaitingConnectorSupport ;
+    skos:editorialNote "Waits for the connector's ODRL model to keep these on a rule. Its JSON-LD ingestion keeps only a rule's action, constraints, duties, remedies and consequences, so these four are discarded; the policy-level odrl:target applies to every rule."@en .
+
+eox-policy:acceptedTerms
+    a odrl:LeftOperand, skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    rdfs:label "Accepted Terms"@en ;
+    skos:definition "Constraint left operand naming the terms document the assignee has accepted. The right operand is the IRI of one version of that document."@en ;
+    skos:note """Usage: leftOperand eox-policy:acceptedTerms, operator odrl:eq, rightOperand { \"@id\": \"<version-pinned terms IRI>\" }. Written on an obligation (typically one whose action is odrl:reviewPolicy) to say that the obligation is met once the assignee has accepted that exact version of the terms. The right operand MUST identify one version: a terms IRI that can change under it makes the acceptance meaningless."""@en ;
+    skos:scopeNote "Not evaluated by the connector (see eox-policy:authoringLeftOperands). The Eona-X portal asks a person to read and accept the policy before it sends a contract request, which is a human gate on the consumer side, not proof for the provider."@en ;
+    skos:example "eox-policy:acceptedTerms eq <https://provider.example/terms/api-1.1>"@en .
+
+#################################################################
+#  Rewrite rules: keep a policy intact through ingestion
+#################################################################
+#  The connector's JSON-LD ingestion simplifies rules (see the editorial notes
+#  above). A policy written with these rules reaches the agreement unchanged, so
+#  what the parties read is what the agreement holds.
+
+eox-policy:rewriteRules
+    a skos:Collection ;
+    skos:prefLabel "Rewrite rules for lossless ingestion"@en ;
+    skos:member eox-policy:OneActionPerRule, eox-policy:OneTargetPerPolicy, eox-policy:NoSameActionAcrossTargets,
+                eox-policy:PartiesInTerms, eox-policy:ConstraintsOnDuties, eox-policy:RemediesAreContractual .
+
+eox-policy:OneActionPerRule
+    a skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    skos:prefLabel "One action per rule"@en ;
+    skos:definition "Write one rule per action. When a rule lists several actions, ingestion keeps the first one and drops the others without an error."@en ;
+    skos:example """Instead of
+  \"prohibition\": [{\"action\": [\"sell\", \"give\"], \"remedy\": [{\"action\": \"delete\"}]}]
+write
+  \"prohibition\": [{\"action\": \"sell\", \"remedy\": [{\"action\": \"delete\"}]},
+                    {\"action\": \"give\", \"remedy\": [{\"action\": \"delete\"}]}]"""@en .
+
+eox-policy:OneTargetPerPolicy
+    a skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    skos:prefLabel "One target per policy"@en ;
+    skos:definition "Put the target on the policy, not on a rule, and give each asset its own policy. Ingestion drops a rule's odrl:target and odrl:output, so every rule applies to the policy target. Rules about an asset derived from the data belong in the offer of that derived asset."@en ;
+    skos:example """Instead of one policy with
+  {\"action\": \"derive\", \"output\": \"https://provider.example/asset/report\"},
+  {\"target\": \"https://provider.example/asset/report\", \"action\": \"distribute\"}
+write
+  policy A, target https://provider.example/asset/data:   {\"action\": \"derive\"}
+  policy B, target https://provider.example/asset/report: {\"action\": \"distribute\"}"""@en .
+
+eox-policy:NoSameActionAcrossTargets
+    a skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    skos:prefLabel "No action both permitted and prohibited across targets"@en ;
+    skos:definition "Do not permit an action on one target and prohibit it on another in the same policy. Once rule targets are dropped, both rules address the policy target and contradict each other. Split the policy per target (see eox-policy:OneTargetPerPolicy)."@en ;
+    skos:example "A permission to display the derived report and a prohibition to display the source data become, after ingestion, a permission and a prohibition to display the same asset."@en .
+
+eox-policy:PartiesInTerms
+    a skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    skos:prefLabel "Name duty parties in the terms too"@en ;
+    skos:definition "Keep odrl:attributedParty and odrl:trackingParty in the policy for readers, and also name the party in the human-readable terms the policy refers to. Ingestion drops these properties, so the agreement does not hold them."@en .
+
+eox-policy:ConstraintsOnDuties
+    a skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    skos:prefLabel "Constraints on duties are contractual"@en ;
+    skos:definition "A constraint on an obligation or a duty states when it applies or is met; the connector does not check it. Use eox-policy:acceptedTerms for terms acceptance and odrl:elapsedTime for deadlines. Never put a credential-claim operand (eox-policy:Membership, GenericClaim, RestrictedDiscoveryClaim) on a duty: no duty function exists, so the rule fails and the negotiation is refused."@en .
+
+eox-policy:RemediesAreContractual
+    a skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    skos:prefLabel "Remedies are contractual"@en ;
+    skos:definition "A prohibition's remedy (for example odrl:delete) is kept in the agreement, but nothing in the connector detects the breach or performs the remedy. It is the consequence the parties agree to, enforced outside the dataspace."@en .
