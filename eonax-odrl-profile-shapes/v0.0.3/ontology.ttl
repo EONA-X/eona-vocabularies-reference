@@ -1,0 +1,220 @@
+# SHACL shapes for the Eona-X ODRL Profile v0.0.3
+#
+# Validates an ODRL policy (Set, Offer or Agreement, as RDF from its JSON-LD)
+# against the authoring rules of the Eona-X ODRL profile v0.0.3
+# (eonax-odrl-profile/v0.0.3): the terms it lists, the operator and right-operand
+# datatype each left operand takes, and the rewrite rules that keep a policy intact
+# through the connector's JSON-LD ingestion.
+#
+# These shapes check that a policy is well formed for the profile. They do not
+# say whether the connector will store it: that depends on what the connector binds
+# and declares (see eox-policy:connectorSupport in the profile). Run them before a
+# policy reaches the connector: in the policy editor, and against example policies
+# in this repository's CI.
+#
+# Severity:
+#   Violation - breaks a profile rule, or would be changed or lost on ingestion.
+#   Warning   - outside the profile but possibly legitimate (an EDC built-in operand
+#               such as edc:inForceDate), or a target operator the connector may not
+#               evaluate yet.
+#
+# Credential-claim left operands are strings, eox-policy:<Term>.$.<Credential>.<path>.
+# They are matched by pattern, in the profile namespace and in the connector's
+# legacy namespace https://w3id.org/eonax/policy/ (still on the wire until
+# eona-x/backlog#799).
+
+@prefix eoxs: <https://eona-x.eu/shape/odrl-profile-shapes/v0.0.3#> .
+@prefix eox-policy: <https://eona-x.eu/vocabulary/odrl-profile/v0.0.3#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+
+eoxs:
+    a owl:Ontology ;
+    rdfs:label "Eona-X ODRL Profile SHACL shapes"@en ;
+    dct:title "Eona-X ODRL Profile SHACL shapes"@en ;
+    owl:versionInfo "0.0.3" ;
+    rdfs:seeAlso eox-policy: ;
+    dct:description "SHACL shapes checking an ODRL policy against the authoring rules of the Eona-X ODRL Profile v0.0.3."@en .
+
+#################################################################
+#  Rules: permissions, prohibitions, obligations, duties, remedies
+#################################################################
+
+eoxs:RuleShape
+    a sh:NodeShape ;
+    rdfs:label "Rule"@en ;
+    sh:targetObjectsOf odrl:permission, odrl:prohibition, odrl:obligation, odrl:duty, odrl:remedy, odrl:consequence ;
+    sh:property eoxs:RuleOneAction, eoxs:RuleActionInProfile, eoxs:RuleNoTarget, eoxs:RuleNoOutput,
+                eoxs:RuleAttributedParty, eoxs:RuleTrackingParty .
+
+eoxs:RuleOneAction
+    a sh:PropertyShape ;
+    sh:path odrl:action ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:message "OneActionPerRule: a rule has exactly one action. The connector keeps only the first action of a list and drops the others."@en .
+
+eoxs:RuleActionInProfile
+    a sh:PropertyShape ;
+    sh:path odrl:action ;
+    sh:in ( odrl:use odrl:transfer odrl:share odrl:distribute
+            odrl:read odrl:display odrl:present odrl:print odrl:archive odrl:index
+            odrl:aggregate odrl:derive odrl:extract odrl:reproduce
+            odrl:sell odrl:give odrl:grantUse
+            odrl:delete odrl:reviewPolicy odrl:attribute odrl:acceptTracking ) ;
+    sh:message "The action is not in the Eona-X ODRL profile (eox-policy:supportedActions, eox-policy:authoringActions)."@en .
+
+eoxs:RuleNoTarget
+    a sh:PropertyShape ;
+    sh:path odrl:target ;
+    sh:maxCount 0 ;
+    sh:message "OneTargetPerPolicy: put the target on the policy. The connector drops a rule's own target, so the rule would apply to the policy target."@en .
+
+eoxs:RuleNoOutput
+    a sh:PropertyShape ;
+    sh:path odrl:output ;
+    sh:maxCount 0 ;
+    sh:message "OneTargetPerPolicy: odrl:output is dropped by the connector. Publish the derived asset with its own policy."@en .
+
+eoxs:RuleAttributedParty
+    a sh:PropertyShape ;
+    sh:path odrl:attributedParty ;
+    sh:maxCount 0 ;
+    sh:severity sh:Warning ;
+    sh:message "PartiesInTerms: odrl:attributedParty is dropped by the connector. Name the party in the human-readable terms as well."@en .
+
+eoxs:RuleTrackingParty
+    a sh:PropertyShape ;
+    sh:path odrl:trackingParty ;
+    sh:maxCount 0 ;
+    sh:severity sh:Warning ;
+    sh:message "PartiesInTerms: odrl:trackingParty is dropped by the connector. Name the party in the human-readable terms as well."@en .
+
+#################################################################
+#  Constraints
+#################################################################
+
+eoxs:ConstraintShape
+    a sh:NodeShape ;
+    rdfs:label "Constraint"@en ;
+    sh:targetObjectsOf odrl:constraint ;
+    sh:property [
+        sh:path odrl:leftOperand ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:message "A constraint has exactly one left operand, an IRI."@en
+    ] , [
+        sh:path odrl:operator ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:in ( odrl:eq odrl:neq odrl:isPartOf odrl:hasPart odrl:lteq odrl:isNoneOf ) ;
+        sh:message "The operator is not in the Eona-X ODRL profile (supported, authoring or target operators). For set membership use odrl:isPartOf, not odrl:isAnyOf."@en
+    ] , [
+        sh:path odrl:rightOperand ;
+        sh:minCount 1 ;
+        sh:message "A constraint has a right operand."@en
+    ] .
+
+eoxs:LeftOperandInProfile
+    a sh:NodeShape ;
+    sh:targetObjectsOf odrl:constraint ;
+    sh:severity sh:Warning ;
+    sh:or (
+        [ sh:path odrl:leftOperand ; sh:hasValue odrl:elapsedTime ]
+        [ sh:path odrl:leftOperand ; sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile/v0\\.0\\.3#)(acceptedTerms$|Membership$|GenericClaim\\.\\$\\.|RestrictedDiscoveryClaim\\.\\$\\.)" ]
+    ) ;
+    sh:message "The left operand is not in the Eona-X ODRL profile. An EDC built-in (for example edc:inForceDate) may still be accepted by the connector."@en .
+
+# odrl:elapsedTime: odrl:lteq and an xsd:duration.
+eoxs:ElapsedTimeConstraint
+    a sh:NodeShape ;
+    sh:targetObjectsOf odrl:constraint ;
+    sh:or (
+        [ sh:not [ sh:path odrl:leftOperand ; sh:hasValue odrl:elapsedTime ] ]
+        [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:lteq ) ] ;
+          sh:property [ sh:path odrl:rightOperand ; sh:datatype xsd:duration ] ]
+    ) ;
+    sh:message "odrl:elapsedTime takes odrl:lteq and a right operand typed xsd:duration, for example \"PT24H\"^^xsd:duration."@en .
+
+# eox-policy:acceptedTerms: odrl:eq and the IRI of one version of the terms. An IRI, an
+# xsd:anyURI literal (the connector normalises {"@id"} into one) or a string holding an
+# absolute IRI (what the policy editor sends) are accepted.
+eoxs:AcceptedTermsConstraint
+    a sh:NodeShape ;
+    sh:targetObjectsOf odrl:constraint ;
+    sh:or (
+        [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile/v0\\.0\\.3#)acceptedTerms$" ] ]
+        [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:eq ) ] ;
+          sh:property [ sh:path odrl:rightOperand ; sh:minCount 1 ; sh:maxCount 1 ;
+                        sh:or ( [ sh:nodeKind sh:IRI ]
+                                [ sh:datatype xsd:anyURI ]
+                                [ sh:datatype xsd:string ; sh:pattern "^[A-Za-z][A-Za-z0-9+.-]*:[^\\s]+$" ] ) ] ]
+    ) ;
+    sh:message "eox-policy:acceptedTerms takes odrl:eq and one IRI naming a single version of the terms."@en .
+
+# Credential-claim operands: the operators the connector's constraint functions accept.
+eoxs:CredentialClaimConstraint
+    a sh:NodeShape ;
+    sh:targetObjectsOf odrl:constraint ;
+    sh:or (
+        [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile/v0\\.0\\.3#)(GenericClaim|RestrictedDiscoveryClaim)\\.\\$\\." ] ]
+        [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:eq odrl:neq odrl:isPartOf odrl:hasPart odrl:isNoneOf ) ] ]
+    ) ;
+    sh:message "GenericClaim and RestrictedDiscoveryClaim take odrl:eq, odrl:neq, odrl:isPartOf, odrl:hasPart (and odrl:isNoneOf, a target operator)."@en .
+
+eoxs:MembershipConstraint
+    a sh:NodeShape ;
+    sh:targetObjectsOf odrl:constraint ;
+    sh:or (
+        [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile/v0\\.0\\.3#)Membership$" ] ]
+        [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:eq ) ] ;
+          sh:property [ sh:path odrl:rightOperand ; sh:hasValue "active" ] ]
+    ) ;
+    sh:message "eox-policy:Membership takes odrl:eq and the literal \"active\"."@en .
+
+eoxs:TargetOperator
+    a sh:NodeShape ;
+    sh:targetObjectsOf odrl:constraint ;
+    sh:severity sh:Warning ;
+    sh:property [ sh:path odrl:operator ; sh:not [ sh:in ( odrl:isNoneOf ) ] ] ;
+    sh:message "odrl:isNoneOf is a target operator: a connector that does not evaluate it yet refuses the negotiation."@en .
+
+# ConstraintsOnDuties: credential-claim operands only on permissions.
+eoxs:NoCredentialClaimOutsidePermission
+    a sh:NodeShape ;
+    sh:targetObjectsOf odrl:prohibition, odrl:obligation, odrl:duty, odrl:remedy, odrl:consequence ;
+    sh:property [
+        sh:path ( odrl:constraint odrl:leftOperand ) ;
+        sh:not [ sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile/v0\\.0\\.3#)(Membership$|GenericClaim\\.\\$\\.|RestrictedDiscoveryClaim\\.\\$\\.)" ] ;
+        sh:message "ConstraintsOnDuties: credential-claim operands are evaluated on permissions only. On a duty, obligation or prohibition the connector has no function for them and rejects the policy."@en
+    ] .
+
+#################################################################
+#  Policy
+#################################################################
+
+# KeepAnEnforcedPermission: at least one permission with an enforced action and a
+# constraint on a credential-claim operand.
+eoxs:PolicyShape
+    a sh:NodeShape ;
+    rdfs:label "Policy"@en ;
+    sh:targetClass odrl:Set, odrl:Offer, odrl:Agreement, odrl:Policy ;
+    sh:property [
+        sh:path odrl:permission ;
+        sh:qualifiedValueShape eoxs:EnforcedPermission ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "KeepAnEnforcedPermission: keep at least one permission the connector enforces (odrl:use, transfer, share or distribute, constrained by eox-policy:Membership, GenericClaim or RestrictedDiscoveryClaim). Rules it does not evaluate leave an empty policy that grants anyone."@en
+    ] .
+
+eoxs:EnforcedPermission
+    a sh:NodeShape ;
+    sh:property [ sh:path odrl:action ; sh:in ( odrl:use odrl:transfer odrl:share odrl:distribute ) ] ;
+    sh:property [
+        sh:path ( odrl:constraint odrl:leftOperand ) ;
+        sh:qualifiedValueShape [ sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile/v0\\.0\\.3#)(Membership$|GenericClaim\\.\\$\\.|RestrictedDiscoveryClaim\\.\\$\\.)" ] ;
+        sh:qualifiedMinCount 1
+    ] .

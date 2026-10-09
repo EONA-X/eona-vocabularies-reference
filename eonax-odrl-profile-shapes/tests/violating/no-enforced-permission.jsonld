@@ -1,0 +1,15 @@
+{
+  "@context": {
+    "odrl": "http://www.w3.org/ns/odrl/2/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "eox-policy": "https://w3id.org/eonax/policy/"
+  },
+  "@type": "odrl:Set",
+  "odrl:permission": [
+    {
+      "odrl:action": {
+        "@id": "odrl:read"
+      }
+    }
+  ]
+}

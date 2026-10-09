@@ -1,0 +1,16 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+@prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+
+<> a dcat:Dataset, adms:Asset ;
+    dcat:version "0.0.3" ;
+    dcterms:title "Eona-X ODRL Profile SHACL shapes"@en ;
+    dcterms:description "SHACL shapes checking an ODRL policy against the authoring rules of the Eona-X ODRL Profile v0.0.3: the terms it lists, operators and right-operand datatypes per left operand, and the rewrite rules for lossless ingestion."@en ;
+    dcat:type assettype:c_3948c2ed ;
+    adms:status status:CURRENT .
+
+[] vann:preferredNamespacePrefix "eoxs" ;
+    vann:preferredNamespaceUri "https://eona-x.eu/shape/odrl-profile-shapes/v0.0.3#" .

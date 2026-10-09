@@ -1,0 +1,1 @@
+use odrl:isPartOf, not odrl:isAnyOf
