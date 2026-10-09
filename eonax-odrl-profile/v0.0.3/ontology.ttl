@@ -35,7 +35,9 @@
 #     are stated explicitly, since other dialects differ on each of them;
 #   - odrl:isNoneOf is declared as a target operator (common deny-list idiom);
 #   - claim-name correspondences let foreign participant-credential policies be
-#     rewritten onto GenericClaim.
+#     rewritten onto GenericClaim;
+#   - unbound actions and operands, and eox-policy constraints outside a permission,
+#     are rejected at policy creation by EDC's policy validation (EDC 0.15.0).
 #
 # Normative base: W3C ODRL 2.2 (Information Model + Vocabulary,
 # <http://www.w3.org/ns/odrl/2/>). Only the terms enumerated here are in scope for
@@ -65,7 +67,7 @@ eox-policy:
     dct:conformsTo <http://www.w3.org/ns/odrl/2/> ;
     dct:description """An ODRL 2.2 profile describing the exact subset of ODRL the Eona-X connector supports to express and enforce access & usage policies, extended with three credential-claim leftOperands evaluated by the connector's policy engine against presented Verifiable Credentials."""@en ;
     rdfs:comment """Descriptive, enforcement-scoped profile: it lists precisely the ODRL terms the connector binds and evaluates. Rules are enforced for odrl:Permission only (the constraint functions are registered for the Permission rule type). Evaluation always runs as a side effect of a Dataspace-Protocol interaction (catalog, contract negotiation, transfer) or catalog discovery — never as a standalone call."""@en ;
-    skos:changeNote """0.0.3: authoring vocabulary for obligations, permissions and prohibitions (actions, rule kinds, left operands, operators, rule properties), each with a connector-support placeholder; new left operand eox-policy:acceptedTerms; rewrite rules for lossless ingestion."""@en ;
+    skos:changeNote """0.0.3: authoring vocabulary for obligations, permissions and prohibitions (actions, rule kinds, left operands, operators, rule properties), each with a connector-support placeholder (today rejected at policy creation; stored once the connector declares the term); new left operand eox-policy:acceptedTerms; rewrite rules for lossless ingestion, including KeepAnEnforcedPermission."""@en ;
     skos:changeNote """0.0.2: odrl:isAnyOf replaced by odrl:isPartOf (the IRI EDC's IN operator actually reads); odrl:hasPart moved from target to supported, with containment semantics; operator coverage and claim-shape rules stated per left operand; Duty/Prohibition behaviour stated; odrl:isNoneOf added as a target operator; claim correspondences for foreign participant credentials added."""@en ;
     rdfs:seeAlso <http://www.w3.org/ns/odrl/2/> ;
     dct:source "https://eona-x.eu/vocabulary/odrl-profile/v0.0.3#"^^xsd:anyURI .
@@ -122,13 +124,13 @@ eox-policy:supportedPolicyTypes
 eox-policy:supportedRules
     a skos:Collection ;
     skos:prefLabel "Supported rules"@en ;
-    skos:scopeNote """Only odrl:Permission is enforced: the credential constraint functions are registered for the Permission rule type. An eox-policy constraint placed in an odrl:obligation (Duty) or odrl:prohibition finds no function; the EDC evaluator then compares the left-operand string with the right operand literally, so the rule fails and the negotiation is refused. Duties and prohibitions with other left operands are contractual statements only: nothing in the connector checks them."""@en ;
+    skos:scopeNote """Only odrl:Permission is enforced: the credential constraint functions are registered for the Permission rule type. An eox-policy constraint placed in an odrl:obligation, a duty or an odrl:prohibition has no function for that rule kind, so EDC's policy validation rejects the policy definition when it is created or updated (HTTP 400). A duty or prohibition is accepted only when its action is bound and it has no constraint on an unbound operand, and even then nothing in the connector checks it."""@en ;
     skos:member odrl:Permission, odrl:permission .
 
 eox-policy:supportedActions
     a skos:Collection ;
     skos:prefLabel "Supported actions"@en ;
-    skos:scopeNote "Actions bound into every rule scope by PolicyEvaluationExtension: the base odrl:use plus transfer, share and distribute. A rule whose action is not bound is dropped by the EDC scope filter before evaluation, so its constraints are silently not enforced. NOTE: odrl:share is deprecated in ODRL 2.2 but is still bound by the connector."@en ;
+    skos:scopeNote "Actions bound into every rule scope by PolicyEvaluationExtension: the base odrl:use plus transfer, share and distribute. A rule whose action is not bound is rejected when the policy definition is created or updated: EDC's policy validation (edc.policy.validation.enabled, true by default) answers HTTP 400 and stores nothing. The scope filter's silent drop at evaluation is reachable only with validation switched off. NOTE: odrl:share is deprecated in ODRL 2.2 but is still bound by the connector."@en ;
     skos:member odrl:use, odrl:transfer, odrl:share, odrl:distribute .
 
 eox-policy:supportedOperators
@@ -240,7 +242,7 @@ eox-policy:AwaitingConnectorSupport
     a skos:Concept ;
     rdfs:isDefinedBy eox-policy: ;
     skos:prefLabel "Awaiting connector support"@en ;
-    skos:definition "Placeholder: the term may be written in a policy and travels in offers and agreements, but the connector does not evaluate it. It binds the parties contractually only."@en .
+    skos:definition "Placeholder: the term belongs to the authoring vocabulary, but the connector does not support it yet. Today EDC's policy validation rejects a policy definition that uses it (HTTP 400). Once the connector declares the term (a binding in a scope that is never evaluated, plus a function that validates the right operand), the policy is stored and the term travels in offers and agreements. It then binds the parties contractually, without being evaluated."@en .
 
 eox-policy:supportedRules eox-policy:connectorSupport eox-policy:Enforced .
 eox-policy:supportedActions eox-policy:connectorSupport eox-policy:Enforced .
@@ -271,7 +273,7 @@ eox-policy:authoringActions
                 odrl:sell, odrl:give, odrl:grantUse,
                 odrl:delete, odrl:reviewPolicy, odrl:attribute, odrl:acceptTracking ;
     eox-policy:connectorSupport eox-policy:AwaitingConnectorSupport ;
-    skos:editorialNote "Waits for the connector to bind these actions into its rule scopes. Until then the EDC scope filter drops every rule whose action is one of them, with the rule's constraints and duties, before evaluation."@en .
+    skos:editorialNote "Waits for the connector to declare these actions. Until then EDC's policy validation rejects any policy definition with a rule whose action is one of them (\"action is not bound to any scopes\")."@en .
 
 eox-policy:authoringLeftOperands
     a skos:Collection ;
@@ -279,7 +281,7 @@ eox-policy:authoringLeftOperands
     skos:scopeNote "Left operands accepted in the constraints of obligations, duties and permissions, in addition to the enforced credential-claim operands."@en ;
     skos:member odrl:elapsedTime, eox-policy:acceptedTerms ;
     eox-policy:connectorSupport eox-policy:AwaitingConnectorSupport ;
-    skos:editorialNote "Waits for constraint functions for these operands. A constraint on an operand the connector has not bound is dropped by the scope filter before evaluation."@en .
+    skos:editorialNote "Waits for the connector to declare these operands, with a function that validates the right operand (for example an xsd:duration for odrl:elapsedTime, an IRI for eox-policy:acceptedTerms). Until then EDC's policy validation rejects the policy definition (\"leftOperand is not bound to any scopes\" and \"is not bound to any functions\")."@en .
 
 eox-policy:authoringOperators
     a skos:Collection ;
@@ -316,8 +318,17 @@ eox-policy:acceptedTerms
 eox-policy:rewriteRules
     a skos:Collection ;
     skos:prefLabel "Rewrite rules for lossless ingestion"@en ;
-    skos:member eox-policy:OneActionPerRule, eox-policy:OneTargetPerPolicy, eox-policy:NoSameActionAcrossTargets,
+    skos:member eox-policy:KeepAnEnforcedPermission, eox-policy:OneActionPerRule, eox-policy:OneTargetPerPolicy, eox-policy:NoSameActionAcrossTargets,
                 eox-policy:PartiesInTerms, eox-policy:ConstraintsOnDuties, eox-policy:RemediesAreContractual .
+
+eox-policy:KeepAnEnforcedPermission
+    a skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    skos:prefLabel "Keep an enforced permission"@en ;
+    skos:definition "Every policy keeps at least one permission that the connector enforces: an action from eox-policy:supportedActions with a constraint on an operand from eox-policy:leftOperands (for example odrl:use with eox-policy:Membership eq \"active\"). Rules the connector does not evaluate are left out of negotiation. When every permission is such a rule, the evaluated policy is empty and the contract is granted to anyone the access policy lets through."@en ;
+    skos:example """Next to the authoring rules, keep
+  \"permission\": [{\"action\": \"use\",
+                   \"constraint\": [{\"leftOperand\": \"eox-policy:Membership\", \"operator\": \"eq\", \"rightOperand\": \"active\"}]}]"""@en .
 
 eox-policy:OneActionPerRule
     a skos:Concept ;
@@ -359,7 +370,7 @@ eox-policy:ConstraintsOnDuties
     a skos:Concept ;
     rdfs:isDefinedBy eox-policy: ;
     skos:prefLabel "Constraints on duties are contractual"@en ;
-    skos:definition "A constraint on an obligation or a duty states when it applies or is met; the connector does not check it. Use eox-policy:acceptedTerms for terms acceptance and odrl:elapsedTime for deadlines. Never put a credential-claim operand (eox-policy:Membership, GenericClaim, RestrictedDiscoveryClaim) on a duty: no duty function exists, so the rule fails and the negotiation is refused."@en .
+    skos:definition "A constraint on an obligation or a duty states when it applies or is met; the connector does not check it. Use eox-policy:acceptedTerms for terms acceptance and odrl:elapsedTime for deadlines. Never put a credential-claim operand (eox-policy:Membership, GenericClaim, RestrictedDiscoveryClaim) on a duty: no duty function exists, so EDC's policy validation rejects the policy definition."@en .
 
 eox-policy:RemediesAreContractual
     a skos:Concept ;
