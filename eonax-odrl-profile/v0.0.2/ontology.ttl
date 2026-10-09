@@ -28,7 +28,9 @@
 #     are stated explicitly, since other dialects differ on each of them;
 #   - odrl:isNoneOf is declared as a target operator (common deny-list idiom);
 #   - claim-name correspondences let foreign participant-credential policies be
-#     rewritten onto GenericClaim.
+#     rewritten onto GenericClaim;
+#   - unbound actions and operands, and eox-policy constraints outside a permission,
+#     are rejected at policy creation by EDC's policy validation (EDC 0.15.0).
 #
 # Normative base: W3C ODRL 2.2 (Information Model + Vocabulary,
 # <http://www.w3.org/ns/odrl/2/>). Only the terms enumerated here are in scope for
@@ -114,13 +116,13 @@ eox-policy:supportedPolicyTypes
 eox-policy:supportedRules
     a skos:Collection ;
     skos:prefLabel "Supported rules"@en ;
-    skos:scopeNote """Only odrl:Permission is enforced: the credential constraint functions are registered for the Permission rule type. An eox-policy constraint placed in an odrl:obligation (Duty) or odrl:prohibition finds no function; the EDC evaluator then compares the left-operand string with the right operand literally, so the rule fails and the negotiation is refused. Duties and prohibitions with other left operands are contractual statements only: nothing in the connector checks them."""@en ;
+    skos:scopeNote """Only odrl:Permission is enforced: the credential constraint functions are registered for the Permission rule type. An eox-policy constraint placed in an odrl:obligation, a duty or an odrl:prohibition has no function for that rule kind, so EDC's policy validation rejects the policy definition when it is created or updated (HTTP 400). A duty or prohibition is accepted only when its action is bound and it has no constraint on an unbound operand, and even then nothing in the connector checks it."""@en ;
     skos:member odrl:Permission, odrl:permission .
 
 eox-policy:supportedActions
     a skos:Collection ;
     skos:prefLabel "Supported actions"@en ;
-    skos:scopeNote "Actions bound into every rule scope by PolicyEvaluationExtension: the base odrl:use plus transfer, share and distribute. A rule whose action is not bound is dropped by the EDC scope filter before evaluation, so its constraints are silently not enforced. NOTE: odrl:share is deprecated in ODRL 2.2 but is still bound by the connector."@en ;
+    skos:scopeNote "Actions bound into every rule scope by PolicyEvaluationExtension: the base odrl:use plus transfer, share and distribute. A rule whose action is not bound is rejected when the policy definition is created or updated: EDC's policy validation (edc.policy.validation.enabled, true by default) answers HTTP 400 and stores nothing. The scope filter's silent drop at evaluation is reachable only with validation switched off. NOTE: odrl:share is deprecated in ODRL 2.2 but is still bound by the connector."@en ;
     skos:member odrl:use, odrl:transfer, odrl:share, odrl:distribute .
 
 eox-policy:supportedOperators
