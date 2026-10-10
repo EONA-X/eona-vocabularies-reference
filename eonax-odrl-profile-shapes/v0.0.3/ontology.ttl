@@ -15,15 +15,15 @@
 # Severity:
 #   Violation - breaks a profile rule, or would be changed or lost on ingestion.
 #   Warning   - outside the profile but possibly legitimate (an EDC built-in operand
-#               such as edc:inForceDate), or an operator only some connectors evaluate
-#               (odrl:isNoneOf, dataspace-ecosystem MR !133).
+#               such as edc:inForceDate).
 #
 # Credential-claim left operands are strings, eox-policy:<Term>.$.<Credential>.<path>.
 # They are matched by pattern, in the profile's stable term namespace
-# https://eona-x.eu/vocabulary/odrl-profile# (eona-x/backlog#994) and in the
-# connector's legacy namespace https://w3id.org/eonax/policy/ (still on the wire
-# until eona-x/backlog#799). The shapes themselves keep a versioned namespace: they
-# are validation shapes, not terms a runtime matches by IRI.
+# https://eona-x.eu/vocabulary/odrl-profile# (eona-x/backlog#994) only. A policy
+# written in the connector's legacy namespace https://w3id.org/eonax/policy/ does
+# not conform: its credential-claim operands are not profile terms, so it keeps no
+# enforced permission. The shapes themselves keep a versioned namespace: they are
+# validation shapes, not terms a runtime matches by IRI.
 
 @prefix eoxs: <https://eona-x.eu/shape/odrl-profile-shapes/v0.0.3#> .
 @prefix eox-policy: <https://eona-x.eu/vocabulary/odrl-profile#> .
@@ -40,7 +40,7 @@ eoxs:
     rdfs:label "Eona-X ODRL Profile SHACL shapes"@en ;
     dct:title "Eona-X ODRL Profile SHACL shapes"@en ;
     owl:versionInfo "0.0.3" ;
-    rdfs:seeAlso <https://eona-x.eu/vocabulary/odrl-profile/v0.0.3#> ;
+    rdfs:seeAlso <https://eona-x.eu/vocabulary/odrl-profile#> ;
     dct:description "SHACL shapes checking an ODRL policy against the authoring rules of the Eona-X ODRL Profile v0.0.3."@en .
 
 #################################################################
@@ -159,7 +159,7 @@ eoxs:LeftOperandInProfile
     sh:severity sh:Warning ;
     sh:or (
         [ sh:path odrl:leftOperand ; sh:hasValue odrl:elapsedTime ]
-        [ sh:path odrl:leftOperand ; sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile#)(acceptedTerms$|Membership$|GenericClaim\\.\\$\\.|RestrictedDiscoveryClaim\\.\\$\\.)" ]
+        [ sh:path odrl:leftOperand ; sh:pattern "^https://eona-x\\.eu/vocabulary/odrl-profile#(acceptedTerms$|Membership$|GenericClaim\\.\\$\\.|RestrictedDiscoveryClaim\\.\\$\\.)" ]
     ) ;
     sh:message "The left operand is not in the Eona-X ODRL profile. An EDC built-in (for example edc:inForceDate) may still be accepted by the connector."@en .
 
@@ -183,7 +183,7 @@ eoxs:AcceptedTermsConstraint
     a sh:NodeShape ;
     sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
     sh:or (
-        [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile#)acceptedTerms$" ] ]
+        [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^https://eona-x\\.eu/vocabulary/odrl-profile#acceptedTerms$" ] ]
         [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:eq ) ] ;
           sh:property [ sh:path odrl:rightOperand ; sh:minCount 1 ; sh:maxCount 1 ;
                         sh:or ( [ sh:nodeKind sh:IRI ]
@@ -197,7 +197,7 @@ eoxs:CredentialClaimConstraint
     a sh:NodeShape ;
     sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
     sh:or (
-        [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile#)(GenericClaim|RestrictedDiscoveryClaim)\\.\\$\\." ] ]
+        [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^https://eona-x\\.eu/vocabulary/odrl-profile#(GenericClaim|RestrictedDiscoveryClaim)\\.\\$\\." ] ]
         [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:eq odrl:neq odrl:isPartOf odrl:hasPart odrl:isNoneOf ) ] ]
     ) ;
     sh:message "GenericClaim and RestrictedDiscoveryClaim take odrl:eq, odrl:neq, odrl:isPartOf, odrl:hasPart and odrl:isNoneOf (deny-list, evaluated by connectors that include dataspace-ecosystem MR !133)."@en .
@@ -213,7 +213,7 @@ eoxs:CredentialClaimListOperand
     a sh:NodeShape ;
     sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
     sh:or (
-        [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile#)(GenericClaim|RestrictedDiscoveryClaim)\\.\\$\\." ] ]
+        [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^https://eona-x\\.eu/vocabulary/odrl-profile#(GenericClaim|RestrictedDiscoveryClaim)\\.\\$\\." ] ]
         [ sh:not [ sh:path odrl:operator ; sh:in ( odrl:isNoneOf odrl:isPartOf ) ] ]
         [ sh:path odrl:rightOperand ; sh:minCount 2 ]
         [ sh:path odrl:rightOperand ; sh:minCount 1 ; sh:maxCount 1 ;
@@ -226,23 +226,11 @@ eoxs:MembershipConstraint
     a sh:NodeShape ;
     sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
     sh:or (
-        [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile#)Membership$" ] ]
+        [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^https://eona-x\\.eu/vocabulary/odrl-profile#Membership$" ] ]
         [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:eq ) ] ;
           sh:property [ sh:path odrl:rightOperand ; sh:hasValue "active" ] ]
     ) ;
     sh:message "eox-policy:Membership takes odrl:eq and the literal \"active\"."@en .
-
-# odrl:isNoneOf is supported since profile 0.0.2, but only connectors that include
-# dataspace-ecosystem MR !133 evaluate it; the others refuse the request.
-eoxs:IsNoneOfNeedsConnectorSupport
-    a sh:NodeShape ;
-    sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
-    sh:property [
-        sh:path odrl:operator ;
-        sh:not [ sh:in ( odrl:isNoneOf ) ] ;
-        sh:severity sh:Warning ;
-        sh:message "odrl:isNoneOf is evaluated only by connectors that include dataspace-ecosystem MR !133; a connector without it refuses the request (the constraint is not satisfied)."@en
-    ] .
 
 # ConstraintsOnDuties: credential-claim operands only on permissions.
 # The path reaches the left operands of atomic constraints and of the members of odrl:or.
@@ -255,7 +243,7 @@ eoxs:NoCredentialClaimOutsidePermission
             ( odrl:constraint odrl:or odrl:leftOperand )
             ( odrl:constraint odrl:or [ sh:zeroOrMorePath rdf:rest ] rdf:first odrl:leftOperand )
         ) ] ;
-        sh:not [ sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile#)(Membership$|GenericClaim\\.\\$\\.|RestrictedDiscoveryClaim\\.\\$\\.)" ] ;
+        sh:not [ sh:pattern "^https://eona-x\\.eu/vocabulary/odrl-profile#(Membership$|GenericClaim\\.\\$\\.|RestrictedDiscoveryClaim\\.\\$\\.)" ] ;
         sh:message "ConstraintsOnDuties: credential-claim operands are evaluated on permissions only. On a duty, obligation or prohibition the connector has no function for them and rejects the policy."@en
     ] .
 
@@ -286,6 +274,6 @@ eoxs:EnforcedPermission
             ( odrl:constraint odrl:or odrl:leftOperand )
             ( odrl:constraint odrl:or [ sh:zeroOrMorePath rdf:rest ] rdf:first odrl:leftOperand )
         ) ] ;
-        sh:qualifiedValueShape [ sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile#)(Membership$|GenericClaim\\.\\$\\.|RestrictedDiscoveryClaim\\.\\$\\.)" ] ;
+        sh:qualifiedValueShape [ sh:pattern "^https://eona-x\\.eu/vocabulary/odrl-profile#(Membership$|GenericClaim\\.\\$\\.|RestrictedDiscoveryClaim\\.\\$\\.)" ] ;
         sh:qualifiedMinCount 1
     ] .
