@@ -16,16 +16,11 @@
             "@id": "eox-policy:Membership"
           },
           "odrl:operator": {
-            "@id": "odrl:eq"
+            "@id": "odrl:isNoneOf"
           },
-          "odrl:rightOperand": "active"
+          "odrl:rightOperand": "suspended"
         }
       ]
-    },
-    {
-      "odrl:action": {
-        "@id": "odrl:play"
-      }
     }
   ]
 }

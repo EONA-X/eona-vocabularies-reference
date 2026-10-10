@@ -2,7 +2,7 @@
   "@context": {
     "odrl": "http://www.w3.org/ns/odrl/2/",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
-    "eox-policy": "https://w3id.org/eonax/policy/"
+    "eox-policy": "https://eona-x.eu/vocabulary/odrl-profile#"
   },
   "@id": "https://provider.example/policy/membership",
   "@type": "odrl:Set",
