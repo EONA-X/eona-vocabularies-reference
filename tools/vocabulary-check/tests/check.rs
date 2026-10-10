@@ -439,3 +439,81 @@ fn the_hub_build_accepts_every_repository_the_gate_accepts() {
 
   assert!(found.is_ok(), "{}", found.err().unwrap_or_default());
 }
+
+/// `eonax-s`: a vocabulary whose terms live in the stable namespace
+/// `https://eona-x.eu/vocabulary/s#`, released as `owl:versionIRI` (when given).
+fn stable(root: &Path, version_iri: Option<&str>) {
+  write(root, "eonax-s/v1.0.0/metadata.ttl", &metadata(Some("S"), TERMINOLOGY));
+  let version_iri = version_iri.map(|v| format!("owl:versionIRI <{v}> ;")).unwrap_or_default();
+  write(
+    root,
+    "eonax-s/v1.0.0/ontology.ttl",
+    &format!(
+      "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n<https://eona-x.eu/vocabulary/s#> a owl:Ontology ; {version_iri} owl:versionInfo \"1.0.0\" .\n<https://eona-x.eu/vocabulary/s#GenericClaim> a owl:Class .\n"
+    ),
+  );
+}
+
+#[test]
+fn a_stable_term_namespace_released_as_a_version_iri_is_fine_and_its_terms_may_be_used() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  stable(root.path(), Some("https://eona-x.eu/vocabulary/s/v1.0.0#"));
+  write(
+    root.path(),
+    "b/v1.0.0/ontology.ttl",
+    &ontology(
+      "https://example.org/b",
+      "<https://example.org/b/Other> rdfs:seeAlso <https://eona-x.eu/vocabulary/s#GenericClaim> .",
+    ),
+  );
+
+  assert_eq!(messages(root.path()), Vec::<String>::new());
+}
+
+#[test]
+fn a_stable_term_namespace_without_a_version_iri_is_a_finding() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  stable(root.path(), None);
+
+  let found = messages(root.path());
+
+  assert!(
+    found
+      .iter()
+      .any(|f| f.starts_with("eonax-s/v1.0.0: ") && f.contains("owl:versionIRI") && f.contains("https://eona-x.eu/vocabulary/s/v1.0.0#")),
+    "{found:?}"
+  );
+}
+
+#[test]
+fn a_mismatched_version_iri_is_a_finding() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  stable(root.path(), Some("https://eona-x.eu/vocabulary/s/v2.0.0#"));
+
+  let found = messages(root.path());
+
+  assert!(found.iter().any(|f| f.starts_with("eonax-s/v1.0.0: ") && f.contains("v2.0.0")), "{found:?}");
+}
+
+#[test]
+fn a_stable_release_must_agree_with_the_metadata() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  // versionIRI v1.0.1 and owl:versionInfo 1.0.1, but directory v1.0.0 and dcat:version 1.0.0.
+  stable(root.path(), Some("https://eona-x.eu/vocabulary/s/v1.0.1#"));
+  let path = root.path().join("eonax-s/v1.0.0/ontology.ttl");
+  let ttl = fs::read_to_string(&path).unwrap().replace("\"1.0.0\"", "\"1.0.1\"");
+  fs::write(path, ttl).unwrap();
+
+  let found = messages(root.path());
+
+  assert!(
+    found
+      .iter()
+      .any(|f| f.starts_with("eonax-s/v1.0.0: ") && f.contains("1.0.1") && f.contains("1.0.0")),
+    "{found:?}"
+  );
+}
