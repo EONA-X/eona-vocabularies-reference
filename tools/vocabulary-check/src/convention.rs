@@ -79,6 +79,21 @@ pub struct Vocabulary {
   pub prefixes: PrefixTable,
 }
 
+impl Vocabulary {
+  /// The IRI of this release, `{base}{kind}/{slug}/{version}#`: the namespace
+  /// itself when it is versioned, its `owl:versionIRI` when it is stable.
+  pub fn release(&self) -> String {
+    format!("{}{}/{}/{}#", self.base, self.kind, self.slug, self.version)
+  }
+
+  /// Whether the namespace is a stable term namespace,
+  /// `{base}{kind}/{slug}#` (eona-x/backlog#677 as amended by
+  /// eona-x/backlog#994), rather than the release itself.
+  pub fn is_stable(&self) -> bool {
+    self.namespace != self.release()
+  }
+}
+
 /// A candidate directory that is deliberately not published, and why.
 pub struct Skipped {
   pub dir_name: String,

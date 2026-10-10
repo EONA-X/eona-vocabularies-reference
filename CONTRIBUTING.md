@@ -143,6 +143,11 @@ directory layout does not change (`<slug>/v<version>/`). There is no moving
 alias (`latest`, `current`): a consumer that needs one release pins it by its
 version IRI (an ODRL policy, by `odrl:profile`).
 
+`<asset-type>/<slug>#<term>` is accepted only under a stable namespace that a
+published asset mints this way. Anywhere else it is refused like any other
+off-convention IRI: dropping `/<version>` from the IRI of a versioned-only asset
+is a typo, not a stable namespace.
+
 No other IRI on an Eona-X host (`eona-x.eu` and its subdomains, `w3id.org/eonax/`)
 is accepted. Vocabularies maintained elsewhere keep their own upstream namespaces.
 

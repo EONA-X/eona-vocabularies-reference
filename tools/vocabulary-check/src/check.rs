@@ -106,6 +106,9 @@ pub fn check(root: &Path) -> Vec<Finding> {
 
   // <asset-type>/<slug> -> (host, directory), to catch one path on two hosts.
   let mut paths: Vec<(String, String, String)> = Vec::new();
+  // Stable term namespaces the published assets mint: the only
+  // `<asset-type>/<slug>#…` IRIs that are not off-convention.
+  let mut stable: Vec<String> = Vec::new();
   for dir in dirs.iter().filter(|d| d.published()) {
     let name = dir.name.as_str();
     if dir.metadata_objects(DCTERMS_TITLE).is_empty() {
@@ -204,6 +207,9 @@ pub fn check(root: &Path) -> Vec<Finding> {
       match classify(root, name, SITE_BASE) {
         Ok(Classified::Published(v)) => {
           paths.push((format!("{}/{}", v.kind, v.slug), v.base.clone(), name.to_string()));
+          if v.is_stable() && !stable.contains(&v.namespace) {
+            stable.push(v.namespace.clone());
+          }
           if let Some(version) = version
             && v.version != format!("v{version}")
           {
@@ -245,7 +251,7 @@ pub fn check(root: &Path) -> Vec<Finding> {
           },
         ];
         for iri in terms.into_iter().flatten() {
-          if let Some(ns) = off_convention(iri) {
+          if let Some(ns) = off_convention(iri, &stable) {
             match off.iter_mut().find(|(n, _, _)| *n == ns) {
               Some(entry) => entry.2 += 1,
               None => off.push((ns, iri.to_string(), 1)),
@@ -257,7 +263,12 @@ pub fn check(root: &Path) -> Vec<Finding> {
         report(
           &dir.name,
           format!(
-            "{file}: {count} IRI(s) under <{ns}>, e.g. <{example}>, are on an Eona-X host but not {SITE_BASE} or {VENDORED_BASE}<asset-type>/<slug>/<version>#… (asset types: {})",
+            "{file}: {count} IRI(s) under <{ns}>, e.g. <{example}>, are on an Eona-X host but not {SITE_BASE} or {VENDORED_BASE}<asset-type>/<slug>/<version>#…, nor a stable term namespace <asset-type>/<slug>#… that a published asset mints ({}) (asset types: {})",
+            if stable.is_empty() {
+              "none".to_string()
+            } else {
+              stable.iter().map(|n| format!("<{n}>")).collect::<Vec<_>>().join(", ")
+            },
             ASSET_TYPES.iter().map(|(t, _)| *t).collect::<Vec<_>>().join(", ")
           ),
         );
@@ -280,7 +291,13 @@ pub fn check(root: &Path) -> Vec<Finding> {
 /// For an IRI on an Eona-X-owned host or path that is neither a
 /// publication-convention IRI nor a bare site root: the namespace to report it
 /// under (scheme, host and first path segment). `None` when the IRI is fine.
-fn off_convention(iri: &str) -> Option<String> {
+///
+/// `stable` holds the stable term namespaces (`<asset-type>/<slug>#`,
+/// eona-x/backlog#677 as amended by eona-x/backlog#994) that published assets
+/// mint, each with its release as `owl:versionIRI` (which `classify` enforces).
+/// An IRI of that form under any other namespace — e.g. one that drops the
+/// version of a versioned-only asset — is off-convention.
+fn off_convention(iri: &str, stable: &[String]) -> Option<String> {
   let (scheme, rest) = iri.split_once("://")?;
   let (host, path) = rest.split_once('/').unwrap_or((rest, ""));
   let host = host.to_ascii_lowercase();
@@ -293,18 +310,24 @@ fn off_convention(iri: &str) -> Option<String> {
     return None; // the site itself, e.g. https://eona-x.eu/
   }
   if scheme == "https" && (host == "eona-x.eu" || host == "vocabulary.eona-x.eu") {
-    let mut seg = path.splitn(3, '/');
-    let (asset_type, slug, rest) = (seg.next().unwrap_or(""), seg.next().unwrap_or(""), seg.next().unwrap_or(""));
-    let version_ok = rest.split_once('#').is_some_and(|(v, _)| v.starts_with('v') && v.len() > 1 && !v.contains('/'));
-    if ASSET_TYPES.iter().any(|(t, _)| *t == asset_type) && !slug.is_empty() && version_ok {
-      return None;
-    }
-    // A stable term namespace, `<asset-type>/<slug>#<term>`
-    // (eona-x/backlog#677 as amended by eona-x/backlog#994): its root must name the release as owl:versionIRI, which
-    // `classify` enforces where it is minted.
-    let stable_ok = rest.is_empty() && slug.split_once('#').is_some_and(|(s, _)| !s.is_empty());
-    if ASSET_TYPES.iter().any(|(t, _)| *t == asset_type) && stable_ok {
-      return None;
+    // The fragment is the term, and may itself contain '/' (a code list
+    // member, `…#StatusCodes/active`): only the part before '#' is the path.
+    let (head, fragment) = match path.split_once('#') {
+      Some((head, fragment)) => (head, Some(fragment)),
+      None => (path, None),
+    };
+    let segments: Vec<&str> = head.split('/').collect();
+    let asset_type_ok = |t: &str| ASSET_TYPES.iter().any(|(name, _)| *name == t);
+    match (segments.as_slice(), fragment) {
+      // <asset-type>/<slug>/<version>#<term>
+      ([asset_type, slug, version], Some(_)) if asset_type_ok(asset_type) && !slug.is_empty() && version.starts_with('v') && version.len() > 1 => {
+        return None;
+      }
+      // <asset-type>/<slug>#<term>, under a stable namespace an asset mints
+      ([asset_type, slug], Some(_)) if asset_type_ok(asset_type) && !slug.is_empty() && stable.iter().any(|ns| iri.starts_with(ns.as_str())) => {
+        return None;
+      }
+      _ => {}
     }
   }
   let first = if eonax_w3id {
