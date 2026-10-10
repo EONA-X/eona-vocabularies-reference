@@ -517,3 +517,28 @@ fn a_stable_release_must_agree_with_the_metadata() {
     "{found:?}"
   );
 }
+
+#[test]
+fn a_stable_form_of_a_namespace_no_asset_mints_is_off_convention() {
+  // eonax-p is published only as https://eona-x.eu/vocabulary/p/v1.0.0#: an
+  // IRI that drops the version is a typo, not a stable term namespace.
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  write(
+    root.path(),
+    "b/v1.0.0/ontology.ttl",
+    &ontology(
+      "https://example.org/b",
+      "<https://example.org/b/Other> rdfs:seeAlso <https://eona-x.eu/vocabulary/p#legalName> .",
+    ),
+  );
+
+  let found = messages(root.path());
+
+  assert!(
+    found
+      .iter()
+      .any(|f| f.starts_with("b/v1.0.0: ontology.ttl: 1 IRI(s) under <https://eona-x.eu/vocabulary>") && f.contains("vocabulary/p#legalName")),
+    "{found:?}"
+  );
+}
