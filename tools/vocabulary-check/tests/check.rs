@@ -536,9 +536,26 @@ fn a_stable_form_of_a_namespace_no_asset_mints_is_off_convention() {
   let found = messages(root.path());
 
   assert!(
-    found
-      .iter()
-      .any(|f| f.starts_with("b/v1.0.0: ontology.ttl: 1 IRI(s) under <https://eona-x.eu/vocabulary>") && f.contains("vocabulary/p#legalName")),
+    found.iter().any(
+      |f| f.starts_with("b/v1.0.0: ontology.ttl: 1 IRI(s) under <https://eona-x.eu/vocabulary>") && f.contains("vocabulary/p#legalName")
+        // The finding names the stable form too, and where it is accepted.
+        && f.contains("<asset-type>/<slug>#")
+    ),
     "{found:?}"
   );
+}
+
+#[test]
+fn a_stable_term_whose_fragment_has_a_slash_is_fine() {
+  // A code list embedded in the vocabulary: …#StatusCodes/active, the same
+  // fragment the versioned form accepts.
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  stable(root.path(), Some("https://eona-x.eu/vocabulary/s/v1.0.0#"));
+  let path = root.path().join("eonax-s/v1.0.0/ontology.ttl");
+  let mut ttl = fs::read_to_string(&path).unwrap();
+  ttl.push_str("<https://eona-x.eu/vocabulary/s#ConnectorSupport/pending> a <https://eona-x.eu/vocabulary/s#ConnectorSupport> .\n");
+  fs::write(path, ttl).unwrap();
+
+  assert_eq!(messages(root.path()), Vec::<String>::new());
 }
