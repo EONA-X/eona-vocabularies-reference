@@ -11,7 +11,7 @@ use std::path::Path;
 use oxrdf::{NamedOrBlankNode, Term, Triple};
 use oxttl::TurtleParser;
 
-use crate::convention::{ASSET_CLASSIFICATION, ASSET_TYPES, Classified, classify, graph_file, subdirs};
+use crate::convention::{ASSET_CLASSIFICATION, ASSET_TYPES, Classified, classify, graph_file, subdirs, version_key};
 use crate::{SITE_BASE, VENDORED_BASE};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -23,6 +23,7 @@ const DCAT_VERSION: &str = "http://www.w3.org/ns/dcat#version";
 const VOID_LINKSET: &str = "http://rdfs.org/ns/void#Linkset";
 const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
 const OWL_VERSION_IRI: &str = "http://www.w3.org/2002/07/owl#versionIRI";
+const OWL_PRIOR_VERSION: &str = "http://www.w3.org/2002/07/owl#priorVersion";
 const FORMAL_ONTOLOGY: &str = "c_89b4bdb7";
 const ALIGNMENT: &str = "c_bba2bb35";
 
@@ -50,6 +51,19 @@ impl Published<'_> {
       .chain(&self.releases)
       .any(|iri| !iri.is_empty() && target.starts_with(iri))
   }
+}
+
+/// One release of an eona-x.eu asset, as `owl:priorVersion` must name it.
+struct Release {
+  /// The asset directory, e.g. `eonax-odrl-profile`.
+  slug: String,
+  /// The version directory, e.g. `v0.0.2`.
+  version: String,
+  /// The release IRI: the versioned namespace, or the `owl:versionIRI` of a
+  /// stable term namespace.
+  iri: String,
+  /// The root's `owl:priorVersion`s.
+  priors: Vec<String>,
 }
 
 /// One top-level directory: its parsed Turtle files, by file name.
@@ -142,6 +156,7 @@ pub fn check(root: &Path) -> Vec<Finding> {
   // Stable term namespaces the published assets mint: the only
   // `<asset-type>/<slug>#…` IRIs that are not off-convention.
   let mut stable: Vec<String> = Vec::new();
+  let mut releases: Vec<Release> = Vec::new();
   for dir in dirs.iter().filter(|d| d.published()) {
     let name = dir.name.as_str();
     if dir.metadata_objects(DCTERMS_TITLE).is_empty() {
@@ -246,6 +261,14 @@ pub fn check(root: &Path) -> Vec<Finding> {
           if v.is_stable() && !stable.contains(&v.namespace) {
             stable.push(v.namespace.clone());
           }
+          if let Some((slug, version_dir)) = name.split_once('/') {
+            releases.push(Release {
+              slug: slug.to_string(),
+              version: version_dir.to_string(),
+              iri: v.release(),
+              priors: objects(ontology, &v.namespace, OWL_PRIOR_VERSION).map(str::to_string).collect(),
+            });
+          }
           if let Some(version) = version
             && v.version != format!("v{version}")
           {
@@ -258,6 +281,36 @@ pub fn check(root: &Path) -> Vec<Finding> {
         Ok(Classified::Skipped(_)) => {}
         Err(e) => report(name, relative(&e, root)),
       }
+    }
+  }
+  // owl:priorVersion names the previous release directory's release IRI.
+  // A first release may name anything (an upstream release this repository
+  // does not hold).
+  releases.sort_by(|a, b| a.slug.cmp(&b.slug).then_with(|| version_key(&a.version).cmp(&version_key(&b.version))));
+  for pair in releases.windows(2) {
+    let (previous, release) = (&pair[0], &pair[1]);
+    if previous.slug != release.slug {
+      continue;
+    }
+    let dir = format!("{}/{}", release.slug, release.version);
+    let expected = &previous.iri;
+    if release.priors.is_empty() {
+      report(
+        &dir,
+        format!(
+          "no owl:priorVersion on the root of {}: it follows {}/{}, so it needs owl:priorVersion <{expected}>",
+          release.iri, previous.slug, previous.version
+        ),
+      );
+    }
+    for prior in release.priors.iter().filter(|p| *p != expected) {
+      report(
+        &dir,
+        format!(
+          "owl:priorVersion <{prior}> on the root of {} is not the previous release ({}/{}): expected <{expected}>",
+          release.iri, previous.slug, previous.version
+        ),
+      );
     }
   }
   for (i, (path, base, dir)) in paths.iter().enumerate() {

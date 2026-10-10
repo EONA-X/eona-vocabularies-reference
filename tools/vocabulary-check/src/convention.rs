@@ -172,7 +172,7 @@ pub(crate) fn subdirs(dir: &Path) -> Result<Vec<String>, String> {
 }
 
 /// `v0.10.0` sorts after `v0.9.0`; non-numeric parts compare as text.
-fn version_key(version: &str) -> Vec<(u64, String)> {
+pub(crate) fn version_key(version: &str) -> Vec<(u64, String)> {
   version
     .trim_start_matches('v')
     .split(['.', '-'])
