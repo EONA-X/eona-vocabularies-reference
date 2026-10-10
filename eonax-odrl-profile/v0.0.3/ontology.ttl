@@ -86,7 +86,7 @@ eox-policy:
     skos:changeNote """0.0.3: authoring vocabulary for obligations, permissions and prohibitions (actions, rule kinds, left operands, operators, rule properties), each with a connector-support placeholder (today rejected at policy creation; stored once the connector declares the term); new left operand eox-policy:acceptedTerms; rewrite rules for lossless ingestion, including KeepAnEnforcedPermission; odrl:isNoneOf carried over as supported from 0.0.2; the eox-policy:acceptedTerms usage note states that the Eona-X management API stores no right-operand form today ({ \"@id\": ... } is refused with HTTP 500, eclipse-edc/Connector#6066; a plain string, or { \"@id\": ... } on a connector that includes dataspace-ecosystem MR !134, is refused with HTTP 400 because eox-policy:acceptedTerms is not bound) and which form to use once the connector declares the term ({ \"@id\": ... } with dataspace-ecosystem MR !134, a plain string otherwise); terms stay in the stable namespace https://eona-x.eu/vocabulary/odrl-profile#, this release being identified by its owl:versionIRI."""@en ;
     skos:changeNote """0.0.2: odrl:isAnyOf replaced by odrl:isPartOf (the IRI EDC's IN operator actually reads); odrl:hasPart moved from target to supported, with containment semantics; operator coverage and claim-shape rules stated per left operand; Duty/Prohibition behaviour stated; odrl:isNoneOf supported on GenericClaim and RestrictedDiscoveryClaim (deny-list; evaluated by connectors that include dataspace-ecosystem MR !133); claim correspondences for foreign participant credentials added; terms moved to the stable namespace https://eona-x.eu/vocabulary/odrl-profile# (eona-x/backlog#994), this release being identified by its owl:versionIRI."""@en ;
     rdfs:seeAlso <http://www.w3.org/ns/odrl/2/> ;
-    dct:source "https://eona-x.eu/vocabulary/odrl-profile/v0.0.3#"^^xsd:anyURI .
+    dct:source "https://eona-x.eu/vocabulary/odrl-profile#"^^xsd:anyURI .
 
 #################################################################
 #  Custom constraint left operands (this profile's own terms)
@@ -158,11 +158,6 @@ eox-policy:supportedOperators
     skos:prefLabel "Supported operators"@en ;
     skos:scopeNote """Operators the constraint functions accept (per-operand coverage on each left operand). odrl:eq and odrl:neq are scalar equality. odrl:isPartOf is set membership (a scalar claim is one of the right-operand list) — it is the IRI EDC's IN operator reads and writes. odrl:hasPart is set containment (a list claim contains the right-operand value). odrl:isNoneOf (EDC IS_NONE_OF) is the deny-list counterpart of odrl:isPartOf and takes the same right-operand forms: a scalar claim is none of the right-operand list, a list claim shares no value with it, and an empty right-operand list fails closed; it applies to GenericClaim and RestrictedDiscoveryClaim, not to Membership. The right operand of odrl:isPartOf and odrl:isNoneOf is a list or an array string (\"['a', 'b']\"), never a bare scalar: in dataspace-ecosystem MR !133 a bare scalar is refused by GenericClaim and misparsed by RestrictedDiscoveryClaim, which strips its first and last characters and so fails open for odrl:isNoneOf. The connector (MembershipConstraintFunction in dataspace-ecosystem) does not check the operator on Membership: any operator with right operand \"active\" is evaluated as presence of a MembershipCredential, so odrl:neq or odrl:isNoneOf \"active\" grants members instead of refusing them. Only odrl:eq is allowed. odrl:isNoneOf is evaluated by connectors that include dataspace-ecosystem MR !133 (dataspace-ecosystem commit fa55491, not merged yet); a connector without it refuses the constraint (invalid operator, the constraint is not satisfied), so a policy using it denies access there rather than granting it. odrl:isAnyOf maps to a different EDC operator (IS_ANY_OF) that every constraint function rejects; author odrl:isPartOf instead."""@en ;
     skos:member odrl:eq, odrl:neq, odrl:isPartOf, odrl:hasPart, odrl:isNoneOf .
-
-eox-policy:targetOperators
-    a skos:Collection ;
-    skos:prefLabel "Target operators"@en ;
-    skos:scopeNote """Operators other ODRL dialects commonly use on credential claims, which the connector does not evaluate yet. A policy using one of them is refused at negotiation (unsupported operator); it is not ignored. Empty since 0.0.2: odrl:isNoneOf, the only target in the first 0.0.2 draft, moved to eox-policy:supportedOperators with dataspace-ecosystem MR !133."""@en .
 
 eox-policy:supportedConstraintTerms
     a skos:Collection ;
@@ -267,7 +262,6 @@ eox-policy:supportedRules eox-policy:connectorSupport eox-policy:Enforced .
 eox-policy:supportedActions eox-policy:connectorSupport eox-policy:Enforced .
 eox-policy:supportedOperators eox-policy:connectorSupport eox-policy:Enforced .
 eox-policy:leftOperands eox-policy:connectorSupport eox-policy:Enforced .
-eox-policy:targetOperators eox-policy:connectorSupport eox-policy:AwaitingConnectorSupport .
 
 #################################################################
 #  Authoring vocabulary: obligations, permissions, prohibitions
