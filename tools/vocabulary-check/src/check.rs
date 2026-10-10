@@ -22,6 +22,7 @@ const DCAT_TYPE: &str = "http://www.w3.org/ns/dcat#type";
 const DCAT_VERSION: &str = "http://www.w3.org/ns/dcat#version";
 const VOID_LINKSET: &str = "http://rdfs.org/ns/void#Linkset";
 const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
+const OWL_VERSION_IRI: &str = "http://www.w3.org/2002/07/owl#versionIRI";
 const FORMAL_ONTOLOGY: &str = "c_89b4bdb7";
 const ALIGNMENT: &str = "c_bba2bb35";
 
@@ -30,6 +31,25 @@ const ALIGNMENT: &str = "c_bba2bb35";
 pub struct Finding {
   pub dir: String,
   pub message: String,
+}
+
+/// A published vocabulary, as a crosswalk may cite it.
+struct Published<'a> {
+  dir: &'a str,
+  /// The root IRI: the term namespace.
+  namespace: &'a str,
+  /// The root's `owl:versionIRI`, naming the release of a stable term namespace.
+  releases: Vec<&'a str>,
+}
+
+impl Published<'_> {
+  /// Whether `target` is under the namespace or under one of its releases.
+  fn reached_by(&self, target: &str) -> bool {
+    [self.namespace]
+      .iter()
+      .chain(&self.releases)
+      .any(|iri| !iri.is_empty() && target.starts_with(iri))
+  }
 }
 
 /// One top-level directory: its parsed Turtle files, by file name.
@@ -95,12 +115,25 @@ pub fn check(root: &Path) -> Vec<Finding> {
   let dirs = load(root, &mut findings);
   let mut report = |dir: &str, message: String| findings.push(Finding { dir: dir.to_string(), message });
 
-  // Namespaces of the published vocabularies, and of every ontology in the
-  // repository (the hub), published or not.
-  let published: Vec<(&str, &str)> = dirs
+  // Namespaces of the published vocabularies (with the owl:versionIRI that
+  // names the release, for a stable term namespace), and of every ontology in
+  // the repository (the hub), published or not.
+  let published: Vec<Published> = dirs
     .iter()
     .filter(|d| d.published())
-    .filter_map(|d| Some((d.name.as_str(), d.first_ontology()?)))
+    .filter_map(|d| {
+      let namespace = d.first_ontology()?;
+      let releases = d
+        .graphs
+        .get(&d.graph)
+        .map(|g| objects(g, namespace, OWL_VERSION_IRI).collect())
+        .unwrap_or_default();
+      Some(Published {
+        dir: d.name.as_str(),
+        namespace,
+        releases,
+      })
+    })
     .collect();
   let hub: Vec<(&str, &str)> = dirs.iter().filter_map(|d| Some((d.name.as_str(), d.first_ontology()?))).collect();
 
@@ -142,11 +175,14 @@ pub fn check(root: &Path) -> Vec<Finding> {
         Some(alignment) => match alignment.iter().find_map(|t| typed(t, VOID_LINKSET)) {
           None => report(name, format!("{}: no void:Linkset root", dir.graph)),
           Some(linkset) => {
-            let mut sides: Vec<&str> = Vec::new();
+            // One side per namespace: the releases of a stable term namespace
+            // (one directory each) are one vocabulary, cited by the
+            // namespace or by a release's owl:versionIRI.
+            let mut sides: Vec<(&str, &str)> = Vec::new(); // (namespace, directory)
             for target in objects(alignment, linkset, RDFS_SEE_ALSO) {
-              for (side, ns) in &published {
-                if !ns.is_empty() && target.starts_with(ns) && !sides.contains(side) {
-                  sides.push(side);
+              for p in published.iter().filter(|p| p.reached_by(target)) {
+                if !sides.iter().any(|(ns, _)| *ns == p.namespace) {
+                  sides.push((p.namespace, p.dir));
                 }
               }
             }
@@ -157,7 +193,7 @@ pub fn check(root: &Path) -> Vec<Finding> {
                   "{}: the void:Linkset's rdfs:seeAlso reach {} published vocabularies ({}); a crosswalk needs at least 2",
                   dir.graph,
                   sides.len(),
-                  sides.join(", ")
+                  sides.iter().map(|(_, dir)| *dir).collect::<Vec<_>>().join(", ")
                 ),
               );
             }
@@ -186,7 +222,7 @@ pub fn check(root: &Path) -> Vec<Finding> {
       })
       .collect();
     for (hub_dir, hub_iri) in &hub {
-      if published.iter().any(|(_, ns)| ns == hub_iri) {
+      if published.iter().any(|p| p.namespace == *hub_iri) {
         continue;
       }
       if referenced.iter().any(|o| o.starts_with(hub_iri)) {
