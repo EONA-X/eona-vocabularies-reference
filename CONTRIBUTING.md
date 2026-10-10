@@ -122,6 +122,27 @@ BatteryPass) is a representation Eona-X hosts so its IRIs dereference, and belon
   thesaurus) is the namespace itself, `…/<version>#`; code lists embedded in the
   vocabulary live under it (`…/<version>#StatusCodes`, `…/<version>#StatusCodes/active`).
 
+#### Stable term namespaces (eona-x/backlog#677, amended by eona-x/backlog#994)
+
+Terms a runtime matches by IRI (e.g. the ODRL profile's left operands, which the
+connector compares literally) may instead live in a **stable** namespace that
+does not change from one release to the next:
+
+```
+https://eona-x.eu/<asset-type>/<slug>#<term>                 the terms, every release
+https://eona-x.eu/<asset-type>/<slug>/<version>#             owl:versionIRI of one release
+```
+
+The root is then the stable namespace, and it must declare exactly one
+`owl:versionIRI` on the same host, `<asset-type>/<slug>/<version>#`, whose
+`<version>` follows the rules above (`v` + `owl:versionInfo`, the version
+directory, `dcat:version`). A stable namespace without that `owl:versionIRI`, or
+with one for another asset or another version, is refused. Keep `owl:versionInfo`
+and point `owl:priorVersion` at the previous release's `owl:versionIRI`. The
+directory layout does not change (`<slug>/v<version>/`). There is no moving
+alias (`latest`, `current`): a consumer that needs one release pins it by its
+version IRI (an ODRL policy, by `odrl:profile`).
+
 No other IRI on an Eona-X host (`eona-x.eu` and its subdomains, `w3id.org/eonax/`)
 is accepted. Vocabularies maintained elsewhere keep their own upstream namespaces.
 
@@ -138,8 +159,9 @@ It reports every finding at once: Turtle that does not parse, an asset not in a
 `<slug>/v<version>/` directory or whose `dcat:version` does not name it, a `metadata.ttl`
 without `dcterms:title`, a Formal ontology without `owl:Ontology`, a crosswalk
 whose `void:Linkset` does not reach two published vocabularies, a reference to
-an ontology of this repository that has no `metadata.ttl`, and any IRI on an
-Eona-X host that is not the convention above. A second job validates every
+an ontology of this repository that has no `metadata.ttl`, a stable term
+namespace without the matching `owl:versionIRI`, and any IRI on an Eona-X host
+that is not the convention above. A second job validates every
 `metadata.ttl` against the newest `eonax-metadata-profile/v*/ontology.ttl` with pySHACL.
 
 ## Kinds of contribution

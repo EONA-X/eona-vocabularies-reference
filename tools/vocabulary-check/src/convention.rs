@@ -13,6 +13,7 @@ const FOAF_PERSON: &str = "http://xmlns.com/foaf/0.1/Person";
 const DCAT_DISTRIBUTION: &str = "http://www.w3.org/ns/dcat#distribution";
 const DCAT_DOWNLOAD_URL: &str = "http://www.w3.org/ns/dcat#downloadURL";
 const OWL_VERSION_INFO: &str = "http://www.w3.org/2002/07/owl#versionInfo";
+const OWL_VERSION_IRI: &str = "http://www.w3.org/2002/07/owl#versionIRI";
 
 /// The EU asset-classification authority table, whose concepts an asset's
 /// `metadata.ttl` gives as `dcat:type`.
@@ -62,7 +63,10 @@ pub struct Vocabulary {
   /// vocabulary, [`crate::VENDORED_BASE`] for a representation of an external
   /// standard.
   pub base: String,
-  /// The ontology IRI, which is also the term namespace, e.g. `https://eona-x.eu/odrl-profile/v0.0.1#`.
+  /// The root IRI, which is also the term namespace: versioned, e.g.
+  /// `https://eona-x.eu/vocabulary/odrl-profile/v0.0.1#`, or stable, e.g.
+  /// `https://eona-x.eu/vocabulary/odrl-profile#`, whose release
+  /// (`owl:versionIRI`) is then `{base}{kind}/{slug}/{version}#`.
   pub namespace: String,
   /// First path segment under the site base: one of [`ASSET_TYPES`], e.g. `vocabulary`.
   pub kind: String,
@@ -93,7 +97,10 @@ pub struct Discovery {
 /// a vocabulary is published exactly when its root resource — its
 /// `owl:Ontology`, or `skos:ConceptScheme` for a code list or thesaurus — has
 /// the IRI `{site_base}{asset-type}/{slug}/{version}#`, i.e. when upstream has
-/// frozen its namespace on the site. `{asset-type}` is one of [`ASSET_TYPES`]
+/// frozen its namespace on the site — or the stable term namespace
+/// `{site_base}{asset-type}/{slug}#` with exactly one `owl:versionIRI`
+/// `{site_base}{asset-type}/{slug}/{version}#` (eona-x/backlog#677 as amended
+/// by eona-x/backlog#994), whose `{version}` then follows the same rules. `{asset-type}` is one of [`ASSET_TYPES`]
 /// and, when the directory's `metadata.ttl` declares a `dcat:type` from the EU
 /// asset-classification table, the one covering it.
 /// Anything still minted elsewhere (`w3id.org/eonax/...`) is skipped, because
@@ -210,12 +217,51 @@ pub(crate) fn classify(vocabularies_root: &Path, dir_name: &str, site_base: &str
       if vendored { "an external" } else { "no" }
     ));
   }
-  let (asset_type, slug, version) = split_iri_path(rest).ok_or_else(|| {
-    format!(
-      "{}: namespace {namespace} is under {site_base} but is not {site_base}<asset-type>/<slug>/<version>#",
-      path.display()
-    )
-  })?;
+  let version_info = literal(&triples, &namespace, OWL_VERSION_INFO);
+  // The release this graph is: the namespace itself under the
+  // eona-x/backlog#677 convention, or the owl:versionIRI of a stable term
+  // namespace (eona-x/backlog#677 as amended by eona-x/backlog#994).
+  let (asset_type, slug, version, release) = match (split_iri_path(rest), split_stable_path(rest)) {
+    (Some((asset_type, slug, version)), _) => (asset_type, slug, version.to_string(), namespace.clone()),
+    (None, Some((asset_type, slug))) => {
+      let release_base = format!("{host_base}{asset_type}/{slug}/");
+      let expected = format!("{release_base}v{}#", version_info.unwrap_or("<owl:versionInfo>"));
+      let version_iris = objects(&triples, &namespace, OWL_VERSION_IRI);
+      let version_iri = match version_iris.as_slice() {
+        [iri] => *iri,
+        [] => {
+          return Err(format!(
+            "{}: stable term namespace {namespace} needs an owl:versionIRI naming its release, {expected}",
+            path.display()
+          ));
+        }
+        _ => {
+          return Err(format!(
+            "{}: stable term namespace {namespace} has {} owl:versionIRI; it needs exactly one, {expected}",
+            path.display(),
+            version_iris.len()
+          ));
+        }
+      };
+      let version = version_iri
+        .strip_prefix(&release_base)
+        .and_then(|v| v.strip_suffix('#'))
+        .filter(|v| split_iri_path(&format!("{asset_type}/{slug}/{v}#")).is_some())
+        .ok_or_else(|| {
+          format!(
+            "{}: stable term namespace {namespace} has owl:versionIRI {version_iri}, which is not {release_base}<version>#: expected {expected}",
+            path.display()
+          )
+        })?;
+      (asset_type, slug, version.to_string(), version_iri.to_string())
+    }
+    (None, None) => {
+      return Err(format!(
+        "{}: namespace {namespace} is under {site_base} but is not {site_base}<asset-type>/<slug>/<version># (or the stable term namespace {site_base}<asset-type>/<slug># with that owl:versionIRI)",
+        path.display()
+      ));
+    }
+  };
   let Some((_, covered)) = ASSET_TYPES.iter().find(|(name, _)| *name == asset_type) else {
     return Err(format!(
       "{}: namespace {namespace}: '{asset_type}' is not an asset type; expected one of {}",
@@ -234,10 +280,14 @@ pub(crate) fn classify(vocabularies_root: &Path, dir_name: &str, site_base: &str
       path.display()
     ));
   }
-  let version_info = literal(&triples, &namespace, OWL_VERSION_INFO);
-  if version_info.map(|v| format!("v{v}")).as_deref() != Some(version) {
+  if version_info.map(|v| format!("v{v}")) != Some(version.clone()) {
+    let says = if release == namespace {
+      format!("namespace {namespace}")
+    } else {
+      format!("owl:versionIRI {release} of {namespace}")
+    };
     return Err(format!(
-      "{}: namespace {namespace} says version {version} but owl:versionInfo is {}",
+      "{}: {says} says version {version} but owl:versionInfo is {}",
       path.display(),
       version_info.unwrap_or("missing")
     ));
@@ -247,7 +297,7 @@ pub(crate) fn classify(vocabularies_root: &Path, dir_name: &str, site_base: &str
     dir_name: dir_name.to_string(),
     kind: asset_type.into(),
     slug: slug.into(),
-    version: version.into(),
+    version,
     namespace,
     triples,
     prefixes,
@@ -298,6 +348,16 @@ fn split_iri_path(rest: &str) -> Option<(&str, &str, &str)> {
   let (asset_type, slug, version) = (segments.next()?, segments.next()?, segments.next()?);
   let valid = |s: &str| !s.is_empty() && s.chars().all(|c| c.is_ascii_alphanumeric() || "-._".contains(c));
   (segments.next().is_none() && [asset_type, slug, version].into_iter().all(valid)).then_some((asset_type, slug, version))
+}
+
+/// `vocabulary/odrl-profile#` -> `("vocabulary", "odrl-profile")`: a stable
+/// term namespace, whose release is its `owl:versionIRI`. Only under one of
+/// [`ASSET_TYPES`]: `odrl-profile/v0.0.1#` is the former slug/version form,
+/// not a stable namespace.
+fn split_stable_path(rest: &str) -> Option<(&str, &str)> {
+  let (asset_type, slug) = rest.strip_suffix('#')?.split_once('/')?;
+  let valid = |s: &str| !s.is_empty() && s.chars().all(|c| c.is_ascii_alphanumeric() || "-._".contains(c));
+  (asset_type_names().contains(&asset_type) && valid(slug)).then_some((asset_type, slug))
 }
 
 /// The asset-classification codes `metadata.ttl` gives as `dcat:type`, if the
@@ -397,4 +457,14 @@ fn literal<'a>(triples: &'a [Triple], subject: &str, predicate: &str) -> Option<
     (NamedOrBlankNode::NamedNode(s), Term::Literal(l)) if s.as_str() == subject && t.predicate.as_str() == predicate => Some(l.value()),
     _ => None,
   })
+}
+
+fn objects<'a>(triples: &'a [Triple], subject: &str, predicate: &str) -> Vec<&'a str> {
+  triples
+    .iter()
+    .filter_map(|t| match (&t.subject, &t.object) {
+      (NamedOrBlankNode::NamedNode(s), Term::NamedNode(o)) if s.as_str() == subject && t.predicate.as_str() == predicate => Some(o.as_str()),
+      _ => None,
+    })
+    .collect()
 }

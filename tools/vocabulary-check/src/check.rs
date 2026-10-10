@@ -299,6 +299,13 @@ fn off_convention(iri: &str) -> Option<String> {
     if ASSET_TYPES.iter().any(|(t, _)| *t == asset_type) && !slug.is_empty() && version_ok {
       return None;
     }
+    // A stable term namespace, `<asset-type>/<slug>#<term>`
+    // (eona-x/backlog#677 as amended by eona-x/backlog#994): its root must name the release as owl:versionIRI, which
+    // `classify` enforces where it is minted.
+    let stable_ok = rest.is_empty() && slug.split_once('#').is_some_and(|(s, _)| !s.is_empty());
+    if ASSET_TYPES.iter().any(|(t, _)| *t == asset_type) && stable_ok {
+      return None;
+    }
   }
   let first = if eonax_w3id {
     path.splitn(3, '/').take(2).collect::<Vec<_>>().join("/")
