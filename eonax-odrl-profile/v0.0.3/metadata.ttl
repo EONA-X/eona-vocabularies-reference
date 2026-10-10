@@ -1,0 +1,18 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+@prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+
+<> a dcat:Dataset, adms:Asset ;
+    dcat:version "0.0.3" ;
+    dcterms:title "Eona-X ODRL Profile"@en ;
+    dcterms:description "The supported subset of W3C ODRL 2.2 the Eona-X dataspace connectors bind and enforce, extended with three credential-claim constraint leftOperands."@en ;
+    dcat:type assettype:c_64714767 ;
+    adms:status status:CURRENT .
+
+[] vann:preferredNamespacePrefix "eox-policy" ;
+    vann:preferredNamespaceUri "https://eona-x.eu/vocabulary/odrl-profile#" .
+[] vann:preferredNamespacePrefix "eox-cred" ;
+    vann:preferredNamespaceUri "https://eona-x.eu/ontology/credentials/v0.1.0#" .
