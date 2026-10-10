@@ -45,3 +45,15 @@ jobs:
             fi
           done
           exit $status
+
+  odrl-profile-shapes:
+    name: example policies against the ODRL profile shapes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyshacl==0.40.1
+      - name: Conforming policies conform, violating ones are reported
+        run: tools/odrl-shapes-test.sh
