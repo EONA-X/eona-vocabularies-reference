@@ -168,6 +168,26 @@ eoxs:CredentialClaimConstraint
     ) ;
     sh:message "GenericClaim and RestrictedDiscoveryClaim take odrl:eq, odrl:neq, odrl:isPartOf, odrl:hasPart and odrl:isNoneOf (deny-list, evaluated by connectors that include dataspace-ecosystem MR !133)."@en .
 
+# The list operators on credential-claim operands take several values, a JSON-LD list
+# or an array string such as "['a', 'b']", never a bare scalar. In dataspace-ecosystem
+# MR !133 (dataspace-ecosystem commit fa55491) GenericClaim refuses a bare scalar
+# ("Array string must be enclosed in square brackets": the policy denies everyone) and
+# RestrictedDiscoveryClaim misparses it (parseToList strips its first and last
+# characters, "SANCTIONED" becomes ["ANCTIONE"], so an isNoneOf deny-list fails open).
+# A one-element JSON array arrives as a scalar too: write "['SANCTIONED']".
+eoxs:CredentialClaimListOperand
+    a sh:NodeShape ;
+    sh:targetObjectsOf odrl:constraint ;
+    sh:or (
+        [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile#)(GenericClaim|RestrictedDiscoveryClaim)\\.\\$\\." ] ]
+        [ sh:not [ sh:path odrl:operator ; sh:in ( odrl:isNoneOf odrl:isPartOf ) ] ]
+        [ sh:path odrl:rightOperand ; sh:minCount 2 ]
+        [ sh:path odrl:rightOperand ; sh:minCount 1 ; sh:maxCount 1 ;
+          sh:or ( [ sh:datatype xsd:string ; sh:pattern "^\\s*\\[.*\\]\\s*$" ]
+                  [ sh:nodeKind sh:BlankNode ; sh:property [ sh:path rdf:first ; sh:minCount 1 ] ] ) ]
+    ) ;
+    sh:message "odrl:isNoneOf and odrl:isPartOf on GenericClaim and RestrictedDiscoveryClaim: the right operand takes a list or an array string such as \"['a', 'b']\", never a bare scalar. dataspace-ecosystem MR !133 refuses a bare scalar on GenericClaim and misparses it on RestrictedDiscoveryClaim (it strips the first and last characters, so a deny-list fails open)."@en .
+
 eoxs:MembershipConstraint
     a sh:NodeShape ;
     sh:targetObjectsOf odrl:constraint ;
