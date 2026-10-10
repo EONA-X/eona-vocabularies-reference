@@ -11,10 +11,21 @@
 #       * GenericClaim            -> JsonPathCredentialConstraintFunction
 #       * RestrictedDiscoveryClaim-> CatalogDiscoveryConstraintFunction
 #
-# Term IRIs are minted under https://eona-x.eu/vocabulary/odrl-profile/v0.0.2# (prefix
-# "eox-policy"). The connector does not emit these IRIs yet: it still prefixes its
+# Term IRIs are minted in the STABLE namespace https://eona-x.eu/vocabulary/odrl-profile#
+# (prefix "eox-policy"), which does not change from one release to the next: the
+# connector compares left-operand IRIs literally, so a versioned term IRI would need
+# a connector change per release. Each release is identified by its owl:versionIRI,
+# here https://eona-x.eu/vocabulary/odrl-profile/v0.0.2#; a policy pins the release
+# it was written against with odrl:profile. There is no moving alias (latest,
+# current). This amends the eona-x/backlog#677 IRI convention for terms a runtime
+# matches by IRI; the amendment is tracked in eona-x/backlog#994. 0.0.1 stays
+# published unchanged under its versioned namespace.
+#
+# The connector does not emit these IRIs yet: dataspace-ecosystem still prefixes its
 # left operands with the legacy namespace https://w3id.org/eonax/policy/
-# (CoreConstants.DSE_POLICY_NS); reconciling the two is tracked in eona-x/backlog#799.
+# (CoreConstants.DSE_POLICY_NS). Accepting both the legacy and the stable namespace
+# is planned in eona-x/backlog#799 (Sprint 15); stored policies are migrated in
+# eona-x/backlog#995 and the legacy namespace is dropped in eona-x/backlog#996.
 #
 # 0.0.2 widens interoperability with other ODRL/EDC policy dialects and records an
 # audit of 0.0.1 against the connector source (dataspace-ecosystem cadd0f6,
@@ -39,8 +50,8 @@
 # <http://www.w3.org/ns/odrl/2/>). Only the terms enumerated here are in scope for
 # the current policy engine; anything outside this profile is unsupported.
 
-@base <https://eona-x.eu/vocabulary/odrl-profile/v0.0.2#> .
-@prefix eox-policy: <https://eona-x.eu/vocabulary/odrl-profile/v0.0.2#> .
+@base <https://eona-x.eu/vocabulary/odrl-profile#> .
+@prefix eox-policy: <https://eona-x.eu/vocabulary/odrl-profile#> .
 @prefix eox-cred: <https://eona-x.eu/ontology/credentials/v0.1.0#> .
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -58,12 +69,13 @@ eox-policy:
     a owl:Ontology ;
     rdfs:label "Eona-X ODRL Profile"@en ;
     dct:title "Eona-X ODRL Profile"@en ;
+    owl:versionIRI <https://eona-x.eu/vocabulary/odrl-profile/v0.0.2#> ;
     owl:versionInfo "0.0.2" ;
     owl:priorVersion <https://eona-x.eu/vocabulary/odrl-profile/v0.0.1#> ;
     dct:conformsTo <http://www.w3.org/ns/odrl/2/> ;
     dct:description """An ODRL 2.2 profile describing the exact subset of ODRL the Eona-X connector supports to express and enforce access & usage policies, extended with three credential-claim leftOperands evaluated by the connector's policy engine against presented Verifiable Credentials."""@en ;
     rdfs:comment """Descriptive, enforcement-scoped profile: it lists precisely the ODRL terms the connector binds and evaluates. Rules are enforced for odrl:Permission only (the constraint functions are registered for the Permission rule type). Evaluation always runs as a side effect of a Dataspace-Protocol interaction (catalog, contract negotiation, transfer) or catalog discovery — never as a standalone call."""@en ;
-    skos:changeNote """0.0.2: odrl:isAnyOf replaced by odrl:isPartOf (the IRI EDC's IN operator actually reads); odrl:hasPart moved from target to supported, with containment semantics; operator coverage and claim-shape rules stated per left operand; Duty/Prohibition behaviour stated; odrl:isNoneOf supported on GenericClaim and RestrictedDiscoveryClaim (deny-list; evaluated by connectors that include dataspace-ecosystem MR !133); claim correspondences for foreign participant credentials added."""@en ;
+    skos:changeNote """0.0.2: odrl:isAnyOf replaced by odrl:isPartOf (the IRI EDC's IN operator actually reads); odrl:hasPart moved from target to supported, with containment semantics; operator coverage and claim-shape rules stated per left operand; Duty/Prohibition behaviour stated; odrl:isNoneOf supported on GenericClaim and RestrictedDiscoveryClaim (deny-list; evaluated by connectors that include dataspace-ecosystem MR !133); claim correspondences for foreign participant credentials added; terms moved to the stable namespace https://eona-x.eu/vocabulary/odrl-profile# (eona-x/backlog#994), this release being identified by its owl:versionIRI."""@en ;
     rdfs:seeAlso <http://www.w3.org/ns/odrl/2/> ;
     dct:source "https://eona-x.eu/vocabulary/odrl-profile/v0.0.2#"^^xsd:anyURI .
 
@@ -179,7 +191,7 @@ eox-policy:legalNameClaim
     skos:altLabel "legalName"@en ;
     skos:definition "The registered legal name of the participant, as asserted by a credential claim."@en ;
     skos:closeMatch eox-cred:legalName ;
-    skos:scopeNote "The issuer writes this fact as credentialSubject.name, not legalName (the name eox-cred gives it), so the claim path is MembershipCredential.name."@en ;
+    skos:scopeNote "The issuer writes this fact as credentialSubject.name, not legalName (the name eox-cred gives it), so the claim path is MembershipCredential.name. eona-x/backlog#997 plans for the issuer to write legalName in addition to name."@en ;
     skos:example "eox-policy:GenericClaim.$.MembershipCredential.name eq \"Org A\""@en .
 
 eox-policy:dataspaceIdClaim
