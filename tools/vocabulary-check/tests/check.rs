@@ -559,3 +559,51 @@ fn a_stable_term_whose_fragment_has_a_slash_is_fine() {
 
   assert_eq!(messages(root.path()), Vec::<String>::new());
 }
+
+/// `crosswalk-a-b`'s void:Linkset, pointing at `targets`.
+fn linkset(root: &Path, targets: &[&str]) {
+  let targets = targets.iter().map(|t| format!("<{t}>")).collect::<Vec<_>>().join(", ");
+  write(
+    root,
+    "crosswalk-a-b/v1.0.0/alignment.ttl",
+    &format!(
+      "@prefix void: <http://rdfs.org/ns/void#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n<https://example.org/x/a-b> a void:Linkset ; rdfs:seeAlso {targets} .\n"
+    ),
+  );
+}
+
+#[test]
+fn two_releases_of_one_stable_namespace_are_one_side_of_a_crosswalk() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  stable(root.path(), Some("https://eona-x.eu/vocabulary/s/v1.0.0#"));
+  // A second release, v1.1.0, of the same stable namespace.
+  write(
+    root.path(),
+    "eonax-s/v1.1.0/metadata.ttl",
+    &metadata(Some("S"), TERMINOLOGY).replace("\"1.0.0\"", "\"1.1.0\""),
+  );
+  write(
+    root.path(),
+    "eonax-s/v1.1.0/ontology.ttl",
+    "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n<https://eona-x.eu/vocabulary/s#> a owl:Ontology ; owl:versionIRI <https://eona-x.eu/vocabulary/s/v1.1.0#> ; owl:priorVersion <https://eona-x.eu/vocabulary/s/v1.0.0#> ; owl:versionInfo \"1.1.0\" .\n<https://eona-x.eu/vocabulary/s#GenericClaim> a owl:Class .\n",
+  );
+  linkset(root.path(), &["https://eona-x.eu/vocabulary/s#"]);
+
+  let found = messages(root.path());
+
+  assert!(
+    found.iter().any(|f| f.starts_with("crosswalk-a-b/v1.0.0: ") && f.contains("reach 1 published")),
+    "{found:?}"
+  );
+}
+
+#[test]
+fn a_crosswalk_may_cite_a_stable_vocabulary_by_its_version_iri() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  stable(root.path(), Some("https://eona-x.eu/vocabulary/s/v1.0.0#"));
+  linkset(root.path(), &["https://example.org/a/Thing", "https://eona-x.eu/vocabulary/s/v1.0.0#"]);
+
+  assert_eq!(messages(root.path()), Vec::<String>::new());
+}
