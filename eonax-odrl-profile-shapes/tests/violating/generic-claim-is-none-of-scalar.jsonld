@@ -4,7 +4,7 @@
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "eox-policy": "https://eona-x.eu/vocabulary/odrl-profile#"
   },
-  "@id": "https://provider.example/policy/deny-list",
+  "@id": "https://provider.example/policy/deny-list-scalar",
   "@type": "odrl:Set",
   "odrl:permission": [
     {
@@ -19,7 +19,7 @@
           "odrl:operator": {
             "@id": "odrl:isNoneOf"
           },
-          "odrl:rightOperand": "['SANCTIONED']"
+          "odrl:rightOperand": "SANCTIONED"
         }
       ]
     }
