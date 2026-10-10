@@ -13,6 +13,6 @@
     adms:status status:CURRENT .
 
 [] vann:preferredNamespacePrefix "eox-policy" ;
-    vann:preferredNamespaceUri "https://eona-x.eu/vocabulary/odrl-profile/v0.0.3#" .
+    vann:preferredNamespaceUri "https://eona-x.eu/vocabulary/odrl-profile#" .
 [] vann:preferredNamespacePrefix "eox-cred" ;
     vann:preferredNamespaceUri "https://eona-x.eu/ontology/credentials/v0.1.0#" .
