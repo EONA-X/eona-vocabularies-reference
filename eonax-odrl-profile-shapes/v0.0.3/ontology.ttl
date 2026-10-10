@@ -175,8 +175,10 @@ eoxs:ElapsedTimeConstraint
     sh:message "odrl:elapsedTime takes odrl:lteq and a right operand typed xsd:duration, for example \"PT24H\"^^xsd:duration."@en .
 
 # eox-policy:acceptedTerms: odrl:eq and the IRI of one version of the terms. An IRI, an
-# xsd:anyURI literal (the connector normalises {"@id"} into one) or a string holding an
-# absolute IRI (what the policy editor sends) are accepted.
+# xsd:anyURI literal (a connector that includes dataspace-ecosystem MR !134 normalises
+# {"@id"} into one; without it {"@id"} is refused with HTTP 500,
+# eclipse-edc/Connector#6066) or a string holding an absolute IRI (what the policy
+# editor sends) are accepted.
 eoxs:AcceptedTermsConstraint
     a sh:NodeShape ;
     sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
