@@ -101,10 +101,42 @@ eoxs:RuleTrackingParty
 #  Constraints
 #################################################################
 
+# A constraint is atomic (left operand, operator, right operand) or an
+# odrl:LogicalConstraint whose odrl:or lists atomic constraints, written as a JSON-LD
+# @list or as a plain array (eox-policy:supportedConstraintTerms). The atomic shapes
+# below target every node that has a left operand, an operator or a right operand,
+# so they check the members of odrl:or as well as top-level constraints, and never
+# the logical constraint itself.
+eoxs:ConstraintEntry
+    a sh:NodeShape ;
+    rdfs:label "Constraint entry"@en ;
+    sh:targetObjectsOf odrl:constraint ;
+    sh:xone (
+        [ sh:path odrl:leftOperand ; sh:minCount 1 ]
+        [ sh:path odrl:or ; sh:minCount 1 ]
+    ) ;
+    sh:message "A constraint is either atomic (left operand, operator, right operand) or an odrl:LogicalConstraint with odrl:or; the profile supports only odrl:or (not odrl:and, odrl:xone or odrl:andSequence), and a constraint cannot be both."@en .
+
+eoxs:LogicalConstraintShape
+    a sh:NodeShape ;
+    rdfs:label "Logical constraint"@en ;
+    sh:targetSubjectsOf odrl:or ;
+    sh:property [
+        sh:path odrl:or ;
+        sh:minCount 1 ;
+        sh:or ( [ sh:path rdf:first ; sh:minCount 1 ]
+                [ sh:path odrl:leftOperand ; sh:minCount 1 ] ) ;
+        sh:message "Each member of odrl:or is an atomic constraint (left operand, operator, right operand), as a JSON-LD @list or a plain array; odrl:or is not empty and does not nest."@en
+    ] , [
+        sh:path ( odrl:or [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
+        sh:property [ sh:path odrl:leftOperand ; sh:minCount 1 ] ;
+        sh:message "Each member of odrl:or is an atomic constraint (left operand, operator, right operand), as a JSON-LD @list or a plain array; odrl:or is not empty and does not nest."@en
+    ] .
+
 eoxs:ConstraintShape
     a sh:NodeShape ;
     rdfs:label "Constraint"@en ;
-    sh:targetObjectsOf odrl:constraint ;
+    sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
     sh:property [
         sh:path odrl:leftOperand ;
         sh:minCount 1 ; sh:maxCount 1 ;
@@ -123,7 +155,7 @@ eoxs:ConstraintShape
 
 eoxs:LeftOperandInProfile
     a sh:NodeShape ;
-    sh:targetObjectsOf odrl:constraint ;
+    sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
     sh:severity sh:Warning ;
     sh:or (
         [ sh:path odrl:leftOperand ; sh:hasValue odrl:elapsedTime ]
@@ -134,7 +166,7 @@ eoxs:LeftOperandInProfile
 # odrl:elapsedTime: odrl:lteq and an xsd:duration.
 eoxs:ElapsedTimeConstraint
     a sh:NodeShape ;
-    sh:targetObjectsOf odrl:constraint ;
+    sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
     sh:or (
         [ sh:not [ sh:path odrl:leftOperand ; sh:hasValue odrl:elapsedTime ] ]
         [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:lteq ) ] ;
@@ -147,7 +179,7 @@ eoxs:ElapsedTimeConstraint
 # absolute IRI (what the policy editor sends) are accepted.
 eoxs:AcceptedTermsConstraint
     a sh:NodeShape ;
-    sh:targetObjectsOf odrl:constraint ;
+    sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
     sh:or (
         [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile#)acceptedTerms$" ] ]
         [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:eq ) ] ;
@@ -161,7 +193,7 @@ eoxs:AcceptedTermsConstraint
 # Credential-claim operands: the operators the connector's constraint functions accept.
 eoxs:CredentialClaimConstraint
     a sh:NodeShape ;
-    sh:targetObjectsOf odrl:constraint ;
+    sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
     sh:or (
         [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile#)(GenericClaim|RestrictedDiscoveryClaim)\\.\\$\\." ] ]
         [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:eq odrl:neq odrl:isPartOf odrl:hasPart odrl:isNoneOf ) ] ]
@@ -177,7 +209,7 @@ eoxs:CredentialClaimConstraint
 # A one-element JSON array arrives as a scalar too: write "['SANCTIONED']".
 eoxs:CredentialClaimListOperand
     a sh:NodeShape ;
-    sh:targetObjectsOf odrl:constraint ;
+    sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
     sh:or (
         [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile#)(GenericClaim|RestrictedDiscoveryClaim)\\.\\$\\." ] ]
         [ sh:not [ sh:path odrl:operator ; sh:in ( odrl:isNoneOf odrl:isPartOf ) ] ]
@@ -190,7 +222,7 @@ eoxs:CredentialClaimListOperand
 
 eoxs:MembershipConstraint
     a sh:NodeShape ;
-    sh:targetObjectsOf odrl:constraint ;
+    sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
     sh:or (
         [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile#)Membership$" ] ]
         [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:eq ) ] ;
@@ -202,7 +234,7 @@ eoxs:MembershipConstraint
 # dataspace-ecosystem MR !133 evaluate it; the others refuse the request.
 eoxs:IsNoneOfNeedsConnectorSupport
     a sh:NodeShape ;
-    sh:targetObjectsOf odrl:constraint ;
+    sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
     sh:property [
         sh:path odrl:operator ;
         sh:not [ sh:in ( odrl:isNoneOf ) ] ;
@@ -211,11 +243,16 @@ eoxs:IsNoneOfNeedsConnectorSupport
     ] .
 
 # ConstraintsOnDuties: credential-claim operands only on permissions.
+# The path reaches the left operands of atomic constraints and of the members of odrl:or.
 eoxs:NoCredentialClaimOutsidePermission
     a sh:NodeShape ;
     sh:targetObjectsOf odrl:prohibition, odrl:obligation, odrl:duty, odrl:remedy, odrl:consequence ;
     sh:property [
-        sh:path ( odrl:constraint odrl:leftOperand ) ;
+        sh:path [ sh:alternativePath (
+            ( odrl:constraint odrl:leftOperand )
+            ( odrl:constraint odrl:or odrl:leftOperand )
+            ( odrl:constraint odrl:or [ sh:zeroOrMorePath rdf:rest ] rdf:first odrl:leftOperand )
+        ) ] ;
         sh:not [ sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile#)(Membership$|GenericClaim\\.\\$\\.|RestrictedDiscoveryClaim\\.\\$\\.)" ] ;
         sh:message "ConstraintsOnDuties: credential-claim operands are evaluated on permissions only. On a duty, obligation or prohibition the connector has no function for them and rejects the policy."@en
     ] .
@@ -226,6 +263,7 @@ eoxs:NoCredentialClaimOutsidePermission
 
 # KeepAnEnforcedPermission: at least one permission with an enforced action and a
 # constraint on a credential-claim operand.
+# A credential-claim operand inside odrl:or counts.
 eoxs:PolicyShape
     a sh:NodeShape ;
     rdfs:label "Policy"@en ;
@@ -241,7 +279,11 @@ eoxs:EnforcedPermission
     a sh:NodeShape ;
     sh:property [ sh:path odrl:action ; sh:in ( odrl:use odrl:transfer odrl:share odrl:distribute ) ] ;
     sh:property [
-        sh:path ( odrl:constraint odrl:leftOperand ) ;
+        sh:path [ sh:alternativePath (
+            ( odrl:constraint odrl:leftOperand )
+            ( odrl:constraint odrl:or odrl:leftOperand )
+            ( odrl:constraint odrl:or [ sh:zeroOrMorePath rdf:rest ] rdf:first odrl:leftOperand )
+        ) ] ;
         sh:qualifiedValueShape [ sh:pattern "^(https://w3id\\.org/eonax/policy/|https://eona-x\\.eu/vocabulary/odrl-profile#)(Membership$|GenericClaim\\.\\$\\.|RestrictedDiscoveryClaim\\.\\$\\.)" ] ;
         sh:qualifiedMinCount 1
     ] .
