@@ -1,0 +1,38 @@
+{
+  "@context": {
+    "odrl": "http://www.w3.org/ns/odrl/2/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "eox-policy": "https://eona-x.eu/vocabulary/odrl-profile#"
+  },
+  "@type": "odrl:Set",
+  "odrl:permission": [
+    {
+      "odrl:action": {
+        "@id": "odrl:use"
+      },
+      "odrl:constraint": [
+        {
+          "odrl:leftOperand": {
+            "@id": "eox-policy:Membership"
+          },
+          "odrl:operator": {
+            "@id": "odrl:eq"
+          },
+          "odrl:rightOperand": "active"
+        }
+      ]
+    }
+  ],
+  "odrl:prohibition": [
+    {
+      "odrl:action": [
+        {
+          "@id": "odrl:sell"
+        },
+        {
+          "@id": "odrl:give"
+        }
+      ]
+    }
+  ]
+}
