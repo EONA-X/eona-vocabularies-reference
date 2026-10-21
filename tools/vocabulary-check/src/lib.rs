@@ -1,7 +1,9 @@
 //! Quality gate for eona-vocabularies-reference.
 //!
 //! [`convention`] holds the rules for vocabularies published under
-//! `https://eona-x.eu/<asset-type>/<slug>/<version>#`; the same crate is the
+//! `https://eona-x.eu/<asset-type>/<slug>/<version>#` (or, for terms a runtime
+//! matches by IRI, the stable `https://eona-x.eu/<asset-type>/<slug>#` with that
+//! release as `owl:versionIRI`: eona-x/backlog#677 as amended by eona-x/backlog#994); the same crate is the
 //! dependency the publishing pipeline (vocabulary-hub.eona-x.eu) builds with,
 //! so a contribution that passes here is one the build accepts.
 

@@ -439,3 +439,329 @@ fn the_hub_build_accepts_every_repository_the_gate_accepts() {
 
   assert!(found.is_ok(), "{}", found.err().unwrap_or_default());
 }
+
+/// `eonax-s`: a vocabulary whose terms live in the stable namespace
+/// `https://eona-x.eu/vocabulary/s#`, released as `owl:versionIRI` (when given).
+fn stable(root: &Path, version_iri: Option<&str>) {
+  write(root, "eonax-s/v1.0.0/metadata.ttl", &metadata(Some("S"), TERMINOLOGY));
+  let version_iri = version_iri.map(|v| format!("owl:versionIRI <{v}> ;")).unwrap_or_default();
+  write(
+    root,
+    "eonax-s/v1.0.0/ontology.ttl",
+    &format!(
+      "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n<https://eona-x.eu/vocabulary/s#> a owl:Ontology ; {version_iri} owl:versionInfo \"1.0.0\" .\n<https://eona-x.eu/vocabulary/s#GenericClaim> a owl:Class .\n"
+    ),
+  );
+}
+
+#[test]
+fn a_stable_term_namespace_released_as_a_version_iri_is_fine_and_its_terms_may_be_used() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  stable(root.path(), Some("https://eona-x.eu/vocabulary/s/v1.0.0#"));
+  write(
+    root.path(),
+    "b/v1.0.0/ontology.ttl",
+    &ontology(
+      "https://example.org/b",
+      "<https://example.org/b/Other> rdfs:seeAlso <https://eona-x.eu/vocabulary/s#GenericClaim> .",
+    ),
+  );
+
+  assert_eq!(messages(root.path()), Vec::<String>::new());
+}
+
+#[test]
+fn a_stable_term_namespace_without_a_version_iri_is_a_finding() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  stable(root.path(), None);
+
+  let found = messages(root.path());
+
+  assert!(
+    found
+      .iter()
+      .any(|f| f.starts_with("eonax-s/v1.0.0: ") && f.contains("owl:versionIRI") && f.contains("https://eona-x.eu/vocabulary/s/v1.0.0#")),
+    "{found:?}"
+  );
+}
+
+#[test]
+fn a_mismatched_version_iri_is_a_finding() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  stable(root.path(), Some("https://eona-x.eu/vocabulary/s/v2.0.0#"));
+
+  let found = messages(root.path());
+
+  assert!(found.iter().any(|f| f.starts_with("eonax-s/v1.0.0: ") && f.contains("v2.0.0")), "{found:?}");
+}
+
+#[test]
+fn a_stable_release_must_agree_with_the_metadata() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  // versionIRI v1.0.1 and owl:versionInfo 1.0.1, but directory v1.0.0 and dcat:version 1.0.0.
+  stable(root.path(), Some("https://eona-x.eu/vocabulary/s/v1.0.1#"));
+  let path = root.path().join("eonax-s/v1.0.0/ontology.ttl");
+  let ttl = fs::read_to_string(&path).unwrap().replace("\"1.0.0\"", "\"1.0.1\"");
+  fs::write(path, ttl).unwrap();
+
+  let found = messages(root.path());
+
+  assert!(
+    found
+      .iter()
+      .any(|f| f.starts_with("eonax-s/v1.0.0: ") && f.contains("1.0.1") && f.contains("1.0.0")),
+    "{found:?}"
+  );
+}
+
+#[test]
+fn a_stable_form_of_a_namespace_no_asset_mints_is_off_convention() {
+  // eonax-p is published only as https://eona-x.eu/vocabulary/p/v1.0.0#: an
+  // IRI that drops the version is a typo, not a stable term namespace.
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  write(
+    root.path(),
+    "b/v1.0.0/ontology.ttl",
+    &ontology(
+      "https://example.org/b",
+      "<https://example.org/b/Other> rdfs:seeAlso <https://eona-x.eu/vocabulary/p#legalName> .",
+    ),
+  );
+
+  let found = messages(root.path());
+
+  assert!(
+    found.iter().any(
+      |f| f.starts_with("b/v1.0.0: ontology.ttl: 1 IRI(s) under <https://eona-x.eu/vocabulary>") && f.contains("vocabulary/p#legalName")
+        // The finding names the stable form too, and where it is accepted.
+        && f.contains("<asset-type>/<slug>#")
+    ),
+    "{found:?}"
+  );
+}
+
+#[test]
+fn a_stable_term_whose_fragment_has_a_slash_is_fine() {
+  // A code list embedded in the vocabulary: …#StatusCodes/active, the same
+  // fragment the versioned form accepts.
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  stable(root.path(), Some("https://eona-x.eu/vocabulary/s/v1.0.0#"));
+  let path = root.path().join("eonax-s/v1.0.0/ontology.ttl");
+  let mut ttl = fs::read_to_string(&path).unwrap();
+  ttl.push_str("<https://eona-x.eu/vocabulary/s#ConnectorSupport/pending> a <https://eona-x.eu/vocabulary/s#ConnectorSupport> .\n");
+  fs::write(path, ttl).unwrap();
+
+  assert_eq!(messages(root.path()), Vec::<String>::new());
+}
+
+/// `crosswalk-a-b`'s void:Linkset, pointing at `targets`.
+fn linkset(root: &Path, targets: &[&str]) {
+  let targets = targets.iter().map(|t| format!("<{t}>")).collect::<Vec<_>>().join(", ");
+  write(
+    root,
+    "crosswalk-a-b/v1.0.0/alignment.ttl",
+    &format!(
+      "@prefix void: <http://rdfs.org/ns/void#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n<https://example.org/x/a-b> a void:Linkset ; rdfs:seeAlso {targets} .\n"
+    ),
+  );
+}
+
+#[test]
+fn two_releases_of_one_stable_namespace_are_one_side_of_a_crosswalk() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  stable(root.path(), Some("https://eona-x.eu/vocabulary/s/v1.0.0#"));
+  // A second release, v1.1.0, of the same stable namespace.
+  write(
+    root.path(),
+    "eonax-s/v1.1.0/metadata.ttl",
+    &metadata(Some("S"), TERMINOLOGY).replace("\"1.0.0\"", "\"1.1.0\""),
+  );
+  write(
+    root.path(),
+    "eonax-s/v1.1.0/ontology.ttl",
+    "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n<https://eona-x.eu/vocabulary/s#> a owl:Ontology ; owl:versionIRI <https://eona-x.eu/vocabulary/s/v1.1.0#> ; owl:priorVersion <https://eona-x.eu/vocabulary/s/v1.0.0#> ; owl:versionInfo \"1.1.0\" .\n<https://eona-x.eu/vocabulary/s#GenericClaim> a owl:Class .\n",
+  );
+  linkset(root.path(), &["https://eona-x.eu/vocabulary/s#"]);
+
+  let found = messages(root.path());
+
+  assert!(
+    found.iter().any(|f| f.starts_with("crosswalk-a-b/v1.0.0: ") && f.contains("reach 1 published")),
+    "{found:?}"
+  );
+}
+
+#[test]
+fn a_crosswalk_may_cite_a_stable_vocabulary_by_its_version_iri() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  stable(root.path(), Some("https://eona-x.eu/vocabulary/s/v1.0.0#"));
+  linkset(root.path(), &["https://example.org/a/Thing", "https://eona-x.eu/vocabulary/s/v1.0.0#"]);
+
+  assert_eq!(messages(root.path()), Vec::<String>::new());
+}
+
+/// `eonax-<slug>/v<version>/`: a release of an eona-x.eu vocabulary, its root
+/// `root` (the stable namespace, released as `owl:versionIRI`, when
+/// `version_iri` is given), with `owl:priorVersion <prior>` when given.
+fn release(root: &Path, slug: &str, version: &str, root_iri: &str, version_iri: Option<&str>, prior: Option<&str>) {
+  write(
+    root,
+    &format!("eonax-{slug}/v{version}/metadata.ttl"),
+    &metadata(Some(slug), TERMINOLOGY).replace("\"1.0.0\"", &format!("\"{version}\"")),
+  );
+  let version_iri = version_iri.map(|v| format!("owl:versionIRI <{v}> ;")).unwrap_or_default();
+  let prior = prior.map(|p| format!("owl:priorVersion <{p}> ;")).unwrap_or_default();
+  write(
+    root,
+    &format!("eonax-{slug}/v{version}/ontology.ttl"),
+    &format!("@prefix owl: <http://www.w3.org/2002/07/owl#> .\n<{root_iri}> a owl:Ontology ; {version_iri} {prior} owl:versionInfo \"{version}\" .\n"),
+  );
+}
+
+#[test]
+fn a_prior_version_naming_the_previous_release_is_fine() {
+  // Versioned v1.0.0, then the stable namespace from v1.1.0 on: each
+  // owl:priorVersion names the previous directory's release IRI.
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  release(root.path(), "q", "1.0.0", "https://eona-x.eu/vocabulary/q/v1.0.0#", None, None);
+  release(
+    root.path(),
+    "q",
+    "1.1.0",
+    "https://eona-x.eu/vocabulary/q#",
+    Some("https://eona-x.eu/vocabulary/q/v1.1.0#"),
+    Some("https://eona-x.eu/vocabulary/q/v1.0.0#"),
+  );
+  release(
+    root.path(),
+    "q",
+    "1.2.0",
+    "https://eona-x.eu/vocabulary/q#",
+    Some("https://eona-x.eu/vocabulary/q/v1.2.0#"),
+    Some("https://eona-x.eu/vocabulary/q/v1.1.0#"),
+  );
+
+  assert_eq!(messages(root.path()), Vec::<String>::new());
+}
+
+#[test]
+fn a_release_after_another_without_a_prior_version_is_a_finding() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  stable(root.path(), Some("https://eona-x.eu/vocabulary/s/v1.0.0#"));
+  release(
+    root.path(),
+    "s",
+    "1.1.0",
+    "https://eona-x.eu/vocabulary/s#",
+    Some("https://eona-x.eu/vocabulary/s/v1.1.0#"),
+    None,
+  );
+
+  let found = messages(root.path());
+
+  assert_eq!(found.len(), 1, "{found:?}");
+  assert!(
+    found[0].starts_with("eonax-s/v1.1.0: ") && found[0].contains("owl:priorVersion") && found[0].contains("<https://eona-x.eu/vocabulary/s/v1.0.0#>"),
+    "{found:?}"
+  );
+}
+
+#[test]
+fn a_prior_version_naming_another_release_is_a_finding_with_the_expected_iri() {
+  // The stable namespace, or a release that is not the previous one, is not
+  // the previous release's IRI.
+  for wrong in ["https://eona-x.eu/vocabulary/s#", "https://eona-x.eu/vocabulary/s/v0.9.0#"] {
+    let root = tempfile::tempdir().unwrap();
+    clean(root.path());
+    stable(root.path(), Some("https://eona-x.eu/vocabulary/s/v1.0.0#"));
+    release(
+      root.path(),
+      "s",
+      "1.1.0",
+      "https://eona-x.eu/vocabulary/s#",
+      Some("https://eona-x.eu/vocabulary/s/v1.1.0#"),
+      Some(wrong),
+    );
+
+    let found = messages(root.path());
+
+    assert_eq!(found.len(), 1, "{wrong}: {found:?}");
+    assert!(
+      found[0].starts_with("eonax-s/v1.1.0: ") && found[0].contains(&format!("<{wrong}>")) && found[0].contains("<https://eona-x.eu/vocabulary/s/v1.0.0#>"),
+      "{found:?}"
+    );
+  }
+}
+
+#[test]
+fn the_previous_release_of_a_versioned_namespace_is_the_namespace() {
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  release(
+    root.path(),
+    "p",
+    "1.1.0",
+    "https://eona-x.eu/vocabulary/p/v1.1.0#",
+    None,
+    // Itself, not the previous release.
+    Some("https://eona-x.eu/vocabulary/p/v1.1.0#"),
+  );
+
+  let found = messages(root.path());
+
+  // eonax-p/v1.0.0 (in the clean repository) is https://eona-x.eu/vocabulary/p/v1.0.0#.
+  assert_eq!(found.len(), 1, "{found:?}");
+  assert!(
+    found[0].starts_with("eonax-p/v1.1.0: ") && found[0].contains("<https://eona-x.eu/vocabulary/p/v1.0.0#>"),
+    "{found:?}"
+  );
+}
+
+#[test]
+fn releases_are_ordered_by_version_number_not_by_name() {
+  // v1.10.0 follows v1.9.0, not v1.1.0 (which sorts between them by name).
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  let ns = "https://eona-x.eu/vocabulary/s#";
+  let v = |n: &str| format!("https://eona-x.eu/vocabulary/s/v{n}#");
+  stable(root.path(), Some(&v("1.0.0")));
+  release(root.path(), "s", "1.9.0", ns, Some(&v("1.9.0")), Some(&v("1.0.0")));
+  release(root.path(), "s", "1.10.0", ns, Some(&v("1.10.0")), Some(&v("1.9.0")));
+
+  assert_eq!(messages(root.path()), Vec::<String>::new());
+
+  release(root.path(), "s", "1.10.0", ns, Some(&v("1.10.0")), Some(&v("1.0.0")));
+  let found = messages(root.path());
+  assert_eq!(found.len(), 1, "{found:?}");
+  assert!(
+    found[0].starts_with("eonax-s/v1.10.0: ") && found[0].contains(&format!("<{}>", v("1.9.0"))),
+    "{found:?}"
+  );
+}
+
+#[test]
+fn a_first_release_may_name_any_prior_version() {
+  // An upstream release before this repository's first directory.
+  let root = tempfile::tempdir().unwrap();
+  clean(root.path());
+  release(
+    root.path(),
+    "q",
+    "1.0.0",
+    "https://eona-x.eu/vocabulary/q/v1.0.0#",
+    None,
+    Some("https://example.org/q/releases/0.9/"),
+  );
+
+  assert_eq!(messages(root.path()), Vec::<String>::new());
+}

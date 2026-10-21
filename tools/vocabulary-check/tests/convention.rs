@@ -461,3 +461,140 @@ fn two_roots_one_of_them_on_an_eona_x_host_still_fail_the_build() {
 
   assert!(discover(root.path(), SITE_BASE).is_err());
 }
+
+/// An ontology whose terms live in a stable namespace, each release
+/// identified by its `owl:versionIRI` (eona-x/backlog#677 as amended by eona-x/backlog#994).
+fn stable_ontology(namespace: &str, version_iri: Option<&str>, version_info: &str) -> String {
+  let version_iri = version_iri.map(|v| format!("owl:versionIRI <{v}> ;")).unwrap_or_default();
+  format!(
+    r#"@prefix ex: <{namespace}> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ex: a owl:Ontology ; {version_iri} owl:versionInfo "{version_info}" ; rdfs:label "Example"@en .
+ex:GenericClaim rdfs:label "Generic claim"@en ; rdfs:isDefinedBy ex: .
+"#
+  )
+}
+
+#[test]
+fn a_stable_term_namespace_with_a_matching_version_iri_is_published_at_that_version() {
+  let root = tempfile::tempdir().unwrap();
+  vocab(
+    root.path(),
+    "eonax-odrl-profile",
+    &stable_ontology(
+      "https://eona-x.eu/vocabulary/odrl-profile#",
+      Some("https://eona-x.eu/vocabulary/odrl-profile/v0.0.2#"),
+      "0.0.2",
+    ),
+  );
+
+  let found = discover(root.path(), SITE_BASE).unwrap();
+
+  assert_eq!(
+    found.published.len(),
+    1,
+    "skipped: {:?}",
+    found.skipped.iter().map(|s| &s.reason).collect::<Vec<_>>()
+  );
+  let v = &found.published[0];
+  assert_eq!(v.dir_name, "eonax-odrl-profile/v0.0.2");
+  assert_eq!(v.namespace, "https://eona-x.eu/vocabulary/odrl-profile#");
+  assert_eq!(v.kind, "vocabulary");
+  assert_eq!(v.slug, "odrl-profile");
+  assert_eq!(v.version, "v0.0.2");
+}
+
+#[test]
+fn a_stable_code_list_namespace_with_a_matching_version_iri_is_published() {
+  let root = tempfile::tempdir().unwrap();
+  vocab(
+    root.path(),
+    "eonax-roles",
+    r#"@prefix ex: <https://eona-x.eu/codelist/roles#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+ex: a skos:ConceptScheme ; owl:versionIRI <https://eona-x.eu/codelist/roles/v1.0.0#> ; owl:versionInfo "1.0.0" .
+ex:A a skos:Concept ; skos:inScheme ex: .
+"#,
+  );
+
+  let found = discover(root.path(), SITE_BASE).unwrap();
+
+  assert_eq!(found.published.len(), 1);
+  assert_eq!(found.published[0].namespace, "https://eona-x.eu/codelist/roles#");
+  assert_eq!(found.published[0].version, "v1.0.0");
+}
+
+#[test]
+fn a_stable_term_namespace_without_a_version_iri_fails_the_build() {
+  let root = tempfile::tempdir().unwrap();
+  vocab(
+    root.path(),
+    "eonax-odrl-profile",
+    &stable_ontology("https://eona-x.eu/vocabulary/odrl-profile#", None, "0.0.2"),
+  );
+
+  let err = discover(root.path(), SITE_BASE)
+    .err()
+    .expect("a stable namespace without owl:versionIRI does not say which release it is");
+
+  assert!(
+    err.contains("owl:versionIRI") && err.contains("https://eona-x.eu/vocabulary/odrl-profile/v0.0.2#"),
+    "{err}"
+  );
+}
+
+#[test]
+fn a_version_iri_of_another_asset_fails_the_build() {
+  let root = tempfile::tempdir().unwrap();
+  vocab(
+    root.path(),
+    "eonax-odrl-profile",
+    &stable_ontology(
+      "https://eona-x.eu/vocabulary/odrl-profile#",
+      Some("https://eona-x.eu/vocabulary/other-profile/v0.0.2#"),
+      "0.0.2",
+    ),
+  );
+
+  let err = discover(root.path(), SITE_BASE)
+    .err()
+    .expect("the versionIRI must be the stable namespace's own release");
+
+  assert!(err.contains("owl:versionIRI") && err.contains("other-profile"), "{err}");
+}
+
+#[test]
+fn a_version_iri_that_disagrees_with_owl_version_info_fails_the_build() {
+  let root = tempfile::tempdir().unwrap();
+  vocab(
+    root.path(),
+    "eonax-odrl-profile",
+    &stable_ontology(
+      "https://eona-x.eu/vocabulary/odrl-profile#",
+      Some("https://eona-x.eu/vocabulary/odrl-profile/v0.0.3#"),
+      "0.0.2",
+    ),
+  );
+
+  let err = discover(root.path(), SITE_BASE).err().expect("mismatched version must not publish");
+
+  assert!(err.contains("v0.0.3") && err.contains("0.0.2"), "{err}");
+}
+
+#[test]
+fn a_versioned_namespace_needs_no_version_iri() {
+  // The eona-x/backlog#677 form stays valid as it is: the namespace is the release.
+  let root = tempfile::tempdir().unwrap();
+  vocab(
+    root.path(),
+    "eonax-odrl-profile",
+    &ontology("https://eona-x.eu/vocabulary/odrl-profile/v0.0.1#", "0.0.1"),
+  );
+
+  let found = discover(root.path(), SITE_BASE).unwrap();
+
+  assert_eq!(found.published.len(), 1);
+  assert_eq!(found.published[0].namespace, "https://eona-x.eu/vocabulary/odrl-profile/v0.0.1#");
+}

@@ -11,7 +11,7 @@ use std::path::Path;
 use oxrdf::{NamedOrBlankNode, Term, Triple};
 use oxttl::TurtleParser;
 
-use crate::convention::{ASSET_CLASSIFICATION, ASSET_TYPES, Classified, classify, graph_file, subdirs};
+use crate::convention::{ASSET_CLASSIFICATION, ASSET_TYPES, Classified, classify, graph_file, subdirs, version_key};
 use crate::{SITE_BASE, VENDORED_BASE};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -22,6 +22,8 @@ const DCAT_TYPE: &str = "http://www.w3.org/ns/dcat#type";
 const DCAT_VERSION: &str = "http://www.w3.org/ns/dcat#version";
 const VOID_LINKSET: &str = "http://rdfs.org/ns/void#Linkset";
 const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
+const OWL_VERSION_IRI: &str = "http://www.w3.org/2002/07/owl#versionIRI";
+const OWL_PRIOR_VERSION: &str = "http://www.w3.org/2002/07/owl#priorVersion";
 const FORMAL_ONTOLOGY: &str = "c_89b4bdb7";
 const ALIGNMENT: &str = "c_bba2bb35";
 
@@ -30,6 +32,38 @@ const ALIGNMENT: &str = "c_bba2bb35";
 pub struct Finding {
   pub dir: String,
   pub message: String,
+}
+
+/// A published vocabulary, as a crosswalk may cite it.
+struct Published<'a> {
+  dir: &'a str,
+  /// The root IRI: the term namespace.
+  namespace: &'a str,
+  /// The root's `owl:versionIRI`, naming the release of a stable term namespace.
+  releases: Vec<&'a str>,
+}
+
+impl Published<'_> {
+  /// Whether `target` is under the namespace or under one of its releases.
+  fn reached_by(&self, target: &str) -> bool {
+    [self.namespace]
+      .iter()
+      .chain(&self.releases)
+      .any(|iri| !iri.is_empty() && target.starts_with(iri))
+  }
+}
+
+/// One release of an eona-x.eu asset, as `owl:priorVersion` must name it.
+struct Release {
+  /// The asset directory, e.g. `eonax-odrl-profile`.
+  slug: String,
+  /// The version directory, e.g. `v0.0.2`.
+  version: String,
+  /// The release IRI: the versioned namespace, or the `owl:versionIRI` of a
+  /// stable term namespace.
+  iri: String,
+  /// The root's `owl:priorVersion`s.
+  priors: Vec<String>,
 }
 
 /// One top-level directory: its parsed Turtle files, by file name.
@@ -95,17 +129,34 @@ pub fn check(root: &Path) -> Vec<Finding> {
   let dirs = load(root, &mut findings);
   let mut report = |dir: &str, message: String| findings.push(Finding { dir: dir.to_string(), message });
 
-  // Namespaces of the published vocabularies, and of every ontology in the
-  // repository (the hub), published or not.
-  let published: Vec<(&str, &str)> = dirs
+  // Namespaces of the published vocabularies (with the owl:versionIRI that
+  // names the release, for a stable term namespace), and of every ontology in
+  // the repository (the hub), published or not.
+  let published: Vec<Published> = dirs
     .iter()
     .filter(|d| d.published())
-    .filter_map(|d| Some((d.name.as_str(), d.first_ontology()?)))
+    .filter_map(|d| {
+      let namespace = d.first_ontology()?;
+      let releases = d
+        .graphs
+        .get(&d.graph)
+        .map(|g| objects(g, namespace, OWL_VERSION_IRI).collect())
+        .unwrap_or_default();
+      Some(Published {
+        dir: d.name.as_str(),
+        namespace,
+        releases,
+      })
+    })
     .collect();
   let hub: Vec<(&str, &str)> = dirs.iter().filter_map(|d| Some((d.name.as_str(), d.first_ontology()?))).collect();
 
   // <asset-type>/<slug> -> (host, directory), to catch one path on two hosts.
   let mut paths: Vec<(String, String, String)> = Vec::new();
+  // Stable term namespaces the published assets mint: the only
+  // `<asset-type>/<slug>#…` IRIs that are not off-convention.
+  let mut stable: Vec<String> = Vec::new();
+  let mut releases: Vec<Release> = Vec::new();
   for dir in dirs.iter().filter(|d| d.published()) {
     let name = dir.name.as_str();
     if dir.metadata_objects(DCTERMS_TITLE).is_empty() {
@@ -139,11 +190,14 @@ pub fn check(root: &Path) -> Vec<Finding> {
         Some(alignment) => match alignment.iter().find_map(|t| typed(t, VOID_LINKSET)) {
           None => report(name, format!("{}: no void:Linkset root", dir.graph)),
           Some(linkset) => {
-            let mut sides: Vec<&str> = Vec::new();
+            // One side per namespace: the releases of a stable term namespace
+            // (one directory each) are one vocabulary, cited by the
+            // namespace or by a release's owl:versionIRI.
+            let mut sides: Vec<(&str, &str)> = Vec::new(); // (namespace, directory)
             for target in objects(alignment, linkset, RDFS_SEE_ALSO) {
-              for (side, ns) in &published {
-                if !ns.is_empty() && target.starts_with(ns) && !sides.contains(side) {
-                  sides.push(side);
+              for p in published.iter().filter(|p| p.reached_by(target)) {
+                if !sides.iter().any(|(ns, _)| *ns == p.namespace) {
+                  sides.push((p.namespace, p.dir));
                 }
               }
             }
@@ -154,7 +208,7 @@ pub fn check(root: &Path) -> Vec<Finding> {
                   "{}: the void:Linkset's rdfs:seeAlso reach {} published vocabularies ({}); a crosswalk needs at least 2",
                   dir.graph,
                   sides.len(),
-                  sides.join(", ")
+                  sides.iter().map(|(_, dir)| *dir).collect::<Vec<_>>().join(", ")
                 ),
               );
             }
@@ -183,7 +237,7 @@ pub fn check(root: &Path) -> Vec<Finding> {
       })
       .collect();
     for (hub_dir, hub_iri) in &hub {
-      if published.iter().any(|(_, ns)| ns == hub_iri) {
+      if published.iter().any(|p| p.namespace == *hub_iri) {
         continue;
       }
       if referenced.iter().any(|o| o.starts_with(hub_iri)) {
@@ -204,6 +258,17 @@ pub fn check(root: &Path) -> Vec<Finding> {
       match classify(root, name, SITE_BASE) {
         Ok(Classified::Published(v)) => {
           paths.push((format!("{}/{}", v.kind, v.slug), v.base.clone(), name.to_string()));
+          if v.is_stable() && !stable.contains(&v.namespace) {
+            stable.push(v.namespace.clone());
+          }
+          if let Some((slug, version_dir)) = name.split_once('/') {
+            releases.push(Release {
+              slug: slug.to_string(),
+              version: version_dir.to_string(),
+              iri: v.release(),
+              priors: objects(ontology, &v.namespace, OWL_PRIOR_VERSION).map(str::to_string).collect(),
+            });
+          }
           if let Some(version) = version
             && v.version != format!("v{version}")
           {
@@ -216,6 +281,36 @@ pub fn check(root: &Path) -> Vec<Finding> {
         Ok(Classified::Skipped(_)) => {}
         Err(e) => report(name, relative(&e, root)),
       }
+    }
+  }
+  // owl:priorVersion names the previous release directory's release IRI.
+  // A first release may name anything (an upstream release this repository
+  // does not hold).
+  releases.sort_by(|a, b| a.slug.cmp(&b.slug).then_with(|| version_key(&a.version).cmp(&version_key(&b.version))));
+  for pair in releases.windows(2) {
+    let (previous, release) = (&pair[0], &pair[1]);
+    if previous.slug != release.slug {
+      continue;
+    }
+    let dir = format!("{}/{}", release.slug, release.version);
+    let expected = &previous.iri;
+    if release.priors.is_empty() {
+      report(
+        &dir,
+        format!(
+          "no owl:priorVersion on the root of {}: it follows {}/{}, so it needs owl:priorVersion <{expected}>",
+          release.iri, previous.slug, previous.version
+        ),
+      );
+    }
+    for prior in release.priors.iter().filter(|p| *p != expected) {
+      report(
+        &dir,
+        format!(
+          "owl:priorVersion <{prior}> on the root of {} is not the previous release ({}/{}): expected <{expected}>",
+          release.iri, previous.slug, previous.version
+        ),
+      );
     }
   }
   for (i, (path, base, dir)) in paths.iter().enumerate() {
@@ -245,7 +340,7 @@ pub fn check(root: &Path) -> Vec<Finding> {
           },
         ];
         for iri in terms.into_iter().flatten() {
-          if let Some(ns) = off_convention(iri) {
+          if let Some(ns) = off_convention(iri, &stable) {
             match off.iter_mut().find(|(n, _, _)| *n == ns) {
               Some(entry) => entry.2 += 1,
               None => off.push((ns, iri.to_string(), 1)),
@@ -257,7 +352,12 @@ pub fn check(root: &Path) -> Vec<Finding> {
         report(
           &dir.name,
           format!(
-            "{file}: {count} IRI(s) under <{ns}>, e.g. <{example}>, are on an Eona-X host but not {SITE_BASE} or {VENDORED_BASE}<asset-type>/<slug>/<version>#… (asset types: {})",
+            "{file}: {count} IRI(s) under <{ns}>, e.g. <{example}>, are on an Eona-X host but not {SITE_BASE} or {VENDORED_BASE}<asset-type>/<slug>/<version>#…, nor a stable term namespace <asset-type>/<slug>#… that a published asset mints ({}) (asset types: {})",
+            if stable.is_empty() {
+              "none".to_string()
+            } else {
+              stable.iter().map(|n| format!("<{n}>")).collect::<Vec<_>>().join(", ")
+            },
             ASSET_TYPES.iter().map(|(t, _)| *t).collect::<Vec<_>>().join(", ")
           ),
         );
@@ -280,7 +380,13 @@ pub fn check(root: &Path) -> Vec<Finding> {
 /// For an IRI on an Eona-X-owned host or path that is neither a
 /// publication-convention IRI nor a bare site root: the namespace to report it
 /// under (scheme, host and first path segment). `None` when the IRI is fine.
-fn off_convention(iri: &str) -> Option<String> {
+///
+/// `stable` holds the stable term namespaces (`<asset-type>/<slug>#`,
+/// eona-x/backlog#677 as amended by eona-x/backlog#994) that published assets
+/// mint, each with its release as `owl:versionIRI` (which `classify` enforces).
+/// An IRI of that form under any other namespace — e.g. one that drops the
+/// version of a versioned-only asset — is off-convention.
+fn off_convention(iri: &str, stable: &[String]) -> Option<String> {
   let (scheme, rest) = iri.split_once("://")?;
   let (host, path) = rest.split_once('/').unwrap_or((rest, ""));
   let host = host.to_ascii_lowercase();
@@ -293,11 +399,24 @@ fn off_convention(iri: &str) -> Option<String> {
     return None; // the site itself, e.g. https://eona-x.eu/
   }
   if scheme == "https" && (host == "eona-x.eu" || host == "vocabulary.eona-x.eu") {
-    let mut seg = path.splitn(3, '/');
-    let (asset_type, slug, rest) = (seg.next().unwrap_or(""), seg.next().unwrap_or(""), seg.next().unwrap_or(""));
-    let version_ok = rest.split_once('#').is_some_and(|(v, _)| v.starts_with('v') && v.len() > 1 && !v.contains('/'));
-    if ASSET_TYPES.iter().any(|(t, _)| *t == asset_type) && !slug.is_empty() && version_ok {
-      return None;
+    // The fragment is the term, and may itself contain '/' (a code list
+    // member, `…#StatusCodes/active`): only the part before '#' is the path.
+    let (head, fragment) = match path.split_once('#') {
+      Some((head, fragment)) => (head, Some(fragment)),
+      None => (path, None),
+    };
+    let segments: Vec<&str> = head.split('/').collect();
+    let asset_type_ok = |t: &str| ASSET_TYPES.iter().any(|(name, _)| *name == t);
+    match (segments.as_slice(), fragment) {
+      // <asset-type>/<slug>/<version>#<term>
+      ([asset_type, slug, version], Some(_)) if asset_type_ok(asset_type) && !slug.is_empty() && version.starts_with('v') && version.len() > 1 => {
+        return None;
+      }
+      // <asset-type>/<slug>#<term>, under a stable namespace an asset mints
+      ([asset_type, slug], Some(_)) if asset_type_ok(asset_type) && !slug.is_empty() && stable.iter().any(|ns| iri.starts_with(ns.as_str())) => {
+        return None;
+      }
+      _ => {}
     }
   }
   let first = if eonax_w3id {
