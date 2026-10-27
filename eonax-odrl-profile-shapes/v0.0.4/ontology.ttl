@@ -12,6 +12,9 @@
 # policy reaches the connector: in the policy editor, and against example policies
 # in this repository's CI.
 #
+# The shapes also check the Declared terms of the profile (eox-policy:Declared,
+# dataspace-ecosystem MR !145): eox-policy:acceptedTerms and odrl:reviewPolicy.
+#
 # Severity:
 #   Violation - breaks a profile rule, or would be changed or lost on ingestion.
 #   Warning   - outside the profile but possibly legitimate (an EDC built-in operand
@@ -70,7 +73,7 @@ eoxs:RuleActionInProfile
             odrl:aggregate odrl:derive odrl:extract odrl:reproduce
             odrl:sell odrl:give odrl:grantUse
             odrl:delete odrl:reviewPolicy odrl:attribute odrl:acceptTracking ) ;
-    sh:message "The action is not in the Eona-X ODRL profile (eox-policy:supportedActions, eox-policy:authoringActions)."@en .
+    sh:message "The action is not in the Eona-X ODRL profile (eox-policy:supportedActions, eox-policy:declaredActions, eox-policy:authoringActions)."@en .
 
 eoxs:RuleNoTarget
     a sh:PropertyShape ;
@@ -175,11 +178,14 @@ eoxs:ElapsedTimeConstraint
     ) ;
     sh:message "odrl:elapsedTime takes odrl:lteq and a right operand typed xsd:duration, for example \"PT24H\"^^xsd:duration."@en .
 
-# eox-policy:acceptedTerms: odrl:eq and the IRI of one version of the terms. An IRI, an
-# xsd:anyURI literal (a connector that includes dataspace-ecosystem MR !134 normalises
-# {"@id"} into one; without it {"@id"} is refused with HTTP 500,
-# eclipse-edc/Connector#6066) or a string holding an absolute IRI (what the policy
-# editor sends) are accepted.
+# eox-policy:acceptedTerms (Declared, dataspace-ecosystem MR !145): odrl:eq and the IRI
+# of one version of the terms. The right operand is an IRI, an xsd:anyURI literal (a
+# connector that includes dataspace-ecosystem MR !134, merged, normalises {"@id"}
+# into one; without it {"@id"} is refused with HTTP 500, eclipse-edc/Connector#6066)
+# or a string (what the policy editor sends), and its text is an http(s) IRI with an
+# authority or a urn:, as MR !145 requires; it refuses a compact IRI and a did: IRI.
+# The shapes are deliberately stricter than MR !145, which accepts any scheme that
+# has an authority (for example ftp://).
 eoxs:AcceptedTermsConstraint
     a sh:NodeShape ;
     sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
@@ -187,11 +193,34 @@ eoxs:AcceptedTermsConstraint
         [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^https://eona-x\\.eu/vocabulary/odrl-profile#acceptedTerms$" ] ]
         [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:eq ) ] ;
           sh:property [ sh:path odrl:rightOperand ; sh:minCount 1 ; sh:maxCount 1 ;
-                        sh:or ( [ sh:nodeKind sh:IRI ]
-                                [ sh:datatype xsd:anyURI ]
-                                [ sh:datatype xsd:string ; sh:pattern "^[A-Za-z][A-Za-z0-9+.-]*:[^\\s]+$" ] ) ] ]
+                        sh:or ( [ sh:nodeKind sh:IRI ] [ sh:datatype xsd:anyURI ] [ sh:datatype xsd:string ] ) ;
+                        sh:pattern "^(https?://[^/?#\\s]+([/?#]\\S*)?|urn:\\S+)$" ; sh:flags "i" ] ]
     ) ;
-    sh:message "eox-policy:acceptedTerms takes odrl:eq and one IRI naming a single version of the terms."@en .
+    sh:message "eox-policy:acceptedTerms takes odrl:eq and one IRI naming a single version of the terms: an http(s) IRI with an authority or a urn: IRI. dataspace-ecosystem MR !145 refuses a compact IRI such as eox-policy:terms and a did: IRI."@en .
+
+# A prohibition's remedies and consequences are Duty in EDC and are accepted, so only
+# the prohibition's own constraints are targeted.
+eoxs:NoAcceptedTermsOnProhibition
+    a sh:NodeShape ;
+    sh:targetObjectsOf odrl:prohibition ;
+    sh:property [
+        sh:path [ sh:alternativePath (
+            ( odrl:constraint odrl:leftOperand )
+            ( odrl:constraint odrl:or odrl:leftOperand )
+            ( odrl:constraint odrl:or [ sh:zeroOrMorePath rdf:rest ] rdf:first odrl:leftOperand )
+        ) ] ;
+        sh:not [ sh:hasValue eox-policy:acceptedTerms ] ;
+        sh:message "eox-policy:acceptedTerms is declared on duties, obligations and permissions only: dataspace-ecosystem MR !145 has no function for it on a prohibition and rejects the policy (HTTP 400)."@en
+    ] .
+
+eoxs:ReviewPolicyNotAPermissionAction
+    a sh:NodeShape ;
+    sh:targetObjectsOf odrl:permission ;
+    sh:property [
+        sh:path odrl:action ;
+        sh:not [ sh:hasValue odrl:reviewPolicy ] ;
+        sh:message "odrl:reviewPolicy is not a permission action: write it as a duty or an obligation. The connector drops a permission whose action is declared, with every constraint on it (eona-x/backlog#1065)."@en
+    ] .
 
 # Credential-claim operands: the operators the connector's constraint functions accept.
 eoxs:CredentialClaimConstraint
