@@ -22,11 +22,17 @@
 # published unchanged under its versioned namespace; 0.0.2 introduced the stable
 # namespace.
 #
-# The connector does not emit these IRIs yet: dataspace-ecosystem still prefixes its
-# left operands with the legacy namespace https://w3id.org/eonax/policy/
-# (CoreConstants.DSE_POLICY_NS). Accepting both the legacy and the stable namespace
-# is planned in eona-x/backlog#799 (Sprint 15); stored policies are migrated in
+# Connectors that include dataspace-ecosystem MR !137 (merged) accept the stable
+# namespace https://eona-x.eu/vocabulary/odrl-profile# next to the legacy namespace
+# https://w3id.org/eonax/policy/ (CoreConstants.DSE_POLICY_NS), which the connector
+# still emits (eona-x/backlog#799). Stored policies are migrated in
 # eona-x/backlog#995 and the legacy namespace is dropped in eona-x/backlog#996.
+#
+# 0.0.4 adds a Declared connector-support status for the terms the connector stores
+# and carries in offers and agreements without evaluating them. odrl:reviewPolicy
+# and eox-policy:acceptedTerms move to it, for connectors that include
+# dataspace-ecosystem MR !145. dataspace-ecosystem MR !133, !134 and !137 are
+# merged into dataspace-ecosystem main. The enforced subset is unchanged.
 #
 # 0.0.3 adds an AUTHORING vocabulary next to the enforced subset: the ODRL
 # actions, rule kinds, left operands, operators and rule properties a provider
@@ -157,7 +163,7 @@ eox-policy:supportedActions
 eox-policy:supportedOperators
     a skos:Collection ;
     skos:prefLabel "Supported operators"@en ;
-    skos:scopeNote """Operators the constraint functions accept (per-operand coverage on each left operand). odrl:eq and odrl:neq are scalar equality. odrl:isPartOf is set membership (a scalar claim is one of the right-operand list) — it is the IRI EDC's IN operator reads and writes. odrl:hasPart is set containment (a list claim contains the right-operand value). odrl:isNoneOf (EDC IS_NONE_OF) is the deny-list counterpart of odrl:isPartOf and takes the same right-operand forms: a scalar claim is none of the right-operand list, a list claim shares no value with it, and an empty right-operand list fails closed; it applies to GenericClaim and RestrictedDiscoveryClaim, not to Membership. The right operand of odrl:isPartOf and odrl:isNoneOf is a list or an array string (\"['a', 'b']\"), never a bare scalar: in dataspace-ecosystem MR !133 a bare scalar is refused by GenericClaim and misparsed by RestrictedDiscoveryClaim, which strips its first and last characters and so fails open for odrl:isNoneOf. The connector (MembershipConstraintFunction in dataspace-ecosystem) does not check the operator on Membership: any operator with right operand \"active\" is evaluated as presence of a MembershipCredential, so odrl:neq or odrl:isNoneOf \"active\" grants members instead of refusing them. Only odrl:eq is allowed, and the profile shapes (eonax-odrl-profile-shapes) enforce it. odrl:isNoneOf is evaluated by connectors that include dataspace-ecosystem MR !133 (dataspace-ecosystem commit fa55491, not merged yet); a connector without it refuses the constraint (invalid operator, the constraint is not satisfied), so a policy using it denies access there rather than granting it. odrl:isAnyOf maps to a different EDC operator (IS_ANY_OF) that every constraint function rejects; author odrl:isPartOf instead."""@en ;
+    skos:scopeNote """Operators the constraint functions accept (per-operand coverage on each left operand). odrl:eq and odrl:neq are scalar equality. odrl:isPartOf is set membership (a scalar claim is one of the right-operand list) — it is the IRI EDC's IN operator reads and writes. odrl:hasPart is set containment (a list claim contains the right-operand value). odrl:isNoneOf (EDC IS_NONE_OF) is the deny-list counterpart of odrl:isPartOf and takes the same right-operand forms: a scalar claim is none of the right-operand list, a list claim shares no value with it, and an empty right-operand list fails closed; it applies to GenericClaim and RestrictedDiscoveryClaim, not to Membership. The right operand of odrl:isPartOf and odrl:isNoneOf is a list or an array string (\"['a', 'b']\"), never a bare scalar: in dataspace-ecosystem MR !133 a bare scalar is refused by GenericClaim and misparsed by RestrictedDiscoveryClaim, which strips its first and last characters and so fails open for odrl:isNoneOf. The connector (MembershipConstraintFunction in dataspace-ecosystem) does not check the operator on Membership: any operator with right operand \"active\" is evaluated as presence of a MembershipCredential, so odrl:neq or odrl:isNoneOf \"active\" grants members instead of refusing them. Only odrl:eq is allowed, and the profile shapes (eonax-odrl-profile-shapes) enforce it. odrl:isNoneOf is evaluated by connectors that include dataspace-ecosystem MR !133 (merged into dataspace-ecosystem main); a connector without it refuses the constraint (invalid operator, the constraint is not satisfied), so a policy using it denies access there rather than granting it. odrl:isAnyOf maps to a different EDC operator (IS_ANY_OF) that every constraint function rejects; author odrl:isPartOf instead."""@en ;
     skos:member odrl:eq, odrl:neq, odrl:isPartOf, odrl:hasPart, odrl:isNoneOf .
 
 eox-policy:supportedConstraintTerms
