@@ -37,6 +37,7 @@
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 @prefix dct:  <http://purl.org/dc/terms/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 
 eoxs:
     a owl:Ontology ;
@@ -44,6 +45,7 @@ eoxs:
     dct:title "Eona-X ODRL Profile SHACL shapes"@en ;
     owl:versionInfo "0.0.4" ;
     owl:priorVersion <https://eona-x.eu/shape/odrl-profile-shapes/v0.0.3#> ;
+    skos:changeNote """0.0.4: new shapes eoxs:NoAcceptedTermsOnProhibition and eoxs:ReviewPolicyNotAPermissionAction; eox-policy:acceptedTerms requires odrl:eq and one IRI, an http(s) IRI with an authority or a urn: IRI, made of characters java.net.URI accepts (stricter than dataspace-ecosystem MR !145, which accepts any scheme that has an authority); the declared actions of eox-policy:declaredActions are part of the profile actions."""@en ;
     rdfs:seeAlso <https://eona-x.eu/vocabulary/odrl-profile#> ;
     dct:description "SHACL shapes checking an ODRL policy against the authoring rules of the Eona-X ODRL Profile v0.0.4."@en .
 
@@ -194,7 +196,7 @@ eoxs:AcceptedTermsConstraint
         [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:eq ) ] ;
           sh:property [ sh:path odrl:rightOperand ; sh:minCount 1 ; sh:maxCount 1 ;
                         sh:or ( [ sh:nodeKind sh:IRI ] [ sh:datatype xsd:anyURI ] [ sh:datatype xsd:string ] ) ;
-                        sh:pattern "^(https?://[^/?#\\s]+([/?#]\\S*)?|urn:\\S+)$" ; sh:flags "i" ] ]
+                        sh:pattern "^(https?://[^/?#\\s]+([A-Za-z0-9\\-._~:/?#\\[\\]@!$&'()*+,;=%]*)?|urn:[A-Za-z0-9\\-._~:/?#\\[\\]@!$&'()*+,;=%]+)$" ; sh:flags "i" ] ]
     ) ;
     sh:message "eox-policy:acceptedTerms takes odrl:eq and one IRI naming a single version of the terms: an http(s) IRI with an authority or a urn: IRI. dataspace-ecosystem MR !145 refuses a compact IRI such as eox-policy:terms and a did: IRI."@en .
 
