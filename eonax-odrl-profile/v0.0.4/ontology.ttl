@@ -151,7 +151,7 @@ eox-policy:supportedPolicyTypes
 eox-policy:supportedRules
     a skos:Collection ;
     skos:prefLabel "Supported rules"@en ;
-    skos:scopeNote """Only odrl:Permission is enforced: the credential constraint functions are registered for the Permission rule type. An eox-policy constraint placed in an odrl:obligation, a duty or an odrl:prohibition has no function for that rule kind, so EDC's policy validation rejects the policy definition when it is created or updated (HTTP 400). A duty or prohibition is accepted only when its action is bound and it has no constraint on an unbound operand, and even then nothing in the connector checks it."""@en ;
+    skos:scopeNote """Only odrl:Permission is enforced: the credential constraint functions are registered for the Permission rule type. A credential-claim constraint (eox-policy:Membership, GenericClaim, RestrictedDiscoveryClaim) placed in an odrl:obligation, a duty or an odrl:prohibition has no function for that rule kind, so EDC's policy validation rejects the policy definition when it is created or updated (HTTP 400). A duty or prohibition is accepted only when its action is bound and it has no constraint on an unbound operand, and even then nothing in the connector checks it. eox-policy:acceptedTerms is the exception: see eox-policy:declaredLeftOperands."""@en ;
     skos:member odrl:Permission, odrl:permission .
 
 eox-policy:supportedActions
@@ -236,7 +236,9 @@ eox-policy:websiteClaim
 #################################################################
 #  Connector support (placeholder status)
 #################################################################
-#  Every collection below carries eox-policy:connectorSupport. The enforced subset
+#  Every collection below carries eox-policy:connectorSupport, with one of three
+#  statuses: Enforced (evaluated), Declared (stored and carried, never evaluated)
+#  and AwaitingConnectorSupport. The enforced subset
 #  above is Enforced; the authoring vocabulary is AwaitingConnectorSupport, with
 #  skos:editorialNote naming the connector change it waits for. When the connector
 #  gains that support, the term moves into the enforced collections in a new
@@ -251,13 +253,20 @@ eox-policy:connectorSupport
 eox-policy:connectorSupportStatus
     a skos:Collection ;
     skos:prefLabel "Connector support status"@en ;
-    skos:member eox-policy:Enforced, eox-policy:AwaitingConnectorSupport .
+    skos:member eox-policy:Enforced, eox-policy:Declared, eox-policy:AwaitingConnectorSupport .
 
 eox-policy:Enforced
     a skos:Concept ;
     rdfs:isDefinedBy eox-policy: ;
     skos:prefLabel "Enforced"@en ;
     skos:definition "The connector evaluates the term during catalog, negotiation or transfer, and refuses the request when it is not satisfied."@en .
+
+eox-policy:Declared
+    a skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    skos:prefLabel "Declared"@en ;
+    skos:definition "The connector stores a policy definition that uses the term and carries the term in catalog offers and contract agreements, but never evaluates it. The term is bound only to the scope eox.profile.declared, which no component evaluates, and the scope filter removes it at catalog, contract negotiation, transfer and catalog discovery. It binds the parties contractually."@en ;
+    skos:scopeNote "Applies to connectors that include dataspace-ecosystem MR !145 (eona-x/backlog#1064, not merged). A connector without it rejects a policy definition that uses the term (HTTP 400), as for eox-policy:AwaitingConnectorSupport. Making the term enforced (proof of acceptance) is eona-x/backlog#1009."@en .
 
 eox-policy:AwaitingConnectorSupport
     a skos:Concept ;
@@ -269,6 +278,45 @@ eox-policy:supportedRules eox-policy:connectorSupport eox-policy:Enforced .
 eox-policy:supportedActions eox-policy:connectorSupport eox-policy:Enforced .
 eox-policy:supportedOperators eox-policy:connectorSupport eox-policy:Enforced .
 eox-policy:leftOperands eox-policy:connectorSupport eox-policy:Enforced .
+
+#################################################################
+#  Declared vocabulary: stored and carried, not evaluated
+#################################################################
+#  Terms the connector validates at policy creation, stores, and carries in
+#  catalog offers and contract agreements, without ever evaluating them
+#  (eox-policy:Declared). They need dataspace-ecosystem MR !145.
+
+eox-policy:declaredActions
+    a skos:Collection ;
+    skos:prefLabel "Declared actions"@en ;
+    skos:scopeNote "Actions the connector stores and carries in offers and agreements without evaluating them. odrl:reviewPolicy belongs in a duty or a policy-level obligation, usually with an eox-policy:acceptedTerms constraint. It is never a permission action: a permission whose action is declared is dropped whole at every evaluated scope, with every constraint on it, including eox-policy:Membership, GenericClaim and RestrictedDiscoveryClaim. That is a fail-open path with no guard in the connector (eona-x/backlog#1065). The profile shapes (eonax-odrl-profile-shapes v0.0.4) refuse it."@en ;
+    skos:member odrl:reviewPolicy ;
+    eox-policy:connectorSupport eox-policy:Declared ;
+    skos:editorialNote "Bound only to the scope eox.profile.declared by dataspace-ecosystem MR !145 (not merged). Evaluation waits for eona-x/backlog#1009."@en .
+
+eox-policy:declaredLeftOperands
+    a skos:Collection ;
+    skos:prefLabel "Declared left operands"@en ;
+    skos:scopeNote "Left operands the connector validates at policy creation (operator and right operand), stores and carries in offers and agreements without evaluating them. They are accepted in the constraints of duties (including policy-level obligations) and permissions, and refused on a prohibition (HTTP 400: no function for that rule kind)."@en ;
+    skos:member eox-policy:acceptedTerms ;
+    eox-policy:connectorSupport eox-policy:Declared ;
+    skos:editorialNote "Bound only to the scope eox.profile.declared, with a validation function on Duty and Permission, by dataspace-ecosystem MR !145 (not merged). Evaluation waits for eona-x/backlog#1009."@en .
+
+eox-policy:acceptedTerms
+    a odrl:LeftOperand, skos:Concept ;
+    rdfs:isDefinedBy eox-policy: ;
+    rdfs:label "Accepted Terms"@en ;
+    skos:definition "Constraint left operand naming the terms document the assignee has accepted. The right operand is the IRI of one version of that document."@en ;
+    skos:note """Usage: leftOperand eox-policy:acceptedTerms, operator odrl:eq, right operand the IRI of one version of the terms. The right operand MUST identify one version: a terms IRI that can change under it makes the acceptance meaningless.
+Where: on a duty of a permission or on a policy-level obligation, typically with action odrl:reviewPolicy, to say that the duty is met once the assignee has accepted that exact version. It is also accepted on a permission. It is refused on a prohibition (HTTP 400: no function for that rule kind).
+Forms accepted by a connector that includes dataspace-ecosystem MR !145: a plain string \"<IRI>\"; or { \"@id\": \"<IRI>\" }, which dataspace-ecosystem MR !134 (merged) rewrites into an xsd:anyURI literal. Without !134, { \"@id\": ... } is refused with HTTP 500 (eclipse-edc/Connector#6066).
+IRI rule: an absolute IRI with an authority (http:// or https://...) or a urn:. A compact IRI such as eox-policy:terms and a did: IRI are refused (HTTP 400). Only odrl:eq is accepted.
+A connector without dataspace-ecosystem MR !145 refuses the policy definition (HTTP 400, \"leftOperand is not bound to any scopes\").
+Status: Declared (see eox-policy:Declared). The term is carried in offers and agreements and never evaluated: the connector does not check that the consumer accepted the terms.
+Two fail-open paths, with no guard in the connector (eona-x/backlog#1065): (1) a policy whose permissions carry only declared terms evaluates as empty, so it is open to every FullMember (NonFullMemberDefaultDenyValidator still applies): keep an enforced permission (eox-policy:KeepAnEnforcedPermission); (2) a permission whose action is odrl:reviewPolicy is dropped whole at every evaluated scope, with its Membership, GenericClaim or RestrictedDiscoveryClaim constraints: write odrl:reviewPolicy in a duty or an obligation, never as a permission action.
+Proof of acceptance (enforcing the term) is eona-x/backlog#1009."""@en ;
+    skos:scopeNote "Declared, not evaluated (see eox-policy:declaredLeftOperands). The Eona-X portal asks a person to read and accept the policy before it sends a contract request, which is a human gate on the consumer side, not proof for the provider."@en ;
+    skos:example "eox-policy:acceptedTerms eq <https://example.org/terms/v1.1>"@en .
 
 #################################################################
 #  Authoring vocabulary: obligations, permissions, prohibitions
@@ -291,7 +339,7 @@ eox-policy:authoringActions
     skos:member odrl:read, odrl:display, odrl:present, odrl:print, odrl:archive, odrl:index,
                 odrl:aggregate, odrl:derive, odrl:extract, odrl:reproduce,
                 odrl:sell, odrl:give, odrl:grantUse,
-                odrl:delete, odrl:reviewPolicy, odrl:attribute, odrl:acceptTracking ;
+                odrl:delete, odrl:attribute, odrl:acceptTracking ;
     eox-policy:connectorSupport eox-policy:AwaitingConnectorSupport ;
     skos:editorialNote "Waits for the connector to declare these actions. Until then EDC's policy validation rejects any policy definition with a rule whose action is one of them (\"action is not bound to any scopes\")."@en .
 
@@ -299,9 +347,9 @@ eox-policy:authoringLeftOperands
     a skos:Collection ;
     skos:prefLabel "Authoring left operands"@en ;
     skos:scopeNote "Left operands accepted in the constraints of obligations, duties and permissions, in addition to the enforced credential-claim operands."@en ;
-    skos:member odrl:elapsedTime, eox-policy:acceptedTerms ;
+    skos:member odrl:elapsedTime ;
     eox-policy:connectorSupport eox-policy:AwaitingConnectorSupport ;
-    skos:editorialNote "Waits for the connector to declare these operands, with a function that validates the right operand (for example an xsd:duration for odrl:elapsedTime, an IRI for eox-policy:acceptedTerms). Until then EDC's policy validation rejects the policy definition (\"leftOperand is not bound to any scopes\" and \"is not bound to any functions\")."@en .
+    skos:editorialNote "Waits for the connector to declare these operands, with a function that validates the right operand (for example an xsd:duration for odrl:elapsedTime). Until then EDC's policy validation rejects the policy definition (\"leftOperand is not bound to any scopes\" and \"is not bound to any functions\")."@en .
 
 eox-policy:authoringOperators
     a skos:Collection ;
@@ -318,16 +366,6 @@ eox-policy:authoringRuleProperties
     skos:member odrl:target, odrl:output, odrl:attributedParty, odrl:trackingParty ;
     eox-policy:connectorSupport eox-policy:AwaitingConnectorSupport ;
     skos:editorialNote "Waits for the connector's ODRL model to keep these on a rule. Its JSON-LD ingestion keeps only a rule's action, constraints, duties, remedies and consequences, so these four are discarded; the policy-level odrl:target applies to every rule."@en .
-
-eox-policy:acceptedTerms
-    a odrl:LeftOperand, skos:Concept ;
-    rdfs:isDefinedBy eox-policy: ;
-    rdfs:label "Accepted Terms"@en ;
-    skos:definition "Constraint left operand naming the terms document the assignee has accepted. The right operand is the IRI of one version of that document."@en ;
-    skos:note """Usage: leftOperand eox-policy:acceptedTerms, operator odrl:eq, rightOperand { \"@id\": \"<version-pinned terms IRI>\" }. Written on an obligation (typically one whose action is odrl:reviewPolicy) to say that the obligation is met once the assignee has accepted that exact version of the terms. The right operand MUST identify one version: a terms IRI that can change under it makes the acceptance meaningless.
-{ \"@id\": ... } is the recommended ODRL form for an IRI right operand. Today the Eona-X management API stores neither form. { \"@id\": ... } is refused with HTTP 500 (upstream eclipse-edc/Connector#6066). A plain string, rightOperand \"<version-pinned terms IRI>\", or { \"@id\": ... } on a connector that includes dataspace-ecosystem MR !134 (extension policy-definition-iri-right-operand, which rewrites { \"@id\": ... } to an xsd:anyURI value), is refused with HTTP 400 by EDC's policy validation, because eox-policy:acceptedTerms is not bound (\"leftOperand is not bound to any scopes\"; see eox-policy:AwaitingConnectorSupport and eox-policy:authoringLeftOperands). dataspace-ecosystem MR !134 only gets { \"@id\": ... } past the JSON-LD policy-definition validator. Once the connector declares the term: use { \"@id\": ... } on a connector that includes dataspace-ecosystem MR !134, or a plain string otherwise."""@en ;
-    skos:scopeNote "Not evaluated by the connector (see eox-policy:authoringLeftOperands). The Eona-X portal asks a person to read and accept the policy before it sends a contract request, which is a human gate on the consumer side, not proof for the provider."@en ;
-    skos:example "eox-policy:acceptedTerms eq <https://provider.example/terms/api-1.1>"@en .
 
 #################################################################
 #  Rewrite rules: keep a policy intact through ingestion
