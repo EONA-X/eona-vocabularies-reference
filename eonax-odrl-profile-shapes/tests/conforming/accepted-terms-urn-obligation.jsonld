@@ -36,9 +36,7 @@
           "odrl:operator": {
             "@id": "odrl:eq"
           },
-          "odrl:rightOperand": {
-            "@id": "urn:example:terms:v1.1"
-          }
+          "odrl:rightOperand": "urn:example:terms:v1.1"
         }
       ]
     }

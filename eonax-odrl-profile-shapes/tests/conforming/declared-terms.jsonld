@@ -89,9 +89,7 @@
           "odrl:operator": {
             "@id": "odrl:eq"
           },
-          "odrl:rightOperand": {
-            "@id": "https://provider.example/terms/api-1.1"
-          }
+          "odrl:rightOperand": "https://provider.example/terms/api-1.1"
         }
       ]
     },
