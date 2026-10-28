@@ -181,13 +181,12 @@ eoxs:ElapsedTimeConstraint
     sh:message "odrl:elapsedTime takes odrl:lteq and a right operand typed xsd:duration, for example \"PT24H\"^^xsd:duration."@en .
 
 # eox-policy:acceptedTerms (Declared, dataspace-ecosystem MR !145): odrl:eq and the IRI
-# of one version of the terms. The right operand is an IRI, an xsd:anyURI literal (a
-# connector that includes dataspace-ecosystem MR !134, merged, normalises {"@id"}
-# into one; without it {"@id"} is refused with HTTP 500, eclipse-edc/Connector#6066)
-# or a string (what the policy editor sends), and its text is an http(s) IRI with an
-# authority or a urn:, as MR !145 requires; it refuses a compact IRI and a did: IRI.
-# The shapes are deliberately stricter than MR !145, which accepts any scheme that
-# has an authority (for example ftp://).
+# of one version of the terms, written as a plain string (or an xsd:anyURI literal):
+# an http(s) IRI with an authority, or a urn:, the same rule as MR !145. A compact IRI
+# and a did: IRI are refused. An {"@id"} right operand is refused too: upstream EDC
+# rejects it with HTTP 400 since eclipse-edc/Connector#6164 (a right operand is a
+# literal), and dataspace-ecosystem MR !134 only keeps it working as a deprecated
+# compatibility transform ({"@id": X} -> "X") whose support will be dropped.
 eoxs:AcceptedTermsConstraint
     a sh:NodeShape ;
     sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
@@ -195,10 +194,10 @@ eoxs:AcceptedTermsConstraint
         [ sh:not [ sh:path odrl:leftOperand ; sh:pattern "^https://eona-x\\.eu/vocabulary/odrl-profile#acceptedTerms$" ] ]
         [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:eq ) ] ;
           sh:property [ sh:path odrl:rightOperand ; sh:minCount 1 ; sh:maxCount 1 ;
-                        sh:or ( [ sh:nodeKind sh:IRI ] [ sh:datatype xsd:anyURI ] [ sh:datatype xsd:string ] ) ;
+                        sh:or ( [ sh:datatype xsd:anyURI ] [ sh:datatype xsd:string ] ) ;
                         sh:pattern "^(https?://[^/?#\\s]+([A-Za-z0-9\\-._~:/?#\\[\\]@!$&'()*+,;=%]*)?|urn:[A-Za-z0-9\\-._~:/?#\\[\\]@!$&'()*+,;=%]+)$" ; sh:flags "i" ] ]
     ) ;
-    sh:message "eox-policy:acceptedTerms takes odrl:eq and one IRI naming a single version of the terms: an http(s) IRI with an authority or a urn: IRI. dataspace-ecosystem MR !145 refuses a compact IRI such as eox-policy:terms and a did: IRI."@en .
+    sh:message "eox-policy:acceptedTerms takes odrl:eq and one IRI naming a single version of the terms: an http(s) IRI with an authority or a urn: IRI. Write it as a plain string, not {\"@id\"} (deprecated, refused by EDC since eclipse-edc/Connector#6164). dataspace-ecosystem MR !145 refuses a compact IRI such as eox-policy:terms and a did: IRI."@en .
 
 # A prohibition's remedies and consequences are Duty in EDC and are accepted, so only
 # the prohibition's own constraints are targeted.
