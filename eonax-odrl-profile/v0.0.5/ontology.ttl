@@ -28,6 +28,12 @@
 # still emits (eona-x/backlog#799). Stored policies are migrated in
 # eona-x/backlog#995 and the legacy namespace is dropped in eona-x/backlog#996.
 #
+# 0.0.5 moves odrl:delete (action), odrl:elapsedTime (left operand) and the operators
+# odrl:lt and odrl:lteq (the ones odrl:elapsedTime takes) to the Declared status,
+# for connectors that include dataspace-ecosystem MR !150 (open, not merged;
+# eona-x/backlog#1087). odrl:elapsedTime is checked on duties only. The enforced
+# subset is unchanged.
+#
 # 0.0.4 adds a Declared connector-support status for the terms the connector stores
 # and carries in offers and agreements without evaluating them. odrl:reviewPolicy
 # and eox-policy:acceptedTerms move to it, for connectors that include
@@ -89,6 +95,7 @@ eox-policy:
     dct:conformsTo <http://www.w3.org/ns/odrl/2/> ;
     dct:description """An ODRL 2.2 profile describing the exact subset of ODRL the Eona-X connector supports to express and enforce access & usage policies, extended with three credential-claim leftOperands evaluated by the connector's policy engine against presented Verifiable Credentials."""@en ;
     rdfs:comment """Descriptive, enforcement-scoped profile: it lists precisely the ODRL terms the connector binds and evaluates. Rules are enforced for odrl:Permission only (the constraint functions are registered for the Permission rule type). Evaluation always runs as a side effect of a Dataspace-Protocol interaction (catalog, contract negotiation, transfer) or catalog discovery — never as a standalone call."""@en ;
+    skos:changeNote """0.0.5: odrl:delete (action), odrl:elapsedTime (left operand) and the operators odrl:lt and odrl:lteq become Declared (stored and carried in offers and agreements, never evaluated) for connectors that include dataspace-ecosystem MR !150 (open, eona-x/backlog#1087): odrl:delete moves from eox-policy:authoringActions to eox-policy:declaredActions, odrl:elapsedTime from eox-policy:authoringLeftOperands to eox-policy:declaredLeftOperands, and odrl:lteq from eox-policy:authoringOperators to the new eox-policy:declaredOperators, which also lists odrl:lt (odrl:eq is already enforced); eox-policy:authoringLeftOperands and eox-policy:authoringOperators are removed, having no member left; the odrl:elapsedTime usage note gives the operators (odrl:lt, odrl:lteq, odrl:eq), the right operand (a non-negative xsd:duration lexical form, written as a plain string; a typed literal is reduced to its value; the datatype IRI is refused), the rule kind (duty only: HTTP 400 on a permission or a prohibition; an enforced permission constraint is eona-x/backlog#1091); the statements that odrl:elapsedTime takes odrl:lteq and a right operand typed xsd:duration are removed; the second fail-open path now covers a permission whose action is odrl:reviewPolicy or odrl:delete; the enforced subset is unchanged; terms stay in the stable namespace https://eona-x.eu/vocabulary/odrl-profile#, this release being identified by its owl:versionIRI."""@en ;
     skos:changeNote """0.0.4: new connector-support status eox-policy:Declared (stored and carried in offers and agreements, never evaluated) for connectors that include dataspace-ecosystem MR !145 (eona-x/backlog#1064); odrl:reviewPolicy moves from eox-policy:authoringActions to eox-policy:declaredActions, and eox-policy:acceptedTerms from eox-policy:authoringLeftOperands to eox-policy:declaredLeftOperands; the eox-policy:acceptedTerms usage note gives the form (a plain string; { \"@id\": ... } is deprecated since eclipse-edc/Connector#6164 and only kept working by dataspace-ecosystem MR !134 as a compatibility transform), the rule kinds (duty, obligation, permission; not prohibition), odrl:eq only, and the IRI rule (an http(s) IRI with an authority, or urn:; other schemes, compact and did: IRIs are refused); odrl:reviewPolicy belongs in a duty or an obligation, not as a permission action; the two fail-open paths are stated (eona-x/backlog#1065), and enforcement is eona-x/backlog#1009; dataspace-ecosystem MR !133 (odrl:isNoneOf), MR !134 ({ \"@id\" } right operand rewritten to an xsd:anyURI literal) and MR !137 (stable namespace accepted next to the legacy one) are merged into dataspace-ecosystem main, and the statements of 0.0.3 that they are not merged, and that { \"@id\" } is refused with HTTP 500, are corrected ({ \"@id\" } gets HTTP 400 with MR !134 until MR !145, and is accepted and Declared with MR !145); the enforced subset is unchanged; terms stay in the stable namespace https://eona-x.eu/vocabulary/odrl-profile#, this release being identified by its owl:versionIRI."""@en ;
     skos:changeNote """0.0.3: authoring vocabulary for obligations, permissions and prohibitions (actions, rule kinds, left operands, operators, rule properties), each with a connector-support placeholder (today rejected at policy creation; stored once the connector declares the term); new left operand eox-policy:acceptedTerms; rewrite rules for lossless ingestion, including KeepAnEnforcedPermission; odrl:isNoneOf carried over as supported from 0.0.2; the eox-policy:acceptedTerms usage note states that the Eona-X management API stores no right-operand form today ({ \"@id\": ... } is refused with HTTP 500, eclipse-edc/Connector#6066; a plain string, or { \"@id\": ... } on a connector that includes dataspace-ecosystem MR !134, is refused with HTTP 400 because eox-policy:acceptedTerms is not bound) and which form to use once the connector declares the term ({ \"@id\": ... } with dataspace-ecosystem MR !134, a plain string otherwise); terms stay in the stable namespace https://eona-x.eu/vocabulary/odrl-profile#, this release being identified by its owl:versionIRI."""@en ;
     skos:changeNote """0.0.2: odrl:isAnyOf replaced by odrl:isPartOf (the IRI EDC's IN operator actually reads); odrl:hasPart moved from target to supported, with containment semantics; operator coverage and claim-shape rules stated per left operand; Duty/Prohibition behaviour stated; odrl:isNoneOf supported on GenericClaim and RestrictedDiscoveryClaim (deny-list; evaluated by connectors that include dataspace-ecosystem MR !133); claim correspondences for foreign participant credentials added; terms moved to the stable namespace https://eona-x.eu/vocabulary/odrl-profile# (eona-x/backlog#994), this release being identified by its owl:versionIRI."""@en ;
@@ -151,7 +158,7 @@ eox-policy:supportedPolicyTypes
 eox-policy:supportedRules
     a skos:Collection ;
     skos:prefLabel "Supported rules"@en ;
-    skos:scopeNote """Only odrl:Permission is enforced: the credential constraint functions are registered for the Permission rule type. A credential-claim constraint (eox-policy:Membership, GenericClaim, RestrictedDiscoveryClaim) placed in an odrl:obligation, a duty or an odrl:prohibition has no function for that rule kind, so EDC's policy validation rejects the policy definition when it is created or updated (HTTP 400). A duty or prohibition is accepted only when its action is bound and it has no constraint on an unbound operand, and even then nothing in the connector checks it. eox-policy:acceptedTerms is the exception: see eox-policy:declaredLeftOperands."""@en ;
+    skos:scopeNote """Only odrl:Permission is enforced: the credential constraint functions are registered for the Permission rule type. A credential-claim constraint (eox-policy:Membership, GenericClaim, RestrictedDiscoveryClaim) placed in an odrl:obligation, a duty or an odrl:prohibition has no function for that rule kind, so EDC's policy validation rejects the policy definition when it is created or updated (HTTP 400). A duty or prohibition is accepted only when its action is bound and it has no constraint on an unbound operand, and even then nothing in the connector checks it. eox-policy:acceptedTerms and odrl:elapsedTime are the exception: see eox-policy:declaredLeftOperands."""@en ;
     skos:member odrl:Permission, odrl:permission .
 
 eox-policy:supportedActions
@@ -266,7 +273,7 @@ eox-policy:Declared
     rdfs:isDefinedBy eox-policy: ;
     skos:prefLabel "Declared"@en ;
     skos:definition "The connector stores a policy definition that uses the term and carries the term in catalog offers and contract agreements, but never evaluates it. The term is bound only to the scope eox.profile.declared, which no component evaluates, and the scope filter removes it at catalog, contract negotiation, transfer and catalog discovery. It binds the parties contractually."@en ;
-    skos:scopeNote "Applies to connectors that include dataspace-ecosystem MR !145 (eona-x/backlog#1064, not merged). A connector without it rejects a policy definition that uses the term (HTTP 400), as for eox-policy:AwaitingConnectorSupport. Making the term enforced (proof of acceptance) is eona-x/backlog#1009."@en .
+    skos:scopeNote "Applies to connectors that include dataspace-ecosystem MR !145 (eona-x/backlog#1064, merged) for odrl:reviewPolicy and eox-policy:acceptedTerms, and MR !150 (eona-x/backlog#1087, open, not merged) for odrl:delete, odrl:elapsedTime and the operators odrl:lt and odrl:lteq. A connector without the matching MR rejects a policy definition that uses the term (HTTP 400), as for eox-policy:AwaitingConnectorSupport. Making the term enforced (proof of acceptance) is eona-x/backlog#1009."@en .
 
 eox-policy:AwaitingConnectorSupport
     a skos:Concept ;
@@ -284,23 +291,31 @@ eox-policy:leftOperands eox-policy:connectorSupport eox-policy:Enforced .
 #################################################################
 #  Terms the connector validates at policy creation, stores, and carries in
 #  catalog offers and contract agreements, without ever evaluating them
-#  (eox-policy:Declared). They need dataspace-ecosystem MR !145.
+#  (eox-policy:Declared). They need dataspace-ecosystem MR !145 (odrl:reviewPolicy, eox-policy:acceptedTerms) or MR !150 (odrl:delete, odrl:elapsedTime, odrl:lt, odrl:lteq).
 
 eox-policy:declaredActions
     a skos:Collection ;
     skos:prefLabel "Declared actions"@en ;
-    skos:scopeNote "Actions the connector stores and carries in offers and agreements without evaluating them. odrl:reviewPolicy belongs in a duty or a policy-level obligation, usually with an eox-policy:acceptedTerms constraint. It is never a permission action: a permission whose action is declared is dropped whole at every evaluated scope, with every constraint on it, including eox-policy:Membership, GenericClaim and RestrictedDiscoveryClaim. That is a fail-open path with no guard in the connector (eona-x/backlog#1065). The profile shapes (eonax-odrl-profile-shapes v0.0.4) refuse it."@en ;
-    skos:member odrl:reviewPolicy ;
+    skos:scopeNote "Actions the connector stores and carries in offers and agreements without evaluating them. odrl:reviewPolicy belongs in a duty or a policy-level obligation, usually with an eox-policy:acceptedTerms constraint. odrl:delete belongs in a duty, a policy-level obligation or the remedy of a prohibition, typically bounded by an odrl:elapsedTime constraint. Neither is ever a permission action: a permission whose action is odrl:reviewPolicy or odrl:delete is dropped whole at every evaluated scope, with every constraint on it, including eox-policy:Membership, GenericClaim and RestrictedDiscoveryClaim. That is a fail-open path with no guard in the connector (eona-x/backlog#1065). The profile shapes (eonax-odrl-profile-shapes v0.0.5) refuse it."@en ;
+    skos:member odrl:reviewPolicy, odrl:delete ;
     eox-policy:connectorSupport eox-policy:Declared ;
-    skos:editorialNote "Bound only to the scope eox.profile.declared by dataspace-ecosystem MR !145 (merged). Evaluation waits for eona-x/backlog#1009."@en .
+    skos:editorialNote "Bound only to the scope eox.profile.declared by dataspace-ecosystem MR !145 (merged) for odrl:reviewPolicy and MR !150 (open, eona-x/backlog#1087) for odrl:delete. Evaluation of odrl:reviewPolicy waits for eona-x/backlog#1009."@en .
 
 eox-policy:declaredLeftOperands
     a skos:Collection ;
     skos:prefLabel "Declared left operands"@en ;
-    skos:scopeNote "Left operands the connector validates at policy creation (operator and right operand), stores and carries in offers and agreements without evaluating them. They are accepted in the constraints of duties (including policy-level obligations) and permissions, and refused on a prohibition (HTTP 400: no function for that rule kind)."@en ;
-    skos:member eox-policy:acceptedTerms ;
+    skos:scopeNote "Left operands the connector validates at policy creation (operator and right operand), stores and carries in offers and agreements without evaluating them. eox-policy:acceptedTerms is accepted in the constraints of duties (including policy-level obligations) and permissions, and refused on a prohibition (HTTP 400: no function for that rule kind). odrl:elapsedTime is accepted in the constraints of duties only (policy-level obligations and prohibition remedies are duties in EDC) and refused on a permission and on a prohibition (HTTP 400: no function for that rule kind); an enforced permission constraint is eona-x/backlog#1091."@en ;
+    skos:member eox-policy:acceptedTerms, odrl:elapsedTime ;
     eox-policy:connectorSupport eox-policy:Declared ;
-    skos:editorialNote "Bound only to the scope eox.profile.declared, with a validation function on Duty and Permission, by dataspace-ecosystem MR !145 (merged). Evaluation waits for eona-x/backlog#1009."@en .
+    skos:editorialNote "Bound only to the scope eox.profile.declared. eox-policy:acceptedTerms has a validation function on Duty and Permission (dataspace-ecosystem MR !145, merged); odrl:elapsedTime has one on Duty only (MR !150, open, eona-x/backlog#1087). Evaluation of eox-policy:acceptedTerms waits for eona-x/backlog#1009."@en .
+
+eox-policy:declaredOperators
+    a skos:Collection ;
+    skos:prefLabel "Declared operators"@en ;
+    skos:scopeNote "Operators the connector accepts with the declared left operands without evaluating them: odrl:lt and odrl:lteq bound a duration such as odrl:elapsedTime. odrl:eq, the third operator odrl:elapsedTime takes, is already in eox-policy:supportedOperators."@en ;
+    skos:member odrl:lt, odrl:lteq ;
+    eox-policy:connectorSupport eox-policy:Declared ;
+    skos:editorialNote "Accepted by the validation function of odrl:elapsedTime in dataspace-ecosystem MR !150 (open, eona-x/backlog#1087)."@en .
 
 eox-policy:acceptedTerms
     a odrl:LeftOperand, skos:Concept ;
@@ -313,10 +328,20 @@ Form: a plain string \"<IRI>\". The form { \"@id\": \"<IRI>\" } is deprecated: u
 IRI rule (dataspace-ecosystem MR !145 and the shapes): an http(s) IRI with an authority, or a urn:. Other schemes, a compact IRI such as eox-policy:terms and a did: IRI are refused (HTTP 400). Only odrl:eq is accepted.
 A connector without dataspace-ecosystem MR !145 refuses the policy definition (HTTP 400, \"leftOperand is not bound to any scopes\").
 Status: Declared (see eox-policy:Declared). The term is carried in offers and agreements and never evaluated: the connector does not check that the consumer accepted the terms.
-Two fail-open paths, with no guard in the connector (eona-x/backlog#1065): (1) a policy whose permissions carry only declared terms evaluates as empty, so it is open to every FullMember (NonFullMemberDefaultDenyValidator still applies): keep an enforced permission (eox-policy:KeepAnEnforcedPermission); (2) a permission whose action is odrl:reviewPolicy is dropped whole at every evaluated scope, with its Membership, GenericClaim or RestrictedDiscoveryClaim constraints: write odrl:reviewPolicy in a duty or an obligation, never as a permission action.
+Two fail-open paths, with no guard in the connector (eona-x/backlog#1065): (1) a policy whose permissions carry only declared terms evaluates as empty, so it is open to every FullMember (NonFullMemberDefaultDenyValidator still applies): keep an enforced permission (eox-policy:KeepAnEnforcedPermission); (2) a permission whose action is odrl:reviewPolicy or odrl:delete is dropped whole at every evaluated scope, with its Membership, GenericClaim or RestrictedDiscoveryClaim constraints: write odrl:reviewPolicy and odrl:delete in a duty, an obligation or a remedy, never as a permission action.
 Proof of acceptance (enforcing the term) is eona-x/backlog#1009."""@en ;
     skos:scopeNote "Declared, not evaluated (see eox-policy:declaredLeftOperands). The Eona-X portal asks a person to read and accept the policy before it sends a contract request, which is a human gate on the consumer side, not proof for the provider."@en ;
     skos:example "eox-policy:acceptedTerms eq \"https://example.org/terms/v1.1\""@en .
+
+# odrl:elapsedTime is an ODRL 2.2 term reused as-is; the note below states how the
+# Eona-X connector treats it.
+odrl:elapsedTime
+    skos:note """Usage: leftOperand odrl:elapsedTime, operator odrl:lt, odrl:lteq or odrl:eq (no other operator), right operand a non-negative xsd:duration lexical form (P with at least one component, an optional T part with at least one component; \"PT24H\", \"P7D\", \"PT0S\"). A negative duration (\"-P1D\") and a free-form value (\"24h\") are refused.
+Where: in the constraints of a duty, a policy-level obligation or a prohibition remedy, typically to bound an odrl:delete duty (\"delete within 24 hours\"). It is refused on a permission and on a prohibition (HTTP 400: no function for that rule kind). An enforced permission constraint is eona-x/backlog#1091.
+Form: a plain string \"PT24H\" is recommended. A typed literal { \"@value\": \"PT24H\", \"@type\": \"xsd:duration\" } is accepted and reduced to its value on ingestion, so it is stored as the plain string \"PT24H\". The datatype IRI \"http://www.w3.org/2001/XMLSchema#duration\" as a right operand is refused (the dataspace-ui policy editor produces it), and so is { \"@id\": ... }.
+Status: Declared (see eox-policy:Declared). The term is carried in offers and agreements and never evaluated: the connector does not measure elapsed time.
+A connector without dataspace-ecosystem MR !150 (eona-x/backlog#1087, open) refuses the policy definition (HTTP 400, \"leftOperand is not bound to any scopes\")."""@en ;
+    skos:example "odrl:elapsedTime lteq \"PT24H\""@en .
 
 #################################################################
 #  Authoring vocabulary: obligations, permissions, prohibitions
@@ -339,25 +364,9 @@ eox-policy:authoringActions
     skos:member odrl:read, odrl:display, odrl:present, odrl:print, odrl:archive, odrl:index,
                 odrl:aggregate, odrl:derive, odrl:extract, odrl:reproduce,
                 odrl:sell, odrl:give, odrl:grantUse,
-                odrl:delete, odrl:attribute, odrl:acceptTracking ;
+                odrl:attribute, odrl:acceptTracking ;
     eox-policy:connectorSupport eox-policy:AwaitingConnectorSupport ;
     skos:editorialNote "Waits for the connector to declare these actions. Until then EDC's policy validation rejects any policy definition with a rule whose action is one of them (\"action is not bound to any scopes\")."@en .
-
-eox-policy:authoringLeftOperands
-    a skos:Collection ;
-    skos:prefLabel "Authoring left operands"@en ;
-    skos:scopeNote "Left operands accepted in the constraints of obligations, duties and permissions, in addition to the enforced credential-claim operands."@en ;
-    skos:member odrl:elapsedTime ;
-    eox-policy:connectorSupport eox-policy:AwaitingConnectorSupport ;
-    skos:editorialNote "Waits for the connector to declare these operands, with a function that validates the right operand (for example an xsd:duration for odrl:elapsedTime). Until then EDC's policy validation rejects the policy definition (\"leftOperand is not bound to any scopes\" and \"is not bound to any functions\")."@en .
-
-eox-policy:authoringOperators
-    a skos:Collection ;
-    skos:prefLabel "Authoring operators"@en ;
-    skos:scopeNote "Operators accepted with the authoring left operands, in addition to the enforced operators: odrl:lteq bounds a duration such as odrl:elapsedTime (right operand typed xsd:duration)."@en ;
-    skos:member odrl:lteq ;
-    eox-policy:connectorSupport eox-policy:AwaitingConnectorSupport ;
-    skos:editorialNote "Waits for a constraint function that compares durations."@en .
 
 eox-policy:authoringRuleProperties
     a skos:Collection ;
