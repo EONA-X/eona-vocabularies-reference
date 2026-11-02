@@ -13,7 +13,8 @@
 # in this repository's CI.
 #
 # The shapes also check the Declared terms of the profile (eox-policy:Declared,
-# dataspace-ecosystem MR !145): eox-policy:acceptedTerms and odrl:reviewPolicy.
+# dataspace-ecosystem MR !145 and MR !150): eox-policy:acceptedTerms,
+# odrl:reviewPolicy, odrl:delete and odrl:elapsedTime.
 #
 # Severity:
 #   Violation - breaks a profile rule, or would be changed or lost on ingestion.
@@ -152,8 +153,8 @@ eoxs:ConstraintShape
     ] , [
         sh:path odrl:operator ;
         sh:minCount 1 ; sh:maxCount 1 ;
-        sh:in ( odrl:eq odrl:neq odrl:isPartOf odrl:hasPart odrl:lteq odrl:isNoneOf ) ;
-        sh:message "The operator is not in the Eona-X ODRL profile (supported or authoring operators). For set membership use odrl:isPartOf, not odrl:isAnyOf."@en
+        sh:in ( odrl:eq odrl:neq odrl:isPartOf odrl:hasPart odrl:lt odrl:lteq odrl:isNoneOf ) ;
+        sh:message "The operator is not in the Eona-X ODRL profile (supported or declared operators). For set membership use odrl:isPartOf, not odrl:isAnyOf."@en
     ] , [
         sh:path odrl:rightOperand ;
         sh:minCount 1 ;
@@ -170,16 +171,25 @@ eoxs:LeftOperandInProfile
     ) ;
     sh:message "The left operand is not in the Eona-X ODRL profile. An EDC built-in (for example edc:inForceDate) may still be accepted by the connector."@en .
 
-# odrl:elapsedTime: odrl:lteq and an xsd:duration.
+# odrl:elapsedTime (Declared, dataspace-ecosystem MR !150): odrl:lt, odrl:lteq or odrl:eq
+# and one non-negative xsd:duration lexical form, written as a plain string
+# (recommended) or as an xsd:duration typed literal (MR !150 reduces it to its value).
+# The pattern is an XPath regular expression without lookaheads: P, then at least one
+# of years, months, days, or a T part with at least one of hours, minutes, seconds
+# (fractional seconds allowed), and no sign. The datatype IRI
+# "http://www.w3.org/2001/XMLSchema#duration" (what the dataspace-ui editor produces),
+# a free-form value such as "24h", a negative duration and {"@id"} are refused.
 eoxs:ElapsedTimeConstraint
     a sh:NodeShape ;
     sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
     sh:or (
         [ sh:not [ sh:path odrl:leftOperand ; sh:hasValue odrl:elapsedTime ] ]
-        [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:lteq ) ] ;
-          sh:property [ sh:path odrl:rightOperand ; sh:datatype xsd:duration ] ]
+        [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:lt odrl:lteq odrl:eq ) ] ;
+          sh:property [ sh:path odrl:rightOperand ; sh:minCount 1 ; sh:maxCount 1 ;
+                        sh:or ( [ sh:datatype xsd:string ] [ sh:datatype xsd:duration ] ) ;
+                        sh:pattern "^P(([0-9]+Y([0-9]+M)?([0-9]+D)?|[0-9]+M([0-9]+D)?|[0-9]+D)(T([0-9]+H([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?|[0-9]+M([0-9]+(\\.[0-9]+)?S)?|[0-9]+(\\.[0-9]+)?S))?|(T([0-9]+H([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?|[0-9]+M([0-9]+(\\.[0-9]+)?S)?|[0-9]+(\\.[0-9]+)?S)))$" ] ]
     ) ;
-    sh:message "odrl:elapsedTime takes odrl:lteq and a right operand typed xsd:duration, for example \"PT24H\"^^xsd:duration."@en .
+    sh:message "odrl:elapsedTime takes odrl:lt, odrl:lteq or odrl:eq and one non-negative xsd:duration, written as a plain string such as \"PT24H\" (or an xsd:duration typed literal). The datatype IRI, a free-form value such as \"24h\", a negative duration such as \"-P1D\" and { \"@id\" } are refused."@en .
 
 # eox-policy:acceptedTerms (Declared, dataspace-ecosystem MR !145): odrl:eq and the IRI
 # of one version of the terms, written as a plain string (or an xsd:anyURI literal):
@@ -215,6 +225,22 @@ eoxs:NoAcceptedTermsOnProhibition
         sh:message "eox-policy:acceptedTerms is declared on duties, obligations and permissions only: dataspace-ecosystem MR !145 has no function for it on a prohibition and rejects the policy (HTTP 400)."@en
     ] .
 
+# odrl:elapsedTime has a validation function on Duty only in dataspace-ecosystem MR !150.
+# Duties, policy-level obligations and prohibition remedies are Duty in EDC and are
+# accepted, so only the constraints of a permission or a prohibition are targeted.
+eoxs:ElapsedTimeOnDutiesOnly
+    a sh:NodeShape ;
+    sh:targetObjectsOf odrl:permission, odrl:prohibition ;
+    sh:property [
+        sh:path [ sh:alternativePath (
+            ( odrl:constraint odrl:leftOperand )
+            ( odrl:constraint odrl:or odrl:leftOperand )
+            ( odrl:constraint odrl:or [ sh:zeroOrMorePath rdf:rest ] rdf:first odrl:leftOperand )
+        ) ] ;
+        sh:not [ sh:hasValue odrl:elapsedTime ] ;
+        sh:message "odrl:elapsedTime is declared on duties, obligations and prohibition remedies only: dataspace-ecosystem MR !150 has no function for it on a permission or a prohibition and rejects the policy (HTTP 400). An enforced permission constraint is eona-x/backlog#1091."@en
+    ] .
+
 eoxs:ReviewPolicyNotAPermissionAction
     a sh:NodeShape ;
     sh:targetObjectsOf odrl:permission ;
@@ -222,6 +248,15 @@ eoxs:ReviewPolicyNotAPermissionAction
         sh:path odrl:action ;
         sh:not [ sh:hasValue odrl:reviewPolicy ] ;
         sh:message "odrl:reviewPolicy is not a permission action: write it as a duty or an obligation. The connector drops a permission whose action is declared, with every constraint on it (eona-x/backlog#1065)."@en
+    ] .
+
+eoxs:DeleteNotAPermissionAction
+    a sh:NodeShape ;
+    sh:targetObjectsOf odrl:permission ;
+    sh:property [
+        sh:path odrl:action ;
+        sh:not [ sh:hasValue odrl:delete ] ;
+        sh:message "odrl:delete is not a permission action: write it as a duty, an obligation or the remedy of a prohibition. The connector drops a permission whose action is declared, with every constraint on it (eona-x/backlog#1065)."@en
     ] .
 
 # Credential-claim operands: the operators the connector's constraint functions accept.
