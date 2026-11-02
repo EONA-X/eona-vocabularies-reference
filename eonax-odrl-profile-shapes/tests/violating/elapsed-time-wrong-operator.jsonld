@@ -37,12 +37,9 @@
                 "@id": "odrl:elapsedTime"
               },
               "odrl:operator": {
-                "@id": "odrl:eq"
+                "@id": "odrl:neq"
               },
-              "odrl:rightOperand": {
-                "@value": "PT24H",
-                "@type": "xsd:duration"
-              }
+              "odrl:rightOperand": "PT24H"
             }
           ]
         }
