@@ -46,7 +46,7 @@ eoxs:
     dct:title "Eona-X ODRL Profile SHACL shapes"@en ;
     owl:versionInfo "0.0.5" ;
     owl:priorVersion <https://eona-x.eu/shape/odrl-profile-shapes/v0.0.4#> ;
-    skos:changeNote """0.0.5: for eonax-odrl-profile v0.0.5 (odrl:delete and odrl:elapsedTime are Declared, dataspace-ecosystem MR !150, eona-x/backlog#1087): odrl:elapsedTime takes odrl:lt or odrl:lteq (odrl:eq is refused; odrl:lt joins the global operator list), only on a duty whose action is odrl:delete, and a right operand that is a plain string or an xsd:duration typed literal, in both cases a non-negative xsd:duration lexical form of at most 64 characters, a zero duration being refused with odrl:lt (odrl:lteq "PT0S" conforms); the datatype IRI, a free-form value, a negative duration and { "@id" } are refused; new shapes eoxs:DeleteNotAPermissionAction and eoxs:DeleteNotAProhibitionAction (odrl:delete is the action of a duty only, eona-x/backlog#1065), eoxs:ElapsedTimeOnDeleteDutyOnly and eoxs:ElapsedTimeOnDutiesOnly (odrl:elapsedTime is refused on a permission and on a prohibition, accepted on duties, obligations and prohibition remedies; the connector answers HTTP 400, an enforced permission constraint is eona-x/backlog#1091)."""@en ;
+    skos:changeNote """0.0.5: for eonax-odrl-profile v0.0.5 (odrl:delete and odrl:elapsedTime are Declared, dataspace-ecosystem MR !150, eona-x/backlog#1087): odrl:elapsedTime takes odrl:lt or odrl:lteq (odrl:eq is refused; odrl:lt joins the global operator list), only as a direct constraint of an odrl:delete duty or policy-level obligation, and a right operand that is a plain string or an xsd:duration typed literal, in both cases a non-negative xsd:duration lexical form of at most 64 characters, a zero duration being refused with odrl:lt (odrl:lteq "PT0S" conforms); the datatype IRI, a free-form value, a negative duration and { "@id" } are refused; new shapes eoxs:DeleteNotAPermissionAction, eoxs:DeleteNotAProhibitionAction and eoxs:DeleteNotARemedyOrConsequenceAction (odrl:delete is the action of a permission duty or a policy-level obligation only, eona-x/backlog#1065), eoxs:ElapsedTimeOnDeleteDutyOnly (odrl:elapsedTime is a direct constraint of such a delete duty or obligation only; refused on a permission, prohibition, remedy, consequence, in odrl:or and in an action refinement; the connector answers HTTP 400, an enforced permission constraint is eona-x/backlog#1091)."""@en ;
     skos:changeNote """0.0.4: new shapes eoxs:NoAcceptedTermsOnProhibition and eoxs:ReviewPolicyNotAPermissionAction; eox-policy:acceptedTerms requires odrl:eq and one IRI, an http(s) IRI with an authority or a urn: IRI, made of characters java.net.URI accepts (stricter than dataspace-ecosystem MR !145, which accepts any scheme that has an authority); the declared actions of eox-policy:declaredActions are part of the profile actions."""@en ;
     rdfs:seeAlso <https://eona-x.eu/vocabulary/odrl-profile#> ;
     dct:description "SHACL shapes checking an ODRL policy against the authoring rules of the Eona-X ODRL Profile v0.0.5."@en .
@@ -228,38 +228,25 @@ eoxs:NoAcceptedTermsOnProhibition
         sh:message "eox-policy:acceptedTerms is declared on duties, obligations and permissions only: dataspace-ecosystem MR !145 has no function for it on a prohibition and rejects the policy (HTTP 400)."@en
     ] .
 
-# odrl:elapsedTime has a validation function on Duty only in dataspace-ecosystem MR !150.
-# Duties, policy-level obligations and prohibition remedies are Duty in EDC and are
-# accepted, so only the constraints of a permission or a prohibition are targeted.
-eoxs:ElapsedTimeOnDutiesOnly
-    a sh:NodeShape ;
-    sh:targetObjectsOf odrl:permission, odrl:prohibition ;
-    sh:property [
-        sh:path [ sh:alternativePath (
-            ( odrl:constraint odrl:leftOperand )
-            ( odrl:constraint odrl:or odrl:leftOperand )
-            ( odrl:constraint odrl:or [ sh:zeroOrMorePath rdf:rest ] rdf:first odrl:leftOperand )
-        ) ] ;
-        sh:not [ sh:hasValue odrl:elapsedTime ] ;
-        sh:message "odrl:elapsedTime is declared on duties, obligations and prohibition remedies only: dataspace-ecosystem MR !150 has no function for it on a permission or a prohibition and rejects the policy (HTTP 400). An enforced permission constraint is eona-x/backlog#1091."@en
-    ] .
-
-# odrl:elapsedTime bounds an odrl:delete duty: on a duty, an obligation, a remedy or a
-# consequence (all Duty in EDC) its action is odrl:delete.
+# odrl:elapsedTime bounds an odrl:delete duty (dataspace-ecosystem MR !150): it is a
+# direct odrl:constraint of a rule that is an odrl:duty of a permission or a
+# policy-level odrl:obligation, and whose action is odrl:delete. A permission, a
+# prohibition, a remedy, a consequence, a duty with another action, an odrl:or member
+# and an action refinement all lack that shape and are refused.
 eoxs:ElapsedTimeOnDeleteDutyOnly
     a sh:NodeShape ;
-    sh:targetObjectsOf odrl:duty, odrl:obligation, odrl:remedy, odrl:consequence ;
+    sh:targetSubjectsOf odrl:leftOperand ;
     sh:or (
-        [ sh:not [ sh:property [
-            sh:path [ sh:alternativePath (
-                ( odrl:constraint odrl:leftOperand )
-                ( odrl:constraint odrl:or odrl:leftOperand )
-                ( odrl:constraint odrl:or [ sh:zeroOrMorePath rdf:rest ] rdf:first odrl:leftOperand )
-            ) ] ;
-            sh:hasValue odrl:elapsedTime ] ] ]
-        [ sh:property [ sh:path odrl:action ; sh:hasValue odrl:delete ] ]
+        [ sh:not [ sh:path odrl:leftOperand ; sh:hasValue odrl:elapsedTime ] ]
+        [ sh:property [ sh:path [ sh:inversePath odrl:constraint ] ; sh:minCount 1 ; sh:node eoxs:DeleteDuty ] ]
     ) ;
-    sh:message "odrl:elapsedTime belongs on a duty whose action is odrl:delete (dataspace-ecosystem MR !150): the constraint bounds the deletion."@en .
+    sh:message "odrl:elapsedTime is a direct constraint of an odrl:delete duty or obligation only (dataspace-ecosystem MR !150): not on a permission, a prohibition, a remedy, a consequence, a duty with another action, inside odrl:or or in an action refinement. An enforced permission constraint is eona-x/backlog#1091."@en .
+
+eoxs:DeleteDuty
+    a sh:NodeShape ;
+    sh:property [ sh:path odrl:action ; sh:hasValue odrl:delete ] ;
+    sh:or ( [ sh:property [ sh:path [ sh:inversePath odrl:duty ] ; sh:minCount 1 ] ]
+            [ sh:property [ sh:path [ sh:inversePath odrl:obligation ] ; sh:minCount 1 ] ] ) .
 
 eoxs:ReviewPolicyNotAPermissionAction
     a sh:NodeShape ;
@@ -276,7 +263,16 @@ eoxs:DeleteNotAPermissionAction
     sh:property [
         sh:path odrl:action ;
         sh:not [ sh:hasValue odrl:delete ] ;
-        sh:message "odrl:delete is not a permission action: write it as the action of a duty, an obligation or the remedy of a prohibition. The connector drops a permission whose action is declared, with every constraint on it (eona-x/backlog#1065)."@en
+        sh:message "odrl:delete is not a permission action: write it as the action of a duty of a permission or of a policy-level obligation. The connector drops a permission whose action is declared, with every constraint on it (eona-x/backlog#1065)."@en
+    ] .
+
+eoxs:DeleteNotARemedyOrConsequenceAction
+    a sh:NodeShape ;
+    sh:targetObjectsOf odrl:remedy, odrl:consequence ;
+    sh:property [
+        sh:path odrl:action ;
+        sh:not [ sh:hasValue odrl:delete ] ;
+        sh:message "odrl:delete is not a remedy or consequence action: write it as the action of a duty of a permission or of a policy-level obligation."@en
     ] .
 
 eoxs:DeleteNotAProhibitionAction
@@ -285,7 +281,7 @@ eoxs:DeleteNotAProhibitionAction
     sh:property [
         sh:path odrl:action ;
         sh:not [ sh:hasValue odrl:delete ] ;
-        sh:message "odrl:delete is not a prohibition action: write it as the action of a duty, an obligation or the remedy of a prohibition."@en
+        sh:message "odrl:delete is not a prohibition action: write it as the action of a duty of a permission or of a policy-level obligation."@en
     ] .
 
 # Credential-claim operands: the operators the connector's constraint functions accept.
