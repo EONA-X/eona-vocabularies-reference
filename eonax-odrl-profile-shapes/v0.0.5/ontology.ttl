@@ -46,7 +46,7 @@ eoxs:
     dct:title "Eona-X ODRL Profile SHACL shapes"@en ;
     owl:versionInfo "0.0.5" ;
     owl:priorVersion <https://eona-x.eu/shape/odrl-profile-shapes/v0.0.4#> ;
-    skos:changeNote """0.0.5: for eonax-odrl-profile v0.0.5 (odrl:delete and odrl:elapsedTime are Declared, dataspace-ecosystem MR !150, eona-x/backlog#1087): odrl:elapsedTime takes odrl:lt, odrl:lteq or odrl:eq (odrl:lt joins the global operator list) and a right operand that is a plain string or an xsd:duration typed literal, in both cases a non-negative xsd:duration lexical form; the datatype IRI, a free-form value, a negative duration and { "@id" } are refused; new shapes eoxs:DeleteNotAPermissionAction (odrl:delete is not a permission action, eona-x/backlog#1065) and eoxs:ElapsedTimeOnDutiesOnly (odrl:elapsedTime is refused on a permission and on a prohibition, accepted on duties, obligations and prohibition remedies; the connector answers HTTP 400, an enforced permission constraint is eona-x/backlog#1091)."""@en ;
+    skos:changeNote """0.0.5: for eonax-odrl-profile v0.0.5 (odrl:delete and odrl:elapsedTime are Declared, dataspace-ecosystem MR !150, eona-x/backlog#1087): odrl:elapsedTime takes odrl:lt or odrl:lteq (odrl:eq is refused; odrl:lt joins the global operator list), only on a duty whose action is odrl:delete, and a right operand that is a plain string or an xsd:duration typed literal, in both cases a non-negative xsd:duration lexical form of at most 64 characters, a zero duration being refused with odrl:lt (odrl:lteq "PT0S" conforms); the datatype IRI, a free-form value, a negative duration and { "@id" } are refused; new shapes eoxs:DeleteNotAPermissionAction and eoxs:DeleteNotAProhibitionAction (odrl:delete is the action of a duty only, eona-x/backlog#1065), eoxs:ElapsedTimeOnDeleteDutyOnly and eoxs:ElapsedTimeOnDutiesOnly (odrl:elapsedTime is refused on a permission and on a prohibition, accepted on duties, obligations and prohibition remedies; the connector answers HTTP 400, an enforced permission constraint is eona-x/backlog#1091)."""@en ;
     skos:changeNote """0.0.4: new shapes eoxs:NoAcceptedTermsOnProhibition and eoxs:ReviewPolicyNotAPermissionAction; eox-policy:acceptedTerms requires odrl:eq and one IRI, an http(s) IRI with an authority or a urn: IRI, made of characters java.net.URI accepts (stricter than dataspace-ecosystem MR !145, which accepts any scheme that has an authority); the declared actions of eox-policy:declaredActions are part of the profile actions."""@en ;
     rdfs:seeAlso <https://eona-x.eu/vocabulary/odrl-profile#> ;
     dct:description "SHACL shapes checking an ODRL policy against the authoring rules of the Eona-X ODRL Profile v0.0.5."@en .
@@ -171,8 +171,9 @@ eoxs:LeftOperandInProfile
     ) ;
     sh:message "The left operand is not in the Eona-X ODRL profile. An EDC built-in (for example edc:inForceDate) may still be accepted by the connector."@en .
 
-# odrl:elapsedTime (Declared, dataspace-ecosystem MR !150): odrl:lt, odrl:lteq or odrl:eq
-# and one non-negative xsd:duration lexical form, written as a plain string
+# odrl:elapsedTime (Declared, dataspace-ecosystem MR !150): odrl:lt or odrl:lteq (not odrl:eq)
+# and one non-negative xsd:duration lexical form of at most 64 characters (odrl:lt: not zero,
+# that is with a digit 1-9; odrl:lteq "PT0S" is allowed), written as a plain string
 # (recommended) or as an xsd:duration typed literal (MR !150 reduces it to its value).
 # The pattern is an XPath regular expression without lookaheads: P, then at least one
 # of years, months, days, or a T part with at least one of hours, minutes, seconds
@@ -184,12 +185,14 @@ eoxs:ElapsedTimeConstraint
     sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
     sh:or (
         [ sh:not [ sh:path odrl:leftOperand ; sh:hasValue odrl:elapsedTime ] ]
-        [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:lt odrl:lteq odrl:eq ) ] ;
-          sh:property [ sh:path odrl:rightOperand ; sh:minCount 1 ; sh:maxCount 1 ;
+        [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:lt odrl:lteq ) ] ;
+          sh:property [ sh:path odrl:rightOperand ; sh:minCount 1 ; sh:maxCount 1 ; sh:maxLength 64 ;
                         sh:or ( [ sh:datatype xsd:string ] [ sh:datatype xsd:duration ] ) ;
-                        sh:pattern "^P(([0-9]+Y([0-9]+M)?([0-9]+D)?|[0-9]+M([0-9]+D)?|[0-9]+D)(T([0-9]+H([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?|[0-9]+M([0-9]+(\\.[0-9]+)?S)?|[0-9]+(\\.[0-9]+)?S))?|(T([0-9]+H([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?|[0-9]+M([0-9]+(\\.[0-9]+)?S)?|[0-9]+(\\.[0-9]+)?S)))$" ] ]
+                        sh:pattern "^P(([0-9]+Y([0-9]+M)?([0-9]+D)?|[0-9]+M([0-9]+D)?|[0-9]+D)(T([0-9]+H([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?|[0-9]+M([0-9]+(\\.[0-9]+)?S)?|[0-9]+(\\.[0-9]+)?S))?|(T([0-9]+H([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?|[0-9]+M([0-9]+(\\.[0-9]+)?S)?|[0-9]+(\\.[0-9]+)?S)))$" ] ;
+          sh:or ( [ sh:path odrl:operator ; sh:hasValue odrl:lteq ]
+                  [ sh:path odrl:rightOperand ; sh:pattern "[1-9]" ] ) ]
     ) ;
-    sh:message "odrl:elapsedTime takes odrl:lt, odrl:lteq or odrl:eq and one non-negative xsd:duration, written as a plain string such as \"PT24H\" (or an xsd:duration typed literal). The datatype IRI, a free-form value such as \"24h\", a negative duration such as \"-P1D\" and { \"@id\" } are refused."@en .
+    sh:message "odrl:elapsedTime takes odrl:lt or odrl:lteq and one non-negative xsd:duration of at most 64 characters, written as a plain string such as \"PT24H\" (or an xsd:duration typed literal); odrl:lt takes a non-zero duration (odrl:lteq \"PT0S\" is the zero bound). The datatype IRI, a free-form value such as \"24h\", a negative duration such as \"-P1D\", a zero duration with odrl:lt and { \"@id\" } are refused."@en .
 
 # eox-policy:acceptedTerms (Declared, dataspace-ecosystem MR !145): odrl:eq and the IRI
 # of one version of the terms, written as a plain string (or an xsd:anyURI literal):
@@ -241,6 +244,23 @@ eoxs:ElapsedTimeOnDutiesOnly
         sh:message "odrl:elapsedTime is declared on duties, obligations and prohibition remedies only: dataspace-ecosystem MR !150 has no function for it on a permission or a prohibition and rejects the policy (HTTP 400). An enforced permission constraint is eona-x/backlog#1091."@en
     ] .
 
+# odrl:elapsedTime bounds an odrl:delete duty: on a duty, an obligation, a remedy or a
+# consequence (all Duty in EDC) its action is odrl:delete.
+eoxs:ElapsedTimeOnDeleteDutyOnly
+    a sh:NodeShape ;
+    sh:targetObjectsOf odrl:duty, odrl:obligation, odrl:remedy, odrl:consequence ;
+    sh:or (
+        [ sh:not [ sh:property [
+            sh:path [ sh:alternativePath (
+                ( odrl:constraint odrl:leftOperand )
+                ( odrl:constraint odrl:or odrl:leftOperand )
+                ( odrl:constraint odrl:or [ sh:zeroOrMorePath rdf:rest ] rdf:first odrl:leftOperand )
+            ) ] ;
+            sh:hasValue odrl:elapsedTime ] ] ]
+        [ sh:property [ sh:path odrl:action ; sh:hasValue odrl:delete ] ]
+    ) ;
+    sh:message "odrl:elapsedTime belongs on a duty whose action is odrl:delete (dataspace-ecosystem MR !150): the constraint bounds the deletion."@en .
+
 eoxs:ReviewPolicyNotAPermissionAction
     a sh:NodeShape ;
     sh:targetObjectsOf odrl:permission ;
@@ -256,7 +276,16 @@ eoxs:DeleteNotAPermissionAction
     sh:property [
         sh:path odrl:action ;
         sh:not [ sh:hasValue odrl:delete ] ;
-        sh:message "odrl:delete is not a permission action: write it as a duty, an obligation or the remedy of a prohibition. The connector drops a permission whose action is declared, with every constraint on it (eona-x/backlog#1065)."@en
+        sh:message "odrl:delete is not a permission action: write it as the action of a duty, an obligation or the remedy of a prohibition. The connector drops a permission whose action is declared, with every constraint on it (eona-x/backlog#1065)."@en
+    ] .
+
+eoxs:DeleteNotAProhibitionAction
+    a sh:NodeShape ;
+    sh:targetObjectsOf odrl:prohibition ;
+    sh:property [
+        sh:path odrl:action ;
+        sh:not [ sh:hasValue odrl:delete ] ;
+        sh:message "odrl:delete is not a prohibition action: write it as the action of a duty, an obligation or the remedy of a prohibition."@en
     ] .
 
 # Credential-claim operands: the operators the connector's constraint functions accept.

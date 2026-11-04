@@ -1,1 +1,1 @@
-odrl:elapsedTime takes odrl:lt, odrl:lteq or odrl:eq
+odrl:elapsedTime takes odrl:lt or odrl:lteq

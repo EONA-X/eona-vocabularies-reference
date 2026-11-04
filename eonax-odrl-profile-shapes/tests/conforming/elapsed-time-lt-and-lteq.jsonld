@@ -60,7 +60,7 @@
                 "@id": "odrl:elapsedTime"
               },
               "odrl:operator": {
-                "@id": "odrl:eq"
+                "@id": "odrl:lteq"
               },
               "odrl:rightOperand": "PT1H"
             }
