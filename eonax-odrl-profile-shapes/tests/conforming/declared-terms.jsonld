@@ -118,7 +118,7 @@
       "odrl:remedy": [
         {
           "odrl:action": {
-            "@id": "odrl:delete"
+            "@id": "odrl:reviewPolicy"
           }
         }
       ]
@@ -130,7 +130,7 @@
       "odrl:remedy": [
         {
           "odrl:action": {
-            "@id": "odrl:delete"
+            "@id": "odrl:reviewPolicy"
           }
         }
       ]
