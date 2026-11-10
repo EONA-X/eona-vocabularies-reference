@@ -1,0 +1,258 @@
+# Eona-X Chart Profile v0.1.0
+#
+# Terms and SHACL shapes for a chart dataset: one qb:DataSet (W3C RDF Data Cube,
+# data-cube/v2014) and its qb:Observation nodes, as JSON-LD read by the Eona-X UI
+# toolkit chart components.
+#
+# Contract:
+#   - exactly one qb:DataSet, with at least one rdfs:label (xsd:string or
+#     rdf:langString), any number of rdfs:comment, at most one chart:unit
+#     (xsd:string); qb:structure is optional and ignored;
+#   - 0 to 10000 qb:Observation nodes, each with qb:dataSet pointing at that
+#     dataset;
+#   - each observation has exactly one of chart:category (xsd:string) and
+#     chart:date (xsd:date, xsd:gYearMonth or xsd:gYear); all observations use the
+#     same axis property, and for dates the same datatype;
+#   - chart:value: exactly one, xsd:decimal, xsd:double, xsd:float or xsd:integer,
+#     not NaN or infinite;
+#   - chart:series: at most one xsd:string; on every observation or on none, at most
+#     8 distinct series;
+#   - the pair (chart:category or chart:date, chart:series) is unique;
+#   - chart:order: at most one xsd:integer; categories are ordered by it, then
+#     lexically; dates chronologically;
+#   - a node with qb:dataSet that is not a qb:Observation is an error; other nodes are
+#     ignored.
+#
+# Every constraint is a Violation. A document with no observation conforms and
+# renders the empty state.
+
+@prefix chart: <https://eona-x.eu/shape/chart-profile#> .
+@prefix qb:   <http://purl.org/linked-data/cube#> .
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+
+chart:
+    a owl:Ontology ;
+    rdfs:label "Eona-X Chart Profile"@en ;
+    dct:title "Eona-X Chart Profile"@en ;
+    dct:description "Terms and SHACL shapes for chart datasets expressed with the W3C RDF Data Cube vocabulary."@en ;
+    owl:versionInfo "0.1.0" ;
+    owl:versionIRI <https://eona-x.eu/shape/chart-profile/v0.1.0#> ;
+    rdfs:seeAlso <http://purl.org/linked-data/cube> .
+
+#################################################################
+#  Terms
+#################################################################
+
+chart:category
+    a owl:DatatypeProperty, qb:DimensionProperty ;
+    rdfs:label "category"@en ;
+    rdfs:comment "Category of an observation (bar and donut charts, one bar or slice per category)."@en ;
+    rdfs:domain qb:Observation ;
+    rdfs:range xsd:string .
+
+chart:date
+    a owl:DatatypeProperty, qb:DimensionProperty ;
+    rdfs:label "date"@en ;
+    rdfs:comment "Point in time of an observation (line charts and metric tiles): xsd:date, xsd:gYearMonth or xsd:gYear."@en ;
+    rdfs:domain qb:Observation .
+
+chart:series
+    a owl:DatatypeProperty, qb:DimensionProperty ;
+    rdfs:label "series"@en ;
+    rdfs:comment "Series an observation belongs to (stacked bars, multi-line charts); at most 8 per dataset."@en ;
+    rdfs:domain qb:Observation ;
+    rdfs:range xsd:string .
+
+chart:value
+    a owl:DatatypeProperty, qb:MeasureProperty ;
+    rdfs:label "value"@en ;
+    rdfs:comment "Measured value: xsd:decimal, xsd:double, xsd:float or xsd:integer, finite."@en ;
+    rdfs:domain qb:Observation .
+
+chart:unit
+    a owl:DatatypeProperty, qb:AttributeProperty ;
+    rdfs:label "unit"@en ;
+    rdfs:comment "Unit of the values of a dataset, as a display string."@en ;
+    rdfs:domain qb:DataSet ;
+    rdfs:range xsd:string .
+
+chart:order
+    a owl:DatatypeProperty, owl:AnnotationProperty ;
+    rdfs:label "order"@en ;
+    rdfs:comment "Display position of a category; categories sort by it, then lexically."@en ;
+    rdfs:domain qb:Observation ;
+    rdfs:range xsd:integer .
+
+#################################################################
+#  Shapes
+#################################################################
+
+# The document as a whole. chart:Document is a fixed target node, not a class:
+# it gives the dataset-count rules a focus node when the document holds no dataset.
+chart:DocumentShape
+    a sh:NodeShape ;
+    rdfs:label "Chart document"@en ;
+    sh:targetNode chart:Document ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "The document has no qb:DataSet." ;
+        sh:prefixes chart: ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { ?d a qb:DataSet } }""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "The document has more than one qb:DataSet." ;
+        sh:prefixes chart: ;
+        sh:select """SELECT $this WHERE { ?a a qb:DataSet . ?b a qb:DataSet . FILTER(?a != ?b) }""" ] .
+
+chart:DataSetShape
+    a sh:NodeShape ;
+    rdfs:label "Chart dataset"@en ;
+    sh:targetClass qb:DataSet ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:message "A qb:DataSet needs at least one rdfs:label." ] ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:or ( [ sh:datatype xsd:string ] [ sh:datatype rdf:langString ] ) ;
+        sh:message "rdfs:label must be an xsd:string or a language-tagged string." ] ;
+    sh:property [
+        sh:path rdfs:comment ;
+        sh:or ( [ sh:datatype xsd:string ] [ sh:datatype rdf:langString ] ) ;
+        sh:message "rdfs:comment must be an xsd:string or a language-tagged string." ] ;
+    sh:property [
+        sh:path chart:unit ;
+        sh:maxCount 1 ;
+        sh:message "A qb:DataSet has at most one chart:unit." ] ;
+    sh:property [
+        sh:path chart:unit ;
+        sh:datatype xsd:string ;
+        sh:message "chart:unit must be an xsd:string." ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A dataset has more than 10000 observations." ;
+        sh:prefixes chart: ;
+        sh:select """SELECT $this WHERE { ?o qb:dataSet $this } GROUP BY $this HAVING (COUNT(?o) > 10000)""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "The observations of a dataset mix chart:category and chart:date." ;
+        sh:prefixes chart: ;
+        sh:select """SELECT $this WHERE {
+            ?a qb:dataSet $this ; chart:category ?x .
+            ?b qb:dataSet $this ; chart:date ?y . }""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "The observations of a dataset mix date datatypes." ;
+        sh:prefixes chart: ;
+        sh:select """SELECT $this WHERE {
+            ?a qb:dataSet $this ; chart:date ?x .
+            ?b qb:dataSet $this ; chart:date ?y .
+            FILTER(datatype(?x) != datatype(?y)) }""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Put chart:series on every observation or on none." ;
+        sh:prefixes chart: ;
+        sh:select """SELECT $this WHERE {
+            ?a qb:dataSet $this ; chart:series ?s .
+            ?b qb:dataSet $this .
+            FILTER NOT EXISTS { ?b chart:series ?t } }""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A dataset has more than 8 distinct chart:series." ;
+        sh:prefixes chart: ;
+        sh:select """SELECT $this WHERE { ?o qb:dataSet $this ; chart:series ?s } GROUP BY $this HAVING (COUNT(DISTINCT ?s) > 8)""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Two observations share the same chart:category or chart:date and chart:series." ;
+        sh:prefixes chart: ;
+        sh:select """SELECT $this WHERE {
+            ?a qb:dataSet $this ; (chart:category|chart:date) ?k .
+            ?b qb:dataSet $this ; (chart:category|chart:date) ?k2 .
+            FILTER(?a != ?b && sameTerm(?k, ?k2))
+            OPTIONAL { ?a chart:series ?s1 }
+            OPTIONAL { ?b chart:series ?s2 }
+            FILTER((!bound(?s1) && !bound(?s2)) || (bound(?s1) && bound(?s2) && sameTerm(?s1, ?s2))) }""" ] .
+
+chart:DataSetReferrerShape
+    a sh:NodeShape ;
+    rdfs:label "Node pointing at a dataset"@en ;
+    sh:targetSubjectsOf qb:dataSet ;
+    sh:class qb:Observation ;
+    sh:message "A node with qb:dataSet must be a qb:Observation." .
+
+chart:ObservationShape
+    a sh:NodeShape ;
+    rdfs:label "Chart observation"@en ;
+    sh:targetClass qb:Observation ;
+    sh:property [
+        sh:path qb:dataSet ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class qb:DataSet ;
+        sh:message "A qb:Observation has exactly one qb:dataSet, a qb:DataSet." ] ;
+    sh:property [
+        sh:path chart:category ;
+        sh:maxCount 1 ;
+        sh:message "An observation has at most one chart:category." ] ;
+    sh:property [
+        sh:path chart:category ;
+        sh:datatype xsd:string ;
+        sh:message "chart:category must be an xsd:string." ] ;
+    sh:property [
+        sh:path chart:date ;
+        sh:maxCount 1 ;
+        sh:message "An observation has at most one chart:date." ] ;
+    sh:property [
+        sh:path chart:date ;
+        sh:or ( [ sh:datatype xsd:date ] [ sh:datatype xsd:gYearMonth ] [ sh:datatype xsd:gYear ] ) ;
+        sh:message "chart:date must be an xsd:date, xsd:gYearMonth or xsd:gYear." ] ;
+    sh:property [
+        sh:path chart:value ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "An observation has exactly one chart:value." ] ;
+    sh:property [
+        sh:path chart:value ;
+        sh:or ( [ sh:datatype xsd:decimal ] [ sh:datatype xsd:double ] [ sh:datatype xsd:float ] [ sh:datatype xsd:integer ] ) ;
+        sh:message "chart:value must be an xsd:decimal, xsd:double, xsd:float or xsd:integer." ] ;
+    sh:property [
+        sh:path chart:series ;
+        sh:maxCount 1 ;
+        sh:message "An observation has at most one chart:series." ] ;
+    sh:property [
+        sh:path chart:series ;
+        sh:datatype xsd:string ;
+        sh:message "chart:series must be an xsd:string." ] ;
+    sh:property [
+        sh:path chart:order ;
+        sh:maxCount 1 ;
+        sh:message "An observation has at most one chart:order." ] ;
+    sh:property [
+        sh:path chart:order ;
+        sh:datatype xsd:integer ;
+        sh:message "chart:order must be an xsd:integer." ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "An observation has both chart:category and chart:date." ;
+        sh:prefixes chart: ;
+        sh:select """SELECT $this WHERE { $this chart:category ?c ; chart:date ?d }""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "An observation has neither chart:category nor chart:date." ;
+        sh:prefixes chart: ;
+        sh:select """SELECT $this WHERE {
+            FILTER NOT EXISTS { $this chart:category ?c }
+            FILTER NOT EXISTS { $this chart:date ?d } }""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "chart:value is NaN or infinite." ;
+        sh:prefixes chart: ;
+        sh:select """SELECT $this WHERE { $this chart:value ?v FILTER(LCASE(STR(?v)) IN ("nan", "inf", "+inf", "-inf")) }""" ] .
+
+# Prefixes the sh:select queries above use.
+chart:
+    sh:declare [ sh:prefix "qb" ; sh:namespace "http://purl.org/linked-data/cube#"^^xsd:anyURI ] ,
+               [ sh:prefix "chart" ; sh:namespace "https://eona-x.eu/shape/chart-profile#"^^xsd:anyURI ] .

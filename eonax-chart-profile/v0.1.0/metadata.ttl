@@ -1,0 +1,16 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+@prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+
+<> a dcat:Dataset, adms:Asset ;
+    dcat:version "0.1.0" ;
+    dcterms:title "Eona-X Chart Profile"@en ;
+    dcterms:description "RDF Data Cube profile for chart datasets: the terms (chart:category, chart:date, chart:series, chart:value, chart:unit, chart:order) and the SHACL shapes a JSON-LD document must satisfy to be rendered as a bar, stacked bar, line, donut or metric chart."@en ;
+    dcat:type assettype:c_3948c2ed ;
+    adms:status status:CURRENT .
+
+[] vann:preferredNamespacePrefix "chart" ;
+    vann:preferredNamespaceUri "https://eona-x.eu/shape/chart-profile#" .
