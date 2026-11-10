@@ -13,7 +13,9 @@ One directory per asset, named by its slug, holding one directory per version:
 <slug>/
 ├── v<version>/               # one per published version, e.g. v0.1.0/ — v + its dcat:version
 │   ├── ontology.ttl          # the graph (alignment.ttl for a crosswalk; another name if metadata.ttl declares it)
-│   └── metadata.ttl          # title, description, classification, dcat:version, upstream attribution
+│   ├── metadata.ttl          # title, description, classification, dcat:version, upstream attribution
+│   └── context.jsonld        # optional: JSON-LD context; the hub serves it at {slug}/v<version>.context.jsonld
+│                             # and the latest version's at {slug}/context.jsonld
 ├── v<next-version>/          # a new version goes next to the previous ones, which stay published
 └── TERMS.md                  # optional: field-by-field documentation of the asset
 ```
