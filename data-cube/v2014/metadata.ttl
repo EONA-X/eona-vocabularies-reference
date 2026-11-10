@@ -1,0 +1,22 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix schema: <http://schema.org/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+@prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+
+<> a dcat:Dataset, adms:Asset ;
+    dcat:version "2014" ;
+    dcterms:title "W3C RDF Data Cube Vocabulary"@en ;
+    dcterms:description "The RDF Data Cube Vocabulary (qb) — the W3C Recommendation for publishing multi-dimensional data such as statistics as RDF. Bundled upstream copy."@en ;
+    dcat:type assettype:c_89b4bdb7 ;
+    adms:status status:CURRENT .
+
+<> dcterms:creator [ a foaf:Agent ; foaf:name "W3C" ] .
+
+<> schema:logo "w3c-hero.png" .
+
+[] vann:preferredNamespacePrefix "qb" ;
+    vann:preferredNamespaceUri "http://purl.org/linked-data/cube#" .
