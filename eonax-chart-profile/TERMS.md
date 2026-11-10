@@ -45,4 +45,4 @@ The toolkit never fetches either URL: it embeds the context and maps the stable 
 
 ## Legacy
 
-The menu package of the toolkit still uses `https://eona-x.eu/ns/menu#`, which is off-convention; it is not covered by this asset.
+The menu vocabulary of the toolkit previously used `https://eona-x.eu/ns/menu#`, which was off-convention. It is re-minted as [eonax-ui-toolkit-menu](../eonax-ui-toolkit-menu/TERMS.md) (`https://eona-x.eu/ontology/ui-toolkit-menu#`) and is not covered by this asset.
