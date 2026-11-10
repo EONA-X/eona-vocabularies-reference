@@ -1,0 +1,16 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+@prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+
+<> a dcat:Dataset, adms:Asset ;
+    dcat:version "0.1.0" ;
+    dcterms:title "Eona-X UI Toolkit Menu Vocabulary"@en ;
+    dcterms:description "RDFS classes and properties (Menu, Item, Logo, LinkAction, LanguageSwitcher, Alternate and their properties) that the @eona-x/ui-toolkit-menu package reads from JSON-LD to render the site menu."@en ;
+    dcat:type assettype:c_89b4bdb7 ;
+    adms:status status:CURRENT .
+
+[] vann:preferredNamespacePrefix "menu" ;
+    vann:preferredNamespaceUri "https://eona-x.eu/ontology/ui-toolkit-menu#" .
