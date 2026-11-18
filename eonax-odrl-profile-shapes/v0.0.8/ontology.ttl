@@ -48,7 +48,7 @@ eoxs:
     dct:title "Eona-X ODRL Profile SHACL shapes"@en ;
     owl:versionInfo "0.0.8" ;
     owl:priorVersion <https://eona-x.eu/shape/odrl-profile-shapes/v0.0.7#> ;
-    skos:changeNote """0.0.8: for eonax-odrl-profile v0.0.8 (edc:inForceDate declared, Enforced at transfer only, eona-x/backlog#1172): edc:inForceDate is a profile left operand and no longer a warning; new shapes eoxs:InForceDateConstraint (odrl:eq, odrl:neq, odrl:gt, odrl:gteq, odrl:lt or odrl:lteq, and one plain string that is an ISO-8601 instant with seconds and Z or an offset, or contractAgreement+<n>s|m|h|d with at most 9 digits) and eoxs:InForceDateOnPermissionOnly (not on a duty, obligation, prohibition, remedy or consequence); odrl:gt and odrl:gteq join the operator list."""@en ;
+    skos:changeNote """0.0.8: for eonax-odrl-profile v0.0.8 (edc:inForceDate declared, Enforced at transfer only, eona-x/backlog#1172): edc:inForceDate is a profile left operand and no longer a warning; new shapes eoxs:InForceDateConstraint (odrl:eq, odrl:neq, odrl:gt, odrl:gteq, odrl:lt or odrl:lteq, and one plain string (or an xsd:dateTime typed literal) that is an ISO-8601 instant with seconds and Z or an offset, or contractAgreement+<n>s|m|h|d with at most 9 digits) and eoxs:InForceDateOnPermissionOnly (not on a duty, obligation, prohibition, remedy or consequence); odrl:gt and odrl:gteq join the operator list."""@en ;
     skos:changeNote """0.0.7: for eonax-odrl-profile v0.0.7 (the odrl:elapsedTime period is counted from the retrieval of the data copy, not from the agreement signature); the shapes are those of 0.0.5, only the version identifiers change (no 0.0.6 release of the shapes: the profile 0.0.6 only reworded usage notes)."""@en ;
     skos:changeNote """0.0.5: for eonax-odrl-profile v0.0.5 (odrl:delete and odrl:elapsedTime are Declared, dataspace-ecosystem MR !150, eona-x/backlog#1087): odrl:elapsedTime takes odrl:lt or odrl:lteq (odrl:eq is refused; odrl:lt joins the global operator list), only as a direct constraint of an odrl:delete duty or policy-level obligation, and a right operand that is a plain string or an xsd:duration typed literal, in both cases a non-negative xsd:duration lexical form of at most 64 characters, a zero duration being refused with odrl:lt (odrl:lteq "PT0S" conforms); the datatype IRI, a free-form value, a negative duration and { "@id" } are refused; new shapes eoxs:DeleteNotAPermissionAction, eoxs:DeleteNotAProhibitionAction and eoxs:DeleteNotARemedyOrConsequenceAction (odrl:delete is the action of a permission duty or a policy-level obligation only, eona-x/backlog#1065), eoxs:ElapsedTimeOnDeleteDutyOnly (odrl:elapsedTime is a direct constraint of such a delete duty or obligation only; refused on a permission, prohibition, remedy, consequence, in odrl:or and in an action refinement; the connector answers HTTP 400, an enforced permission constraint is eona-x/backlog#1091)."""@en ;
     skos:changeNote """0.0.4: new shapes eoxs:NoAcceptedTermsOnProhibition and eoxs:ReviewPolicyNotAPermissionAction; eox-policy:acceptedTerms requires odrl:eq and one IRI, an http(s) IRI with an authority or a urn: IRI, made of characters java.net.URI accepts (stricter than dataspace-ecosystem MR !145, which accepts any scheme that has an authority); the declared actions of eox-policy:declaredActions are part of the profile actions."""@en ;
@@ -200,22 +200,25 @@ eoxs:ElapsedTimeConstraint
     sh:message "odrl:elapsedTime takes odrl:lt or odrl:lteq and one non-negative xsd:duration of at most 64 characters, written as a plain string such as \"PT24H\" (or an xsd:duration typed literal); odrl:lt takes a non-zero duration (odrl:lteq \"PT0S\" is the zero bound). The datatype IRI, a free-form value such as \"24h\", a negative duration such as \"-P1D\", a zero duration with odrl:lt and { \"@id\" } are refused."@en .
 
 # edc:inForceDate (EDC built-in, Enforced at transfer only): one of the six operators
-# ContractExpiryCheckFunction evaluates, and one plain string that it parses: an
+# ContractExpiryCheckFunction evaluates, and one string that it parses: an
 # ISO-8601 instant with seconds and Z or an offset (java.time.Instant.parse), or
 # contractAgreement+<n><s|m|h|d> (n may be negative; at most 9 digits, so that
 # Integer.parseInt does not overflow). The EDC regex also accepts "contract,greement"
 # (character class [A,a]); the shape does not. A date without a time, a time without
-# seconds, a typed literal and {"@id"} are refused: the function needs a String.
+# seconds and {"@id"} are refused: the function needs a String. A plain string is
+# recommended; an xsd:dateTime typed literal is accepted, since EDC reduces it to its
+# value when it reads the constraint (JsonObjectToConstraintTransformer).
 eoxs:InForceDateConstraint
     a sh:NodeShape ;
     sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
     sh:or (
         [ sh:not [ sh:path odrl:leftOperand ; sh:hasValue edc:inForceDate ] ]
         [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:eq odrl:neq odrl:gt odrl:gteq odrl:lt odrl:lteq ) ] ;
-          sh:property [ sh:path odrl:rightOperand ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ;
+          sh:property [ sh:path odrl:rightOperand ; sh:minCount 1 ; sh:maxCount 1 ;
+                        sh:or ( [ sh:datatype xsd:string ] [ sh:datatype xsd:dateTime ] ) ;
                         sh:pattern "^([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?(Z|[+-][0-9]{2}:[0-9]{2})|contract[Aa]greement\\+-?[0-9]{1,9}[smhd])$" ] ]
     ) ;
-    sh:message "edc:inForceDate takes odrl:eq, odrl:neq, odrl:gt, odrl:gteq, odrl:lt or odrl:lteq and one plain string: an ISO-8601 instant with seconds and Z or an offset, such as \"2026-01-01T00:00:00Z\", or contractAgreement+<n>s|m|h|d, such as \"contractAgreement+30d\". A date without a time, a time without seconds, a typed literal and {\"@id\"} are not parsed by the connector, which then refuses the transfer."@en .
+    sh:message "edc:inForceDate takes odrl:eq, odrl:neq, odrl:gt, odrl:gteq, odrl:lt or odrl:lteq and one plain string: an ISO-8601 instant with seconds and Z or an offset, such as \"2026-01-01T00:00:00Z\", or contractAgreement+<n>s|m|h|d, such as \"contractAgreement+30d\" (or an xsd:dateTime typed literal of such an instant). A date without a time, a time without seconds and {\"@id\"} are not parsed by the connector, which then refuses the transfer."@en .
 
 # edc:inForceDate is evaluated on permissions only: ContractExpiryCheckFunction is
 # registered for Permission, so EDC's policy validation rejects it on any other rule
