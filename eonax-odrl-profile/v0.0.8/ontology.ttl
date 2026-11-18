@@ -34,6 +34,10 @@
 # only: upstream EDC binds it to the transfer and policy.monitor scopes, not to
 # catalog or contract negotiation, eona-x/backlog#971). The other terms are those of
 # 0.0.7 (eona-x/backlog#1172).
+# It also carries ds-prose editor hints (prose:operator, prose:datatype, prose:closed) on
+# the left operands Membership, acceptedTerms, GenericClaim, RestrictedDiscoveryClaim,
+# odrl:elapsedTime and edc:inForceDate. They are advisory for editors, not enforced by
+# the connector.
 #
 # 0.0.7 only changes the reference event of the odrl:elapsedTime period (retrieval of
 # the data copy instead of the agreement signature); its terms are those of 0.0.6.
@@ -107,7 +111,7 @@ eox-policy:
     owl:versionIRI <https://eona-x.eu/vocabulary/odrl-profile/v0.0.8#> ;
     owl:versionInfo "0.0.8" ;
     owl:priorVersion <https://eona-x.eu/vocabulary/odrl-profile/v0.0.7#> ;
-    skos:changeNote """0.0.8: the EDC built-in left operand edc:inForceDate (https://w3id.org/edc/v0.0.1/ns/inForceDate, EDC ContractExpiryCheckFunction) is declared in the new collection eox-policy:edcLeftOperands, status eox-policy:Enforced at transfer only: upstream EDC 0.15.0 binds it to the transfer.process and policy.monitor scopes, not to catalog or contract negotiation, so an agreement is signed even when the date has passed and the transfer is then refused (eona-x/backlog#971); its usage note gives the operators (odrl:eq, odrl:neq, odrl:gt, odrl:gteq, odrl:lt, odrl:lteq), the right operand (a plain string, or an xsd:dateTime typed literal reduced to its value: an ISO-8601 instant with seconds and Z or an offset, or contractAgreement+<n>s|m|h|d) and the rule kind (a permission constraint only); the operators odrl:gt and odrl:gteq join in the new collection eox-policy:edcOperators; edc:inForceDate carries ds-prose hints (prose:operator) for the policy editor; it is not a credential-claim operand and does not count for eox-policy:KeepAnEnforcedPermission; the other terms are unchanged; terms stay in the stable namespace https://eona-x.eu/vocabulary/odrl-profile#, this release being identified by its owl:versionIRI (eona-x/backlog#1172)."""@en ;
+    skos:changeNote """0.0.8: the EDC built-in left operand edc:inForceDate (https://w3id.org/edc/v0.0.1/ns/inForceDate, EDC ContractExpiryCheckFunction) is declared in the new collection eox-policy:edcLeftOperands, status eox-policy:Enforced at transfer only: upstream EDC 0.15.0 binds it to the transfer.process and policy.monitor scopes, not to catalog or contract negotiation, so an agreement is signed even when the date has passed and the transfer is then refused (eona-x/backlog#971); its usage note gives the operators (odrl:eq, odrl:neq, odrl:gt, odrl:gteq, odrl:lt, odrl:lteq), the right operand (a plain string, or an xsd:dateTime typed literal reduced to its value: an ISO-8601 instant with seconds and Z or an offset, or contractAgreement+<n>s|m|h|d) and the rule kind (a permission constraint only); the operators odrl:gt and odrl:gteq join in the new collection eox-policy:edcOperators; ds-prose hints (prose:operator, with prose:datatype and prose:closed where they apply) for the policy editor are added to eox-policy:Membership (odrl:eq), eox-policy:acceptedTerms (odrl:eq), eox-policy:GenericClaim and eox-policy:RestrictedDiscoveryClaim (odrl:eq, odrl:neq, odrl:isPartOf, odrl:hasPart, odrl:isNoneOf), odrl:elapsedTime (odrl:lt, odrl:lteq; xsd:duration, now declared as an odrl:LeftOperand in this profile) and edc:inForceDate (the six operators, no datatype: contractAgreement+30d stays valid), each closed, so a strict ds-prose validation refuses another operator; the hints are advisory metadata for editors and enforce nothing in the connector; it is not a credential-claim operand and does not count for eox-policy:KeepAnEnforcedPermission; the other terms are unchanged; terms stay in the stable namespace https://eona-x.eu/vocabulary/odrl-profile#, this release being identified by its owl:versionIRI (eona-x/backlog#1172)."""@en ;
     skos:changeNote """0.0.7: v0.0.7 supersedes the v0.0.5 reference event of the odrl:elapsedTime period (agreement signature -> retrieval of the copy), motivated by the TDAC API terms (24 h after retrieval): odrl:elapsedTime is the age of the data copy, counted from its retrieval (the transfer that delivered it); each retrieved copy must be deleted within the duration and fetched again. Only the odrl:elapsedTime usage note changes (Period); the operators, the length, the zero duration, the right operand, the rule kind and the Declared status are unchanged; terms stay in the stable namespace https://eona-x.eu/vocabulary/odrl-profile#, this release being identified by its owl:versionIRI."""@en ;
     skos:changeNote """0.0.6: the usage notes (skos:note) of eox-policy:Membership, eox-policy:acceptedTerms and odrl:elapsedTime no longer start with "Usage:", which renderers add themselves (it was shown twice); no term, statement or status changes; terms stay in the stable namespace https://eona-x.eu/vocabulary/odrl-profile#, this release being identified by its owl:versionIRI."""@en ;
     dct:conformsTo <http://www.w3.org/ns/odrl/2/> ;
@@ -131,7 +135,9 @@ eox-policy:Membership
     skos:definition "Constraint left operand asserting that the presenting participant holds a valid MembershipCredential in the dataspace."@en ;
     skos:note """leftOperand eox-policy:Membership, operator odrl:eq, rightOperand \"active\". Satisfied when the presented credentials contain at least one credential whose type is MembershipCredential (presence == active; the right operand MUST be the literal \"active\"). Bound to the transfer, catalog, contract.negotiation and catalog.discovery rule scopes. The connector (MembershipConstraintFunction in dataspace-ecosystem) does not check the operator on Membership: any operator with right operand \"active\" is evaluated as presence of a MembershipCredential, so odrl:neq or odrl:isNoneOf \"active\" grants members instead of refusing them. Only odrl:eq is allowed, and the profile shapes (eonax-odrl-profile-shapes) enforce it."""@en ;
     skos:scopeNote "Operators: odrl:eq only."@en ;
-    skos:example "eox-policy:Membership eq \"active\""@en .
+    skos:example "eox-policy:Membership eq \"active\""@en ;
+    prose:operator odrl:eq ;
+    prose:closed true .
 
 eox-policy:GenericClaim
     a odrl:LeftOperand, skos:Concept ;
@@ -149,7 +155,9 @@ odrl:isNoneOf is evaluated only by connectors that include dataspace-ecosystem M
 Right operand of odrl:isPartOf and odrl:isNoneOf: a JSON-LD list, or an array string such as \"['a', 'b']\". A bare scalar (\"SANCTIONED\") is refused: in dataspace-ecosystem MR !133 (dataspace-ecosystem commit fa55491) JsonPathCredentialConstraintFunction reports \"Array string must be enclosed in square brackets\" and the constraint is not satisfied, so the policy denies everyone. Write a one-value list as \"['SANCTIONED']\"."""@en ;
     skos:example "eox-policy:GenericClaim.$.MembershipCredential.groups hasPart \"EMDS\""@en ,
         "eox-policy:GenericClaim.$.MembershipCredential.name isPartOf [\"Org A\", \"Org B\"]"@en ,
-        "eox-policy:GenericClaim.$.MembershipCredential.groups isNoneOf [\"SANCTIONED\"]"@en .
+        "eox-policy:GenericClaim.$.MembershipCredential.groups isNoneOf [\"SANCTIONED\"]"@en ;
+    prose:operator odrl:eq, odrl:neq, odrl:isPartOf, odrl:hasPart, odrl:isNoneOf ;
+    prose:closed true .
 
 eox-policy:RestrictedDiscoveryClaim
     a odrl:LeftOperand, skos:Concept ;
@@ -158,7 +166,9 @@ eox-policy:RestrictedDiscoveryClaim
     skos:definition "Constraint left operand equivalent to GenericClaim but evaluated in the catalog-discovery path, so that a dataset's visibility in the federated catalog is gated on a credential claim."@en ;
     skos:note """Addressing form: eox-policy:RestrictedDiscoveryClaim.$.<CredentialType>.<jsonPath>. Bound to the catalog.discovery, contract.negotiation and transfer rule scopes; it is the discovery-time counterpart of eox-policy:GenericClaim. A participant whose membershipType is not FullMember is denied by default unless the policy carries a top-level RestrictedDiscoveryClaim.$.MembershipCredential.membership.membershipType eq \"<that type>\" constraint."""@en ;
     skos:scopeNote """Operators and claim shapes: identical to eox-policy:GenericClaim, except for a bare scalar right operand of odrl:isPartOf or odrl:isNoneOf. In dataspace-ecosystem MR !133 (dataspace-ecosystem commit fa55491), CatalogDiscoveryConstraintFunction.parseToList does not refuse a bare scalar: it strips its first and last characters (\"SANCTIONED\" becomes [\"ANCTIONE\"]). With odrl:isNoneOf this fails open: a holder whose claim is SANCTIONED passes the deny-list. Always write a list or an array string, e.g. \"['SANCTIONED']\"; the profile shapes (eonax-odrl-profile-shapes) refuse a bare scalar."""@en ;
-    skos:example "eox-policy:RestrictedDiscoveryClaim.$.MembershipCredential.groups hasPart \"EMDS\""@en .
+    skos:example "eox-policy:RestrictedDiscoveryClaim.$.MembershipCredential.groups hasPart \"EMDS\""@en ;
+    prose:operator odrl:eq, odrl:neq, odrl:isPartOf, odrl:hasPart, odrl:isNoneOf ;
+    prose:closed true .
 
 #################################################################
 #  Supported ODRL core terms (reused as-is from ODRL 2.2)
@@ -349,18 +359,24 @@ Status: Declared (see eox-policy:Declared). The term is carried in offers and ag
 Two fail-open paths, with no guard in the connector (eona-x/backlog#1065): (1) a policy whose permissions carry only declared terms evaluates as empty, so it is open to every FullMember (NonFullMemberDefaultDenyValidator still applies): keep an enforced permission (eox-policy:KeepAnEnforcedPermission); (2) a permission whose action is odrl:reviewPolicy or odrl:delete is dropped whole at every evaluated scope, with its Membership, GenericClaim or RestrictedDiscoveryClaim constraints: write odrl:reviewPolicy and odrl:delete in a duty or an obligation (odrl:delete never in a remedy or consequence), never as a permission action.
 Proof of acceptance (enforcing the term) is eona-x/backlog#1009."""@en ;
     skos:scopeNote "Declared, not evaluated (see eox-policy:declaredLeftOperands). The Eona-X portal asks a person to read and accept the policy before it sends a contract request, which is a human gate on the consumer side, not proof for the provider."@en ;
-    skos:example "eox-policy:acceptedTerms eq \"https://example.org/terms/v1.1\""@en .
+    skos:example "eox-policy:acceptedTerms eq \"https://example.org/terms/v1.1\""@en ;
+    prose:operator odrl:eq ;
+    prose:closed true .
 
 # odrl:elapsedTime is an ODRL 2.2 term reused as-is; the note below states how the
 # Eona-X connector treats it.
 odrl:elapsedTime
+    a odrl:LeftOperand ;
     skos:note """leftOperand odrl:elapsedTime, operator odrl:lt or odrl:lteq (no other operator, odrl:eq included), right operand a non-negative xsd:duration lexical form of at most 64 characters (P with at least one component, an optional T part with at least one component; \"PT24H\", \"P7D\", \"PT0S\"). A negative duration (\"-P1D\") and a free-form value (\"24h\") are refused, and so is a zero duration with odrl:lt (\"PT0S\", \"P0D\", \"PT0.0S\"): odrl:lteq \"PT0S\" is the zero bound.
 Period: the age of the data copy, counted from its retrieval (the transfer that delivered it). Each retrieved copy must be deleted within the duration and fetched again.
 Where: only as a direct odrl:constraint of a duty whose action is odrl:delete (a duty of a permission, or a policy-level odrl:obligation), to bound the deletion (\"delete within 24 hours\"). It is refused on a permission and on a prohibition (HTTP 400: no function for that rule kind), on a duty with another action, in an odrl:remedy or odrl:consequence, inside odrl:or and in an action refinement. A value starting with \"-\" (\"-PT0S\", \"-P0D\") is refused. An enforced permission constraint is eona-x/backlog#1091.
 Form: a plain string \"PT24H\" is recommended. A typed literal { \"@value\": \"PT24H\", \"@type\": \"xsd:duration\" } is accepted and reduced to its value on ingestion, so it is stored as the plain string \"PT24H\". The datatype IRI \"http://www.w3.org/2001/XMLSchema#duration\" as a right operand is refused (the dataspace-ui policy editor produces it), and so is { \"@id\": ... }.
 Status: Declared (see eox-policy:Declared). The term is carried in offers and agreements and never evaluated: the connector does not measure elapsed time.
 A connector without dataspace-ecosystem MR !150 (eona-x/backlog#1087, open) refuses the policy definition (HTTP 400, \"leftOperand is not bound to any scopes\")."""@en ;
-    skos:example "odrl:elapsedTime lteq \"PT24H\""@en .
+    skos:example "odrl:elapsedTime lteq \"PT24H\""@en ;
+    prose:operator odrl:lt, odrl:lteq ;
+    prose:datatype xsd:duration ;
+    prose:closed true .
 
 #################################################################
 #  EDC built-in left operands (reused as-is from the EDC namespace)
@@ -403,7 +419,8 @@ Status: Enforced at transfer only (see eox-policy:edcLeftOperands)."""@en ;
     skos:example "edc:inForceDate gteq \"2026-01-01T00:00:00Z\""@en ,
         "edc:inForceDate lteq \"contractAgreement+30d\""@en ;
     rdfs:seeAlso <https://github.com/eclipse-edc/Connector/blob/v0.15.0/core/control-plane/lib/control-plane-policies-lib/src/main/java/org/eclipse/edc/connector/controlplane/policy/contract/ContractExpiryCheckFunction.java> ;
-    prose:operator odrl:gteq, odrl:lteq, odrl:gt, odrl:lt .
+    prose:operator odrl:eq, odrl:neq, odrl:gt, odrl:gteq, odrl:lt, odrl:lteq ;
+    prose:closed true .
 
 #################################################################
 #  Authoring vocabulary: obligations, permissions, prohibitions
