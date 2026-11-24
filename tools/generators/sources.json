@@ -1,0 +1,34 @@
+{
+  "schema-org-travel": {
+    "base": "https://raw.githubusercontent.com/schemaorg/schemaorg/5f2d8cdec99b7329459ef6584e94b6a840f88471/",
+    "files": {
+      "data/releases/30.1/schemaorg-current-https.ttl": "7f15ca89398c4f235f478a4b3b8d1f975d63c5a860b77c8a8fce01f791b7ae2f"
+    }
+  },
+  "osdm": {
+    "base": "https://raw.githubusercontent.com/UnionInternationalCheminsdeFer/OSDM/d198a80259b9399754cec68cd60278892fe04cfe/",
+    "files": {
+      "specification/OSDM-online-api.yml": "97f392a8c652f0e4f2fab9d7fda45a7566fc223d48f2b01ac24b41378f9e60d3",
+      "specification/OSDM-offline-model.json": "11235a949b423715bd4002242ccf40f64490f3b67724297ed583797c9f18239f",
+      "specification/schemas/_common.yml": "b98bd401a326a73be1cc4cbd042b5160f1bf9a0da94d8c45d904ab6e8ecd97b0",
+      "specification/schemas/aftersales.yml": "1e82c0d740a7eab309256adb387390b36ccdd8e89d73e7d004ede067592addf3",
+      "specification/schemas/booking.yml": "3018646840e83476bce48de2128e8ddc3c1e0cc9f804f090d960e11c2d66d2ab",
+      "specification/schemas/complaint.yml": "92f5f35e0c5455289a2395b6b7bced08a1c83a3ceebadfc14a7e22b16689ae0c",
+      "specification/schemas/continuous-service.yml": "db86f54c94c2733a69bda67ae716c7e1f7cff284b6b2da27b3cc6c4e7d316dee",
+      "specification/schemas/fare.yml": "e9f6a527a118d1fa3112ccaadc9ce1ed8747af6e74da47f3bf87d922b58afc69",
+      "specification/schemas/fulfillment.yml": "6de70788b69216cd2ed8fc6cc2e4ea98412d201386c822006f9a40c79a2b8f1b",
+      "specification/schemas/offer.yml": "93d0fec50471a0d4ca5c0717c0d57111d8cc8bf80b3d90d2af20431e17cdbff1",
+      "specification/schemas/person.yml": "6af9221640c55c519a2bc8cb6582c10dc3ab35598b856c51195fb4cb51b35841",
+      "specification/schemas/place.yml": "086d003bcd3959af09ece3f0b7c60ba2a383c724c7f15f664a46b6d569ffadc7",
+      "specification/schemas/product.yml": "394ebc32610e3bca441f4ebb5ac621fd7d4a0d4abdb80aeb40a9210b2019fc68",
+      "specification/schemas/transportable.yml": "b82e1efd869d858f289b7e0b9784965b7af154f4b17008ef742e92887f82dd97",
+      "specification/schemas/travel-account.yml": "ae61fe43bd4f5ee584c419bcc94c435eca87e5f6b52b8fe9b12fba44f53a4055",
+      "specification/schemas/trip.yml": "1900af4d418777787a7e0ea04cfc6cdf56487847e901e474d1b7fb09cbf4c55f",
+      "specification/schemas/ojp/_common.yml": "3d8105b2ad2118b0da8f94e4f3c6323bee4f345b383e7a26dfbe1394ab008dc2",
+      "specification/schemas/ojp/continuous-service.yml": "8c49b3d222429a0fea291fd0af34f6519c60661c8133278c0486743f4a19d456",
+      "specification/schemas/ojp/place.yml": "bf5b4609ce24776652594cc169366aa1c11052b474d2b00c215cec302803206b",
+      "specification/schemas/ojp/product.yml": "0723e8ac684ccb0ec2f9564739500618487543040c1de22f70767a150ae86e83",
+      "specification/schemas/ojp/trip.yml": "286601400bea8ae338372d499c7c55b7e54155c3f04c2364c270ff50225c6c63"
+    }
+  }
+}
