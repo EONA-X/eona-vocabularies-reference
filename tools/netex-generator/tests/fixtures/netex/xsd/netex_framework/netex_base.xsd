@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.netex.org.uk/netex" xmlns:netex="http://www.netex.org.uk/netex" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:siri="http://www.siri.org.uk/siri" xmlns:gml="http://www.opengis.net/gml/3.2" targetNamespace="http://www.netex.org.uk/netex" elementFormDefault="qualified" attributeFormDefault="unqualified" version="2.0" id="netex_base">
+	<xsd:include schemaLocation="../netex_part_1/netex_equipment.xsd"/>
+	<xsd:simpleType name="VersionIdType">
+		<xsd:restriction base="xsd:NMTOKEN"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ObjectIdType">
+		<xsd:restriction base="xsd:normalizedString">
+			<xsd:pattern value="[^:]+"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="WattageType">
+		<xsd:annotation>
+			<xsd:documentation>Power in
+				watts.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:decimal">
+			<xsd:minInclusive value="0"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="PlugTypeEnumeration">
+		<xsd:annotation>
+			<xsd:documentation>Allowed plug types.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="type2">
+				<xsd:annotation>
+					<xsd:documentation>IEC 62196 type 2.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="nema5-20"/>
+			<xsd:enumeration value="1-PhaseAC"/>
+			<xsd:enumeration value="a/b"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="CurrentTypeEnumeration">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="ac"/>
+			<xsd:enumeration value="dc"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="PlugTypeList">
+		<xsd:annotation>
+			<xsd:documentation>A list of plug types.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:list itemType="PlugTypeEnumeration"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="TokenList">
+		<xsd:list itemType="xsd:NMTOKEN"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="PlugOrCurrentEnumeration">
+		<xsd:union memberTypes="PlugTypeEnumeration CurrentTypeEnumeration"/>
+	</xsd:simpleType>
+	<xsd:complexType name="MultilingualString" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Text, possibly in several languages.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Text" type="TextType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="lang" type="xsd:language"/>
+		<xsd:attribute name="textIdType" type="xsd:string"/>
+	</xsd:complexType>
+	<xsd:complexType name="TextType">
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:string">
+				<xsd:attribute name="lang" type="xsd:language"/>
+				<xsd:attribute name="textIdType" type="xsd:string"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="PrivateCodeStructure">
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:normalizedString">
+				<xsd:attribute name="type" type="xsd:NMTOKEN"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:element name="Extensions" type="ExtensionsStructure"/>
+	<xsd:complexType name="ExtensionsStructure">
+		<xsd:annotation>
+			<xsd:documentation>Wraps an 'any' tag.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:attributeGroup name="BasicModificationDetailsGroup">
+		<xsd:attribute name="created" type="xsd:dateTime" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>Creation time.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="version" type="VersionIdType" default="any"/>
+	</xsd:attributeGroup>
+	<xsd:complexType name="EntityStructure" abstract="true">
+		<xsd:attribute name="id" type="ObjectIdType"/>
+	</xsd:complexType>
+	<xsd:complexType name="EntityInVersionStructure" abstract="true">
+		<xsd:complexContent>
+			<xsd:extension base="EntityStructure">
+				<xsd:attributeGroup ref="BasicModificationDetailsGroup"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:group name="EntityInVersionGroup">
+		<xsd:sequence>
+			<xsd:element name="Name" type="MultilingualString" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:group>
+	<xsd:complexType name="DataManagedObjectStructure" abstract="true">
+		<xsd:complexContent>
+			<xsd:extension base="EntityInVersionStructure">
+				<xsd:sequence>
+					<xsd:group ref="DataManagedObjectGroup"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:group name="DataManagedObjectGroup">
+		<xsd:sequence>
+			<xsd:element name="PrivateCode" type="PrivateCodeStructure" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:group>
+	<xsd:element name="DataManagedObject" type="DataManagedObjectStructure" abstract="true">
+		<xsd:annotation>
+			<xsd:documentation>Root of the entities.</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+	<xsd:complexType name="containmentAggregationStructure" abstract="true"/>
+	<xsd:complexType name="VersionOfObjectRefStructure">
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:normalizedString">
+				<xsd:attribute name="ref" type="ObjectIdType" use="required"/>
+				<xsd:attribute name="modification" type="xsd:NMTOKEN"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:element name="Point" type="PointStructure">
+		<xsd:annotation>
+			<xsd:documentation>A point (NeTEx). Clashes by name with the siri and gml ones.</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+	<xsd:complexType name="PointStructure">
+		<xsd:sequence>
+			<xsd:element ref="gml:Point" minOccurs="0"/>
+			<xsd:element name="Precision" type="xsd:decimal" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+</xsd:schema>

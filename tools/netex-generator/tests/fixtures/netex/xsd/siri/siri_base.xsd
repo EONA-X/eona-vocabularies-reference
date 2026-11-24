@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.siri.org.uk/siri" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.siri.org.uk/siri" elementFormDefault="qualified" version="2.0">
+	<xsd:element name="Point" type="PointStructure"/>
+	<xsd:complexType name="PointStructure">
+		<xsd:sequence>
+			<xsd:element name="Latitude" type="xsd:decimal"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="Extensions" type="xsd:anyType"/>
+</xsd:schema>
