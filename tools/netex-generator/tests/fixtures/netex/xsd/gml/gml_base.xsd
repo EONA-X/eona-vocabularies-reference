@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.opengis.net/gml/3.2" elementFormDefault="qualified" version="3.2.1">
+	<xsd:element name="Point" type="gml:PointType"/>
+	<xsd:complexType name="PointType">
+		<xsd:sequence>
+			<xsd:element name="pos" type="xsd:string"/>
+		</xsd:sequence>
+	</xsd:complexType>
+</xsd:schema>

@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.netex.org.uk/netex" xmlns:netex="http://www.netex.org.uk/netex" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:siri="http://www.siri.org.uk/siri" xmlns:gml="http://www.opengis.net/gml/3.2" targetNamespace="http://www.netex.org.uk/netex" elementFormDefault="qualified" attributeFormDefault="unqualified" version="2.0" id="netex_equipment">
+	<xsd:include schemaLocation="../netex_framework/netex_base.xsd"/>
+	<!-- === PLACE EQUIPMENT === -->
+	<xsd:element name="PlaceEquipment" abstract="true" substitutionGroup="DataManagedObject">
+		<xsd:annotation>
+			<xsd:documentation>Equipment located at a place.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:restriction base="PlaceEquipment_VersionStructure">
+					<xsd:sequence>
+						<xsd:group ref="EntityInVersionGroup" minOccurs="0"/>
+						<xsd:group ref="DataManagedObjectGroup"/>
+						<xsd:group ref="PlaceEquipmentGroup"/>
+					</xsd:sequence>
+					<xsd:attribute name="id" type="PlaceEquipmentIdType" use="required"/>
+				</xsd:restriction>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:simpleType name="PlaceEquipmentIdType">
+		<xsd:restriction base="ObjectIdType"/>
+	</xsd:simpleType>
+	<xsd:complexType name="PlaceEquipment_VersionStructure">
+		<xsd:complexContent>
+			<xsd:extension base="DataManagedObjectStructure">
+				<xsd:sequence>
+					<xsd:group ref="EntityInVersionGroup" minOccurs="0"/>
+					<xsd:group ref="PlaceEquipmentGroup"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:group name="PlaceEquipmentGroup">
+		<xsd:sequence>
+			<xsd:element name="Label" type="MultilingualString" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:group>
+	<!-- === VEHICLE CHARGING EQUIPMENT === -->
+	<xsd:element name="VehicleChargingEquipment" substitutionGroup="PlaceEquipment">
+		<xsd:annotation>
+			<xsd:documentation>Specialisation of PLACE EQUIPMENT
+			for vehicle charging.	+v2.0</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:restriction base="VehicleChargingEquipment_VersionStructure">
+					<xsd:sequence>
+						<xsd:group ref="EntityInVersionGroup" minOccurs="0"/>
+						<xsd:group ref="DataManagedObjectGroup"/>
+						<xsd:group ref="PlaceEquipmentGroup"/>
+						<xsd:group ref="VehicleChargingEquipmentGroup"/>
+					</xsd:sequence>
+					<xsd:attribute name="id" type="VehicleChargingEquipmentIdType" use="required"/>
+				</xsd:restriction>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:simpleType name="VehicleChargingEquipmentIdType">
+		<xsd:restriction base="PlaceEquipmentIdType"/>
+	</xsd:simpleType>
+	<xsd:complexType name="VehicleChargingEquipment_VersionStructure">
+		<xsd:annotation>
+			<xsd:documentation>Type for a VEHICLE CHARGING EQUIPMENT.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="PlaceEquipment_VersionStructure">
+				<xsd:sequence>
+					<xsd:group ref="VehicleChargingEquipmentGroup"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:group name="VehicleChargingEquipmentGroup">
+		<xsd:sequence>
+			<xsd:element name="FreeRecharging" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Whether recharging is free.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="MaximumPower" type="WattageType">
+				<xsd:annotation>
+					<xsd:documentation>Maximum power.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="PlugType" type="PlugTypeEnumeration" minOccurs="0"/>
+			<xsd:element name="SupportedPlugs" type="PlugTypeList" minOccurs="0"/>
+			<xsd:element name="Current" type="PlugOrCurrentEnumeration" minOccurs="0"/>
+			<xsd:element ref="TypeOfPlugRef" minOccurs="0"/>
+			<xsd:element name="rechargingStations" type="rechargingStations_RelStructure" minOccurs="0"/>
+			<xsd:element name="mixedPlaces" type="mixedPlaces_RelStructure" minOccurs="0"/>
+			<xsd:element name="Dimensions" minOccurs="0">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:element name="Width" type="xsd:decimal"/>
+						<xsd:element name="Height" type="xsd:decimal" minOccurs="0"/>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="Orientation" minOccurs="0">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:enumeration value="left"/>
+						<xsd:enumeration value="right"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:choice>
+				<xsd:element name="ChoiceA" type="xsd:string"/>
+				<xsd:element name="ChoiceB" type="xsd:string"/>
+			</xsd:choice>
+			<xsd:sequence maxOccurs="unbounded">
+				<xsd:element name="Tag" type="xsd:string"/>
+			</xsd:sequence>
+			<xsd:element name="Alias" type="xsd:string" maxOccurs="unbounded" minOccurs="0"/>
+			<xsd:element name="Place" type="PointStructure" minOccurs="0"/>
+			<xsd:element ref="Extensions" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:group>
+	<!-- === TYPE OF PLUG === -->
+	<xsd:element name="TypeOfPlug" substitutionGroup="DataManagedObject">
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:restriction base="TypeOfPlug_VersionStructure">
+					<xsd:sequence>
+						<xsd:group ref="DataManagedObjectGroup"/>
+					</xsd:sequence>
+					<xsd:attribute name="id" type="TypeOfPlugIdType" use="required"/>
+				</xsd:restriction>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:simpleType name="TypeOfPlugIdType">
+		<xsd:restriction base="ObjectIdType"/>
+	</xsd:simpleType>
+	<xsd:complexType name="TypeOfPlug_VersionStructure">
+		<xsd:complexContent>
+			<xsd:extension base="DataManagedObjectStructure"/>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="TypeOfPlugRef" type="TypeOfPlugRefStructure"/>
+	<xsd:complexType name="TypeOfPlugRefStructure">
+		<xsd:simpleContent>
+			<xsd:restriction base="VersionOfObjectRefStructure">
+				<xsd:attribute name="ref" type="TypeOfPlugIdType" use="required"/>
+			</xsd:restriction>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<!-- === PARKING === -->
+	<xsd:complexType name="Parking_VersionStructure">
+		<xsd:complexContent>
+			<xsd:extension base="DataManagedObjectStructure">
+				<xsd:sequence>
+					<xsd:element name="Capacity" type="xsd:nonNegativeInteger" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="Parking" substitutionGroup="DataManagedObject">
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:restriction base="Parking_VersionStructure">
+					<xsd:attribute name="id" type="ParkingIdType" use="required"/>
+				</xsd:restriction>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="ParkingArea" substitutionGroup="DataManagedObject">
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:restriction base="Parking_VersionStructure">
+					<xsd:attribute name="id" type="ParkingAreaIdType" use="required"/>
+				</xsd:restriction>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:simpleType name="ParkingIdType">
+		<xsd:restriction base="ObjectIdType"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="ParkingAreaIdType">
+		<xsd:restriction base="ObjectIdType"/>
+	</xsd:simpleType>
+	<xsd:element name="RechargingStation" substitutionGroup="Parking">
+		<xsd:annotation>
+			<xsd:documentation>A parking equipped for recharging.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:restriction base="RechargingStation_VersionStructure">
+					<xsd:attribute name="id" type="RechargingStationIdType" use="required"/>
+				</xsd:restriction>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:simpleType name="RechargingStationIdType">
+		<xsd:restriction base="ObjectIdType"/>
+	</xsd:simpleType>
+	<xsd:complexType name="RechargingStation_VersionStructure">
+		<xsd:complexContent>
+			<xsd:extension base="Parking_VersionStructure">
+				<xsd:sequence>
+					<xsd:element name="Voltage" type="xsd:decimal" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="RechargingStationRef" type="RechargingStationRefStructure"/>
+	<xsd:complexType name="RechargingStationRefStructure">
+		<xsd:simpleContent>
+			<xsd:restriction base="VersionOfObjectRefStructure">
+				<xsd:attribute name="ref" type="RechargingStationIdType" use="required"/>
+			</xsd:restriction>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:element name="ParkingBay_Dummy" abstract="true" substitutionGroup="PlaceEquipment">
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:restriction base="ParkingBay_VersionStructure">
+					<xsd:attribute name="id" type="ParkingBayIdType" use="required"/>
+				</xsd:restriction>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="ParkingBay" substitutionGroup="ParkingBay_Dummy">
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:restriction base="ParkingBay_VersionStructure">
+					<xsd:attribute name="id" type="ParkingBayIdType" use="required"/>
+				</xsd:restriction>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:simpleType name="ParkingBayIdType">
+		<xsd:restriction base="ObjectIdType"/>
+	</xsd:simpleType>
+	<xsd:complexType name="ParkingBay_VersionStructure">
+		<xsd:complexContent>
+			<xsd:extension base="PlaceEquipment_VersionStructure">
+				<xsd:sequence>
+					<xsd:element name="BayNumber" type="xsd:positiveInteger"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="ParkingBayRef" type="ParkingBayRefStructure"/>
+	<xsd:complexType name="ParkingBayRefStructure">
+		<xsd:simpleContent>
+			<xsd:restriction base="VersionOfObjectRefStructure">
+				<xsd:attribute name="ref" type="ParkingBayIdType" use="required"/>
+			</xsd:restriction>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<!-- === REL STRUCTURES === -->
+	<xsd:complexType name="rechargingStations_RelStructure">
+		<xsd:annotation>
+			<xsd:documentation>A list of recharging stations.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="containmentAggregationStructure">
+				<xsd:choice maxOccurs="unbounded">
+					<xsd:element ref="RechargingStationRef"/>
+					<xsd:element ref="RechargingStation"/>
+				</xsd:choice>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="mixedPlaces_RelStructure">
+		<xsd:complexContent>
+			<xsd:extension base="containmentAggregationStructure">
+				<xsd:sequence maxOccurs="unbounded">
+					<xsd:element ref="ParkingBayRef"/>
+					<xsd:element ref="RechargingStation"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<!-- === ZONE === -->
+	<xsd:complexType name="Zone_VersionStructure">
+		<xsd:complexContent>
+			<xsd:extension base="DataManagedObjectStructure">
+				<xsd:sequence>
+					<xsd:element name="Area" type="xsd:string" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="Zone" substitutionGroup="DataManagedObject">
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:restriction base="Zone_VersionStructure">
+					<xsd:attribute name="id" type="ZoneIdType" use="required"/>
+				</xsd:restriction>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="TariffZone_Dummy" abstract="true" substitutionGroup="DataManagedObject">
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:restriction base="Zone_VersionStructure">
+					<xsd:attribute name="id" type="TariffZoneIdType" use="required"/>
+				</xsd:restriction>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:simpleType name="ZoneIdType">
+		<xsd:restriction base="ObjectIdType"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="TariffZoneIdType">
+		<xsd:restriction base="ObjectIdType"/>
+	</xsd:simpleType>
+</xsd:schema>
