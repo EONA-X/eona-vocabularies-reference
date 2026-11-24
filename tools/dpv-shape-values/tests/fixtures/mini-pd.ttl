@@ -1,0 +1,7 @@
+@prefix dpv: <https://w3id.org/dpv#> .
+@prefix pd: <https://w3id.org/dpv/pd#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+pd:EmailAddress a skos:Concept ; skos:broader dpv:PdTop .
+pd:EmailAddressWork a skos:Concept ; skos:broader pd:EmailAddress .
+pd:Other a skos:Concept ; skos:broader dpv:Foo .

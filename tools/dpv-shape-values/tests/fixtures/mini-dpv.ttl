@@ -1,0 +1,21 @@
+@prefix dpv: <https://w3id.org/dpv#> .
+@prefix ex: <https://example.org/ns#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+dpv:Purpose a skos:Concept .
+dpv:A a skos:Concept ; skos:broader dpv:Purpose .
+dpv:B a skos:Concept ; skos:broader dpv:A .
+dpv:C a rdfs:Class ; rdfs:subClassOf dpv:Purpose .
+ex:Z a skos:Concept ; skos:broader dpv:Purpose .
+dpv:Foo a skos:Concept .
+
+dpv:PersonalData a skos:Concept .
+dpv:PdTop a skos:Concept ; skos:broader dpv:PersonalData .
+
+dpv:ConsentStatus a skos:Concept .
+dpv:ConsentStatusValidForProcessing a skos:Concept ; skos:broader dpv:ConsentStatus .
+dpv:ConsentStatusInvalidForProcessing a skos:Concept ; skos:broader dpv:ConsentStatus .
+dpv:ConsentGiven a skos:Concept ; skos:broader dpv:ConsentStatusValidForProcessing .
+dpv:ConsentWithdrawn a skos:Concept ; skos:broader dpv:ConsentStatusInvalidForProcessing .
+dpv:ConsentRefused a skos:Concept ; skos:broader dpv:ConsentStatusInvalidForProcessing .

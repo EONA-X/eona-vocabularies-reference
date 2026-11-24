@@ -1,0 +1,195 @@
+# The Eona-X ODRL Profile for Travel Data
+#
+# An extension of the Eona-X ODRL Profile (https://eona-x.eu/vocabulary/odrl-profile/v0.0.8#,
+# eonax-odrl-profile) for policies on personal travel data. It adds four left operands
+# that say for what purpose, for which category of personal data, under which consent
+# status and for which fields of the asset a rule applies. Their value sets are the
+# W3C Data Privacy Vocabulary 2.3 (DPV, https://w3id.org/dpv) and its personal-data
+# extension (DPV-PD, https://w3id.org/dpv/pd), vendored in this repository as dpv/v2.3
+# and dpv-pd/v2.3.
+#
+# It extends the base profile by reference: this profile declares
+# prof:isProfileOf the base release, redefines none of its terms, and a policy that
+# uses a term below names both profiles in odrl:profile (this release IRI and the base
+# release IRI).
+#
+# Every term below is eox-policy:AwaitingConnectorSupport. No connector evaluates or
+# stores them today: EDC's policy validation rejects a policy definition that uses one
+# (HTTP 400) until the connector declares the term (eona-x/backlog#1322). This profile
+# claims no enforcement at the point of use. A policy that uses these terms keeps at
+# least one permission the connector enforces (eox-policy:KeepAnEnforcedPermission of
+# the base profile): a permission whose only constraints are travel terms evaluates as
+# empty.
+#
+# Term IRIs are minted in the STABLE namespace
+# https://eona-x.eu/vocabulary/odrl-profile-travel# (prefix "eox-policy-travel"), as
+# the base profile does (eona-x/backlog#677, amended by eona-x/backlog#994): the
+# connector compares left-operand IRIs literally, so a versioned term IRI would need a
+# connector change per release. Each release is identified by its owl:versionIRI, here
+# https://eona-x.eu/vocabulary/odrl-profile-travel/v0.1.0#; a policy pins the release
+# it was written against with odrl:profile. There is no moving alias (latest, current).
+#
+# Right operands are plain strings holding a full IRI, for example
+# "https://w3id.org/dpv#ServiceProvision". A right operand is a literal since
+# eclipse-edc/Connector#6164: { "@id": ... } is refused by upstream EDC, and the shapes
+# refuse it. A compact IRI ("dpv:ServiceProvision") and the http:// form of the DPV
+# namespace do not match any value and are refused. The shapes
+# (eonax-odrl-profile-shapes v0.0.9) check each value against the DPV 2.3 value set.
+#
+# Consent withdrawal needs no new action. It is an odrl:delete duty of a permission
+# (or a policy-level obligation), constrained by eox-policy-travel:consentStatus eq
+# "https://w3id.org/dpv#ConsentWithdrawn" and, usually, an odrl:elapsedTime bound.
+# odrl:delete is Declared in the base profile (eox-policy:declaredActions,
+# dataspace-ecosystem MR !150, still open).
+#
+# Normative base: W3C ODRL 2.2 (<http://www.w3.org/ns/odrl/2/>), the Eona-X ODRL
+# Profile v0.0.8 and DPV 2.3.
+
+@base <https://eona-x.eu/vocabulary/odrl-profile-travel#> .
+@prefix eox-policy-travel: <https://eona-x.eu/vocabulary/odrl-profile-travel#> .
+@prefix eox-policy: <https://eona-x.eu/vocabulary/odrl-profile#> .
+@prefix dpv: <https://w3id.org/dpv#> .
+@prefix pd: <https://w3id.org/dpv/pd#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix prof: <http://www.w3.org/ns/dx/prof/> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix prose: <https://ds-labs-org.github.io/ds-prose-rs/profile#> .
+
+#################################################################
+#  Profile (ontology)
+#################################################################
+
+eox-policy-travel:
+    a owl:Ontology ;
+    rdfs:label "Eona-X ODRL Profile for Travel Data"@en ;
+    dct:title "Eona-X ODRL Profile for Travel Data"@en ;
+    owl:versionIRI <https://eona-x.eu/vocabulary/odrl-profile-travel/v0.1.0#> ;
+    owl:versionInfo "0.1.0" ;
+    skos:changeNote """0.1.0: first release (eona-x/backlog#1319): left operands odrl:purpose (DPV 2.3 purposes), eox-policy-travel:personalDataCategory (DPV 2.3 and DPV-PD 2.3 personal-data categories), eox-policy-travel:consentStatus (DPV 2.3 consent statuses) and eox-policy-travel:dataField (per-field scope), all eox-policy:AwaitingConnectorSupport (connector change: eona-x/backlog#1322); consent withdrawal is an odrl:delete duty constrained by eox-policy-travel:consentStatus eq dpv:ConsentWithdrawn (no new action); terms in the stable namespace https://eona-x.eu/vocabulary/odrl-profile-travel#, this release being identified by its owl:versionIRI."""@en ;
+    dct:conformsTo <http://www.w3.org/ns/odrl/2/> ;
+    prof:isProfileOf <https://eona-x.eu/vocabulary/odrl-profile/v0.0.8#> ;
+    dct:description """An ODRL 2.2 profile extending the Eona-X ODRL Profile v0.0.8 with four constraint left operands for personal travel data: purpose, personal-data category, consent status and the fields of the asset a rule covers. Value sets come from the W3C Data Privacy Vocabulary 2.3."""@en ;
+    rdfs:comment """Authoring extension: none of its terms is evaluated, and the connector rejects a policy definition that uses one (HTTP 400) until it declares the term. A policy using it names both profiles in odrl:profile (this release IRI and the base release IRI) and keeps an enforced permission (eox-policy:KeepAnEnforcedPermission of the base profile)."""@en ;
+    rdfs:seeAlso <http://www.w3.org/ns/odrl/2/>, <https://eona-x.eu/vocabulary/odrl-profile#>, <https://w3id.org/dpv> ;
+    dct:source "https://eona-x.eu/vocabulary/odrl-profile-travel#"^^xsd:anyURI .
+
+#################################################################
+#  Left operands
+#################################################################
+
+# odrl:purpose is an ODRL 2.2 term reused as-is; the note below states how this
+# profile restricts it.
+odrl:purpose
+    a odrl:LeftOperand ;
+    skos:note """leftOperand odrl:purpose, operator odrl:eq, odrl:isPartOf or odrl:isNoneOf, right operand the full IRI of a DPV 2.3 purpose.
+Value set: the 132 descendants of dpv:Purpose (transitive skos:broader, dpv:Purpose itself excluded), for example https://w3id.org/dpv#ServiceProvision. The list is generated from dpv/v2.3 (tools/dpv-shape-values).
+Where: a constraint of a permission or a prohibition, directly or as a member of odrl:or. Not on a duty, obligation, remedy or consequence.
+Form: a plain string holding the full IRI (a JSON array of such strings for odrl:isPartOf and odrl:isNoneOf, one string for odrl:eq). The compact form "dpv:ServiceProvision", the http:// namespace and { "@id": ... } are refused.
+Status: eox-policy:AwaitingConnectorSupport (see eox-policy-travel:travelLeftOperands). Not evaluated, and not a credential-claim operand: it does not count for eox-policy:KeepAnEnforcedPermission.
+Connector: eona-x/backlog#1322."""@en ;
+    skos:scopeNote "Operators: odrl:eq, odrl:isPartOf, odrl:isNoneOf."@en ;
+    skos:example "odrl:purpose eq \"https://w3id.org/dpv#ServiceProvision\""@en ,
+        "odrl:purpose isPartOf [\"https://w3id.org/dpv#ServiceProvision\", \"https://w3id.org/dpv#ServicePersonalisation\"]"@en ;
+    prose:operator odrl:eq, odrl:isPartOf, odrl:isNoneOf ;
+    prose:closed true .
+
+eox-policy-travel:personalDataCategory
+    a odrl:LeftOperand, skos:Concept ;
+    rdfs:isDefinedBy eox-policy-travel: ;
+    rdfs:label "Personal data category"@en ;
+    skos:definition "Constraint left operand naming the category of personal data a rule applies to, from the DPV 2.3 personal-data categories."@en ;
+    skos:note """leftOperand eox-policy-travel:personalDataCategory, operator odrl:eq, odrl:isPartOf or odrl:isNoneOf, right operand the full IRI of a DPV 2.3 personal-data category.
+Value set: the 242 descendants of dpv:PersonalData (transitive skos:broader, dpv:PersonalData itself excluded), 11 in https://w3id.org/dpv# and 231 in https://w3id.org/dpv/pd#, for example https://w3id.org/dpv/pd#EmailAddress. The list is generated from dpv/v2.3 and dpv-pd/v2.3 (tools/dpv-shape-values).
+Where: a constraint of a permission, a prohibition, or a duty or policy-level obligation whose action is odrl:delete. Not on a remedy, a consequence or a duty with another action.
+Form: a plain string holding the full IRI (a JSON array of such strings for odrl:isPartOf and odrl:isNoneOf, one string for odrl:eq). The compact form "pd:EmailAddress", the http:// namespace and { "@id": ... } are refused.
+Status: eox-policy:AwaitingConnectorSupport (see eox-policy-travel:travelLeftOperands). Not evaluated, and not a credential-claim operand.
+Connector: eona-x/backlog#1322."""@en ;
+    skos:scopeNote "Operators: odrl:eq, odrl:isPartOf, odrl:isNoneOf."@en ;
+    skos:example "eox-policy-travel:personalDataCategory isPartOf [\"https://w3id.org/dpv/pd#EmailAddress\", \"https://w3id.org/dpv/pd#TelephoneNumber\"]"@en ;
+    prose:operator odrl:eq, odrl:isPartOf, odrl:isNoneOf ;
+    prose:closed true .
+
+eox-policy-travel:consentStatus
+    a odrl:LeftOperand, skos:Concept ;
+    rdfs:isDefinedBy eox-policy-travel: ;
+    rdfs:label "Consent status"@en ;
+    skos:definition "Constraint left operand naming the status of the consent of the data subject, from the DPV 2.3 consent statuses."@en ;
+    skos:note """leftOperand eox-policy-travel:consentStatus, operator odrl:eq, right operand the full IRI of one DPV 2.3 consent status.
+Value set: the descendants of dpv:ConsentStatus, split in two. Valid for processing (dpv:ConsentStatusValidForProcessing, 2 values): dpv:ConsentGiven, dpv:RenewedConsentGiven. Invalid for processing (dpv:ConsentStatusInvalidForProcessing, 8 values): dpv:ConsentExpired, dpv:ConsentInvalidated, dpv:ConsentRefused, dpv:ConsentRequestDeferred, dpv:ConsentRequested, dpv:ConsentRevoked, dpv:ConsentUnknown, dpv:ConsentWithdrawn. The lists are generated from dpv/v2.3 (tools/dpv-shape-values).
+Where: on a permission, a valid-for-processing value ("this permission applies while consent is given"). As a direct constraint of an odrl:delete duty or policy-level obligation, an invalid-for-processing value (dpv:ConsentWithdrawn: "delete when consent is withdrawn"). Not inside odrl:or, not on a prohibition, not on a duty with another action.
+Form: a plain string holding the full IRI. The compact form, the http:// namespace and { "@id": ... } are refused.
+Withdrawal: see eox-policy-travel:WithdrawalIsADeleteDuty.
+Status: eox-policy:AwaitingConnectorSupport (see eox-policy-travel:travelLeftOperands). Not evaluated: the connector does not know the status of a consent.
+Connector: eona-x/backlog#1322."""@en ;
+    skos:scopeNote "Operators: odrl:eq only."@en ;
+    skos:example "eox-policy-travel:consentStatus eq \"https://w3id.org/dpv#ConsentGiven\""@en ,
+        "eox-policy-travel:consentStatus eq \"https://w3id.org/dpv#ConsentWithdrawn\""@en ;
+    prose:operator odrl:eq ;
+    prose:closed true .
+
+eox-policy-travel:dataField
+    a odrl:LeftOperand, skos:Concept ;
+    rdfs:isDefinedBy eox-policy-travel: ;
+    rdfs:label "Data field"@en ;
+    skos:definition "Constraint left operand scoping a rule to named fields of the asset, each identified by the IRI of the data-model property that carries it."@en ;
+    skos:note """leftOperand eox-policy-travel:dataField, operator odrl:eq or odrl:isPartOf, right operand the IRI of a property of the asset's data model, for example https://schema.org/email.
+Value set: open. The shapes check the form only (an http(s) IRI with an authority, or a urn:; the same rule as eox-policy:acceptedTerms) and do not check membership, because the data model is the asset's own.
+Where: a constraint of any rule kind.
+Form: a plain string holding the full IRI (a JSON array of such strings for odrl:isPartOf). A bare name such as "email", a compact IRI and { "@id": ... } are refused.
+Status: eox-policy:AwaitingConnectorSupport (see eox-policy-travel:travelLeftOperands). Not evaluated.
+Connector: eona-x/backlog#1322."""@en ;
+    skos:scopeNote "Operators: odrl:eq, odrl:isPartOf."@en ;
+    skos:example "eox-policy-travel:dataField eq \"https://schema.org/email\""@en ;
+    prose:operator odrl:eq, odrl:isPartOf ;
+    prose:closed true .
+
+#################################################################
+#  Connector support (placeholder status)
+#################################################################
+#  The connector-support statuses are those of the base profile
+#  (eox-policy:Enforced, eox-policy:Declared, eox-policy:AwaitingConnectorSupport).
+
+eox-policy-travel:travelLeftOperands
+    a skos:Collection ;
+    skos:prefLabel "Travel-data left operands"@en ;
+    skos:scopeNote "The constraint left operands this profile adds for personal travel data. odrl:purpose is an ODRL 2.2 term, the other three are defined here. The operators are those of eox-policy:supportedOperators of the base profile."@en ;
+    skos:member odrl:purpose, eox-policy-travel:personalDataCategory, eox-policy-travel:consentStatus, eox-policy-travel:dataField ;
+    eox-policy:connectorSupport eox-policy:AwaitingConnectorSupport ;
+    skos:editorialNote "Waits for the connector to declare these four left operands: a binding to the scope eox.profile.declared and a function that validates the right operand, as dataspace-ecosystem MR !145 and MR !150 do for the Declared terms of the base profile. Until then EDC's policy validation rejects a policy definition that uses one (\"leftOperand is not bound to any scopes\"). Tracked in eona-x/backlog#1322."@en .
+
+#################################################################
+#  Rewrite rules
+#################################################################
+
+eox-policy-travel:travelRewriteRules
+    a skos:Collection ;
+    skos:prefLabel "Rewrite rules for travel-data policies"@en ;
+    skos:scopeNote "Rules for writing a travel-data policy so that it survives the connector's ingestion. They add to eox-policy:rewriteRules of the base profile, which still apply, in particular eox-policy:OneActionPerRule and eox-policy:ConstraintsOnDuties. The collection lists eox-policy:KeepAnEnforcedPermission, a rule of the base profile (keep a permission with an enforced action and a credential-claim constraint such as eox-policy:Membership), because every travel term needs it; it is defined in the base profile, not here."@en ;
+    skos:member eox-policy-travel:WithdrawalIsADeleteDuty, eox-policy:KeepAnEnforcedPermission .
+
+eox-policy-travel:WithdrawalIsADeleteDuty
+    a skos:Concept ;
+    rdfs:isDefinedBy eox-policy-travel: ;
+    skos:prefLabel "Withdrawal of consent is a delete duty"@en ;
+    skos:definition "Write the withdrawal of consent as an odrl:delete duty of a permission (or a policy-level obligation) whose constraints are eox-policy-travel:consentStatus eq dpv:ConsentWithdrawn and, usually, an odrl:elapsedTime bound. This profile adds no withdraw action: the action is odrl:delete, declared by eox-policy:declaredActions of the base profile (dataspace-ecosystem MR !150, open). Never write odrl:delete as the action of the permission itself: the connector drops such a permission whole, with its constraints (eona-x/backlog#1065)."@en ;
+    skos:related eox-policy:declaredActions ;
+    skos:example """{
+  "@type": "odrl:Set",
+  "odrl:profile": ["https://eona-x.eu/vocabulary/odrl-profile/v0.0.8#", "https://eona-x.eu/vocabulary/odrl-profile-travel/v0.1.0#"],
+  "odrl:permission": [{
+    "odrl:action": "odrl:use",
+    "odrl:constraint": [{ "odrl:leftOperand": "eox-policy:Membership", "odrl:operator": "odrl:eq", "odrl:rightOperand": "active" }],
+    "odrl:duty": [{
+      "odrl:action": "odrl:delete",
+      "odrl:constraint": [
+        { "odrl:leftOperand": "eox-policy-travel:consentStatus", "odrl:operator": "odrl:eq", "odrl:rightOperand": "https://w3id.org/dpv#ConsentWithdrawn" },
+        { "odrl:leftOperand": "odrl:elapsedTime", "odrl:operator": "odrl:lteq", "odrl:rightOperand": "PT24H" }
+      ]
+    }]
+  }]
+}"""@en .
