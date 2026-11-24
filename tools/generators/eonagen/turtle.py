@@ -96,8 +96,10 @@ def write_turtle(triples, prefixes, header=(), root=None):
     for s in order:
         lines = [w.pred_obj(p, objs) for p, objs in w.group(by_s[s])]
         blocks.append(w.iri(s) + " " + " ;\n    ".join(lines) + " .")
-    out = ["# " + h if h else "#" for h in header]
-    out += ["@prefix %s: <%s> ." % (p, prefixes[p]) for p in sorted(w.used)]
-    head = "\n".join(out)
-    body = "\n\n".join(blocks)
-    return (head + "\n\n" if head else "") + body + "\n"
+    parts = []
+    if header:
+        parts.append("\n".join("# " + h if h else "#" for h in header))
+    if w.used:
+        parts.append("\n".join("@prefix %s: <%s> ." % (p, prefixes[p]) for p in sorted(w.used)))
+    parts += blocks
+    return "\n\n".join(parts) + "\n"

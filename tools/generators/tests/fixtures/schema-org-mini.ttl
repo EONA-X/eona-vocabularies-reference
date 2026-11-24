@@ -1,0 +1,104 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <https://schema.org/> .
+
+schema:Thing a rdfs:Class ;
+    rdfs:label "Thing" ;
+    rdfs:comment "Thing comment, dropped." .
+
+schema:Intangible a rdfs:Class ;
+    rdfs:label "Intangible" ;
+    rdfs:comment "Intangible comment, dropped." ;
+    rdfs:subClassOf schema:Thing .
+
+schema:Reservation a rdfs:Class ;
+    rdfs:label "Reservation" ;
+    rdfs:comment "A reservation." ;
+    rdfs:subClassOf schema:Intangible .
+
+schema:FlightReservation a rdfs:Class ;
+    rdfs:label "FlightReservation" ;
+    rdfs:comment "A flight reservation." ;
+    rdfs:subClassOf schema:Reservation .
+
+schema:Trip a rdfs:Class ;
+    rdfs:label "Trip" ;
+    rdfs:comment "A trip." ;
+    rdfs:subClassOf schema:Intangible .
+
+schema:Flight a rdfs:Class ;
+    rdfs:label "Flight" ;
+    rdfs:subClassOf schema:Trip .
+
+schema:TwoParents a rdfs:Class ;
+    rdfs:label "TwoParents" ;
+    rdfs:subClassOf schema:FlightReservation, schema:Other .
+
+schema:Other a rdfs:Class ;
+    rdfs:label "Other" ;
+    rdfs:comment "Not a seed, but a parent of a seed." ;
+    rdfs:subClassOf schema:Intangible .
+
+schema:ProgramMembership a rdfs:Class ;
+    rdfs:label "ProgramMembership" ;
+    rdfs:subClassOf schema:Intangible .
+
+schema:Place a rdfs:Class ;
+    rdfs:label "Place" ;
+    rdfs:comment "Unrelated class." ;
+    rdfs:subClassOf schema:Thing .
+
+schema:Enumeration a rdfs:Class ;
+    rdfs:label "Enumeration" ;
+    rdfs:subClassOf schema:Intangible .
+
+schema:StatusEnumeration a rdfs:Class ;
+    rdfs:label "StatusEnumeration" ;
+    rdfs:subClassOf schema:Enumeration .
+
+schema:ReservationStatusType a rdfs:Class ;
+    rdfs:label "ReservationStatusType" ;
+    rdfs:comment "Status values." ;
+    rdfs:subClassOf schema:StatusEnumeration .
+
+schema:ReservationConfirmed a schema:ReservationStatusType ;
+    rdfs:label "ReservationConfirmed" ;
+    rdfs:comment "Confirmed." .
+
+schema:ReservationHold a schema:ReservationStatusType ;
+    rdfs:label "ReservationHold" ;
+    rdfs:comment "On hold." .
+
+schema:Text a rdfs:Class, schema:DataType ;
+    rdfs:label "Text" ;
+    rdfs:comment "Text comment, dropped." .
+
+schema:reservationFor a rdf:Property ;
+    rdfs:label "reservationFor" ;
+    rdfs:comment "The thing being reserved." ;
+    schema:domainIncludes schema:Reservation ;
+    schema:rangeIncludes schema:Thing, schema:Place .
+
+schema:reservationStatus a rdf:Property ;
+    rdfs:label "reservationStatus" ;
+    schema:domainIncludes schema:Reservation, schema:Place ;
+    schema:rangeIncludes schema:ReservationStatusType .
+
+schema:tripNote a rdf:Property ;
+    rdfs:label "tripNote" ;
+    rdfs:comment "Old note." ;
+    schema:domainIncludes schema:Trip ;
+    schema:rangeIncludes schema:Text ;
+    schema:supersededBy schema:reservationFor ;
+    schema:isPartOf <https://pending.schema.org> .
+
+schema:inverseA a rdf:Property ;
+    rdfs:label "inverseA" ;
+    schema:domainIncludes schema:Flight ;
+    schema:rangeIncludes schema:Text ;
+    schema:inverseOf schema:reservationFor .
+
+schema:placeOnly a rdf:Property ;
+    rdfs:label "placeOnly" ;
+    schema:domainIncludes schema:Place ;
+    schema:rangeIncludes schema:Text .
