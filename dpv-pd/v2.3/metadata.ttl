@@ -1,0 +1,22 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix schema: <http://schema.org/> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+@prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
+
+<> a dcat:Dataset, adms:Asset ;
+    dcat:version "2.3" ;
+    dcterms:title "DPV Personal Data Categories (PD) 2.3"@en ;
+    dcterms:description "Extension of the Data Privacy Vocabulary 2.3 with additional categories of personal data, as specialisations of dpv:PersonalData. Its terms build on DPV 2.3 core (dpv/v2.3) without importing it. Bundled upstream copy."@en ;
+    dcat:type assettype:c_89b4bdb7 ;
+    adms:status status:CURRENT .
+
+<> dcterms:creator [ a foaf:Agent ; foaf:name "W3C DPVCG" ] .
+
+<> schema:logo "w3c-hero.png" .
+
+[] vann:preferredNamespacePrefix "pd" ;
+    vann:preferredNamespaceUri "https://w3id.org/dpv/pd#" .

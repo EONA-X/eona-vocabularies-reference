@@ -26,6 +26,7 @@ source.
   identify the W3C ODRL 2.2 Recommendation the `odrl22` vocabulary bundles.
   W3C® and the W3C icon are registered trademarks of W3C; this is nominative
   use (identifying the referenced standard), not an endorsement claim.
+  Also used by the `dpv-pd` vocabulary.
 - `datex-ii.png` — [DATEX II](https://datex2.eu/), from datex2.eu's own
   media library. No published brand/reuse policy found — nominative use,
   identifying the DATEX II standard the `datex-ii` vocabulary is derived
