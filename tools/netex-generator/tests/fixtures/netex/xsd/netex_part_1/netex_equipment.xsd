@@ -238,6 +238,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="PlaceEquipment_VersionStructure">
 				<xsd:sequence>
+					<xsd:group ref="PlaceEquipmentGroup"/>
 					<xsd:element name="BayNumber" type="xsd:positiveInteger"/>
 				</xsd:sequence>
 			</xsd:extension>
