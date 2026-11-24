@@ -41,6 +41,12 @@ class SmokeTest(unittest.TestCase):
                      "StopPlace", "FareProduct", "CompositeFrame"):
             self.assertIn((URIRef(NS + name), None, None), self.g, name)
 
+    def test_reference_ranges_follow_the_referenced_class_not_an_inherited_id_type(self):
+        place_refs = [p for p in self.g.subjects(RDF.type, OWL.ObjectProperty) if str(p).endswith(".PlaceRef")]
+        self.assertGreater(len(place_refs), 5)
+        for p in place_refs:
+            self.assertEqual(set(self.g.objects(p, RDFS.range)), {URIRef(NS + "Place")}, p)
+
     def test_every_alignment_subject_exists(self):
         for row in v020_alignment.ALIGNMENT:
             self.assertIn((URIRef(NS + row[0]), None, None), self.g, row[0])

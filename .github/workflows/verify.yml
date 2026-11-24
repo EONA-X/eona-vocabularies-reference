@@ -69,3 +69,32 @@ jobs:
       - run: pip install pyshacl==0.40.1
       - name: Conforming datasets conform, violating ones are reported
         run: tools/chart-shapes-test.sh
+
+  netex-generator:
+    name: NeTEx generator
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r tools/netex-generator/requirements.txt
+      - name: Cache the pinned NeTEx schema
+        id: netex-src
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/netex-src
+          key: netex-src-${{ hashFiles('tools/netex-generator/sources.json') }}
+      - name: Download the pinned NeTEx schema
+        if: steps.netex-src.outputs.cache-hit != 'true'
+        run: python -I tools/netex-generator/run.py netexgen.fetch --name netex --dest "$RUNNER_TEMP/netex-src"
+      - name: Verify the sha256 pins of the cached or downloaded files
+        run: python -I tools/netex-generator/run.py netexgen.fetch --name netex --local "$RUNNER_TEMP/netex-src"
+      - name: Generator unit tests (smoke tests included)
+        env:
+          NETEXGEN_SOURCES: ${{ runner.temp }}/netex-src
+        run: python -m unittest discover -s tools/netex-generator/tests -t tools/netex-generator
+      - name: Committed TTL equals the generator output from the pinned upstream
+        env:
+          NETEXGEN_SOURCES: ${{ runner.temp }}/netex-src
+        run: tools/netex-generator/regenerate.sh --check netex
