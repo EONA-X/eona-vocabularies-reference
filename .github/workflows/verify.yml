@@ -55,6 +55,10 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pyshacl==0.40.1
+      - name: DPV value lists in the shapes match dpv/v2.3 and dpv-pd/v2.3
+        run: |
+          python -B -I -m unittest discover -s tools/dpv-shape-values/tests -t tools/dpv-shape-values
+          python -B -I tools/dpv-shape-values/generate.py --check
       - name: Conforming policies conform, violating ones are reported
         run: tools/odrl-shapes-test.sh
 
