@@ -470,6 +470,24 @@ eoxs:ConsentStatusPlacement
     ) ;
     sh:message "eox-policy-travel:consentStatus on a permission takes a status valid for processing (dpv:ConsentGiven, dpv:RenewedConsentGiven); as a direct constraint of an odrl:delete duty or policy-level obligation it takes a status invalid for processing, such as dpv:ConsentWithdrawn (withdrawal of consent is an odrl:delete duty). It is refused inside odrl:or, on a prohibition, a remedy, a consequence and a duty with another action."@en .
 
+# eox-policy-travel:dataField: odrl:eq or odrl:isPartOf and the IRI of a property of
+# the asset's data model, written as a plain string: an http(s) IRI with an authority
+# or a urn:, the form rule of eox-policy:acceptedTerms. The set of fields is open (it is
+# the asset's own data model), so membership is not checked.
+eoxs:DataFieldConstraint
+    a sh:NodeShape ;
+    sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
+    sh:or (
+        [ sh:not [ sh:path odrl:leftOperand ; sh:hasValue eox-policy-travel:dataField ] ]
+        [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:eq odrl:isPartOf ) ] ;
+          sh:property [ sh:path odrl:rightOperand ; sh:minCount 1 ;
+                        sh:or ( [ sh:datatype xsd:anyURI ] [ sh:datatype xsd:string ] ) ;
+                        sh:pattern "^(https?://[^/?#\\s]+([A-Za-z0-9\\-._~:/?#\\[\\]@!$&'()*+,;=%]*)?|urn:[A-Za-z0-9\\-._~:/?#\\[\\]@!$&'()*+,;=%]+)$" ; sh:flags "i" ] ;
+          sh:or ( [ sh:path odrl:operator ; sh:not [ sh:hasValue odrl:eq ] ]
+                  [ sh:path odrl:rightOperand ; sh:maxCount 1 ] ) ]
+    ) ;
+    sh:message "eox-policy-travel:dataField takes odrl:eq or odrl:isPartOf and the IRI of a property of the asset's data model, written as a plain string: an http(s) IRI with an authority such as \"https://schema.org/email\", or a urn: IRI (one value with odrl:eq, one or more with odrl:isPartOf). A bare name such as \"email\", a compact IRI and { \"@id\": ... } are refused."@en .
+
 # Credential-claim operands: the operators the connector's constraint functions accept.
 eoxs:CredentialClaimConstraint
     a sh:NodeShape ;
