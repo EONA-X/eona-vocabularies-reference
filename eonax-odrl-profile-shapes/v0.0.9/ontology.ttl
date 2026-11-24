@@ -437,6 +437,39 @@ eoxs:PersonalDataCategoryPlacement
     ) ;
     sh:message "eox-policy-travel:personalDataCategory is a constraint of a permission, a prohibition, or an odrl:delete duty or policy-level obligation (the data to delete): not of a remedy, a consequence or a duty with another action."@en .
 
+# eox-policy-travel:consentStatus: odrl:eq and exactly one DPV 2.3 consent status,
+# valid or invalid for processing; which of the two depends on where the constraint
+# sits (eoxs:ConsentStatusPlacement).
+eoxs:ConsentStatusConstraint
+    a sh:NodeShape ;
+    sh:targetSubjectsOf odrl:leftOperand, odrl:operator, odrl:rightOperand ;
+    sh:or (
+        [ sh:not [ sh:path odrl:leftOperand ; sh:hasValue eox-policy-travel:consentStatus ] ]
+        [ sh:property [ sh:path odrl:operator ; sh:in ( odrl:eq ) ] ;
+          sh:property [ sh:path odrl:rightOperand ; sh:minCount 1 ; sh:maxCount 1 ;
+                        sh:or ( [ sh:node eoxs:DpvConsentValidValue ] [ sh:node eoxs:DpvConsentInvalidValue ] ) ] ]
+    ) ;
+    sh:message "eox-policy-travel:consentStatus takes odrl:eq and one DPV 2.3 consent status IRI written as a plain string, such as \"https://w3id.org/dpv#ConsentGiven\" or \"https://w3id.org/dpv#ConsentWithdrawn\". A compact IRI, the http:// form of the namespace, a value that is not a descendant of dpv:ConsentStatus, several values and { \"@id\": ... } are refused."@en .
+
+# Withdrawal of consent is an odrl:delete duty: consentStatus is a direct constraint
+# of a permission (a status valid for processing: the permission holds while consent is
+# given) or of an odrl:delete duty or policy-level obligation (a status invalid for
+# processing, dpv:ConsentWithdrawn). Members of odrl:or have no inverse
+# odrl:constraint, so they fail both branches; so do a prohibition, a remedy, a
+# consequence and a duty with another action.
+eoxs:ConsentStatusPlacement
+    a sh:NodeShape ;
+    sh:targetSubjectsOf odrl:leftOperand ;
+    sh:or (
+        [ sh:not [ sh:path odrl:leftOperand ; sh:hasValue eox-policy-travel:consentStatus ] ]
+        [ sh:property [ sh:path [ sh:inversePath odrl:constraint ] ; sh:minCount 1 ;
+                        sh:node [ sh:property [ sh:path [ sh:inversePath odrl:permission ] ; sh:minCount 1 ] ] ] ;
+          sh:property [ sh:path odrl:rightOperand ; sh:node eoxs:DpvConsentValidValue ] ]
+        [ sh:property [ sh:path [ sh:inversePath odrl:constraint ] ; sh:minCount 1 ; sh:node eoxs:DeleteDuty ] ;
+          sh:property [ sh:path odrl:rightOperand ; sh:node eoxs:DpvConsentInvalidValue ] ]
+    ) ;
+    sh:message "eox-policy-travel:consentStatus on a permission takes a status valid for processing (dpv:ConsentGiven, dpv:RenewedConsentGiven); as a direct constraint of an odrl:delete duty or policy-level obligation it takes a status invalid for processing, such as dpv:ConsentWithdrawn (withdrawal of consent is an odrl:delete duty). It is refused inside odrl:or, on a prohibition, a remedy, a consequence and a duty with another action."@en .
+
 # Credential-claim operands: the operators the connector's constraint functions accept.
 eoxs:CredentialClaimConstraint
     a sh:NodeShape ;
