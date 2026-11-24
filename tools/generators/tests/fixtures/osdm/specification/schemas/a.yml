@@ -1,0 +1,129 @@
+Animal:
+  type: object
+  additionalProperties: false
+  description: |
+    An animal.
+  discriminator:
+    propertyName: objectType
+  required:
+  - objectType
+  - name
+  properties:
+    objectType:
+      description: Discriminator.
+      type: string
+    name:
+      description: The name.
+      type: string
+      maxLength: 10
+      example: Rex
+    legs:
+      type: integer
+      format: int32
+      nullable: true
+      deprecated: true
+    born:
+      type: string
+      format: date-time
+    tags:
+      type: array
+      items:
+        type: string
+    color:
+      $ref: '#/Color'
+    status:
+      type: string
+      x-extensible-enum:
+      - ALIVE
+      - GONE
+    size:
+      $ref: '#/Size'
+    owner:
+      $ref: '#/Person'
+      deprecated: true
+    links:
+      $ref: '#/LinkList'
+    age:
+      description: Age in years.
+      $ref: '#/Count'
+    mate:
+      allOf:
+      - $ref: '#/Animal'
+      - description: The mate.
+Dog:
+  description: A dog.
+  allOf:
+  - $ref: '#/Animal'
+  - type: object
+    required:
+    - bark
+    properties:
+      bark:
+        type: boolean
+Person:
+  type: object
+  deprecated: true
+  properties:
+    name:
+      type: string
+    site:
+      type: string
+      format: uri
+Color:
+  type: string
+  description: Colors.
+  enum:
+  - RED
+  - GREEN
+MediaType:
+  type: string
+  deprecated: true
+  x-extensible-enum:
+  - application/pdf: A PDF document
+  - PLAIN
+Size:
+  type: number
+  format: double
+  description: A size.
+Count:
+  type: integer
+  format: int32
+LinkList:
+  type: array
+  items:
+    $ref: ./ojp/b.yml#/Link
+Shared:
+  type: object
+  description: Same in both.
+  properties:
+    code:
+      type: string
+Diff:
+  type: object
+  description: Online version.
+  properties:
+    code:
+      type: string
+    user:
+      $ref: '#/Shared'
+Note:
+  type: object
+  description: Online note.
+  example: online example
+  required:
+  - text
+  properties:
+    text:
+      description: Online text.
+      type: string
+      example: online-text
+    tags:
+      type: array
+      items:
+        type: string
+OldDiff:
+  type: object
+  properties:
+    code:
+      type: string
+      deprecated: true

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/offlineOSDM.json",
+  "type": "object",
+  "properties": {"fareDelivery": {"$ref": "#/definitions/RootDef"}},
+  "additionalProperties": false,
+  "definitions": {
+    "RootDef": {
+      "type": "object",
+      "description": "Entry point.",
+      "properties": {
+        "detail": {
+          "description": "Inline object.",
+          "type": "object",
+          "properties": {"x": {"type": "string"}},
+          "required": ["x"]
+        },
+        "unit": {"type": "string", "enum": ["DAYS", "HOURS"]},
+        "shared": {"$ref": "#/definitions/Shared"},
+        "diff": {"$ref": "#/definitions/Diff"},
+        "note": {"$ref": "#/definitions/Note"},
+        "olddiff": {"$ref": "#/definitions/OldDiff"},
+        "ids": {"type": "array", "items": {"$ref": "#/definitions/IdDef"}}
+      }
+    },
+    "IdDef": {"type": "string", "description": "An identifier."},
+    "Shared": {
+      "type": "object",
+      "description": "Same in both.",
+      "properties": {"code": {"type": "string"}}
+    },
+    "Note": {
+      "type": "object",
+      "description": "Offline note.",
+      "example": "offline example",
+      "required": ["text"],
+      "properties": {
+        "text": {"description": "Offline text.", "type": "string", "example": "offline-text"},
+        "tags": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "OldDiff": {
+      "type": "object",
+      "properties": {"code": {"type": "string"}}
+    },
+    "Diff": {
+      "type": "object",
+      "description": "Offline version.",
+      "properties": {"code": {"type": "integer"}}
+    }
+  }
+}
