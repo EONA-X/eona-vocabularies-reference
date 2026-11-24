@@ -169,7 +169,7 @@ def subjects(triples):
 class ClassTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.triples = build_triples(fixture_model())
+        cls.triples = build_triples(fixture_model(), lenient_alignment=True)
 
     def test_element_with_a_single_version_structure_folds_it(self):
         c = iri("VehicleChargingEquipment")
@@ -247,7 +247,7 @@ def kinds(triples, p):
 class PropertyTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.triples = build_triples(fixture_model())
+        cls.triples = build_triples(fixture_model(), lenient_alignment=True)
 
     def p(self, decl, name):
         return URIRef("%s%s.%s" % (NS, decl, name))
@@ -549,7 +549,7 @@ class RuleTest(unittest.TestCase):
 class OutputTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.triples = build_triples(fixture_model())
+        cls.triples = build_triples(fixture_model(), lenient_alignment=True)
 
     def test_root_ontology(self):
         root = URIRef(NS)
@@ -579,17 +579,17 @@ class OutputTest(unittest.TestCase):
                                               URIRef("https://eona-x.eu/ontology/other/v1#X"))})
 
     def test_output_is_deterministic_in_process(self):
-        self.assertEqual(to_turtle(FIXTURE_XSD), to_turtle(FIXTURE_XSD))
+        self.assertEqual(to_turtle(FIXTURE_XSD, lenient_alignment=True), to_turtle(FIXTURE_XSD, lenient_alignment=True))
 
     def test_output_is_deterministic_across_hash_seeds(self):
         outs = []
         for seed in ("1", "2"):
             r = subprocess.run([sys.executable, "-B", "-I", os.path.join(ROOT, "run.py"), "netexgen.netex_owl",
-                                "--xsd-dir", FIXTURE_XSD, "--out", "-"],
+                                "--xsd-dir", FIXTURE_XSD, "--lenient-alignment", "--out", "-"],
                                capture_output=True, text=True, env={"PYTHONHASHSEED": seed}, check=True)
             outs.append(r.stdout)
         self.assertEqual(outs[0], outs[1])
-        self.assertEqual(outs[0], to_turtle(FIXTURE_XSD))
+        self.assertEqual(outs[0], to_turtle(FIXTURE_XSD, lenient_alignment=True))
 
     def test_header_states_licence_and_copyright(self):
         head = to_turtle(FIXTURE_XSD, lenient_alignment=True).split("\n\n")[0]
@@ -598,10 +598,10 @@ class OutputTest(unittest.TestCase):
 
     def test_golden_file(self):
         with open(os.path.join(HERE, "golden", "netex-mini.ttl"), encoding="utf-8") as f:
-            self.assertEqual(to_turtle(FIXTURE_XSD), f.read())
+            self.assertEqual(to_turtle(FIXTURE_XSD, lenient_alignment=True), f.read())
 
     def test_output_parses_as_turtle_with_the_expected_triple_count(self):
-        g = Graph().parse(data=to_turtle(FIXTURE_XSD), format="turtle")
+        g = Graph().parse(data=to_turtle(FIXTURE_XSD, lenient_alignment=True), format="turtle")
         self.assertGreater(len(g), 300)
         self.assertIn((iri("Parking"), RDFS.subClassOf, iri("Parking_VersionStructure")), g)
 
@@ -609,9 +609,9 @@ class OutputTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             out = os.path.join(d, "o.ttl")
             subprocess.run([sys.executable, "-B", "-I", os.path.join(ROOT, "run.py"), "netexgen.netex_owl",
-                            "--xsd-dir", FIXTURE_XSD, "--out", out], check=True)
+                            "--xsd-dir", FIXTURE_XSD, "--lenient-alignment", "--out", out], check=True)
             with open(out, encoding="utf-8") as f:
-                self.assertEqual(f.read(), to_turtle(FIXTURE_XSD))
+                self.assertEqual(f.read(), to_turtle(FIXTURE_XSD, lenient_alignment=True))
 
 
 if __name__ == "__main__":
