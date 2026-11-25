@@ -1,0 +1,22 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix schema: <http://schema.org/> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+@prefix assettype: <http://publications.europa.eu/resource/authority/asset-classification/> .
+@prefix status: <http://publications.europa.eu/resource/authority/concept-status/> .
+
+<> a dcat:Dataset, adms:Asset ;
+    dcat:version "2013-04-30" ;
+    dcterms:title "W3C PROV Ontology (PROV-O)"@en ;
+    dcterms:description "The PROV Ontology (PROV-O), the W3C Recommendation of 30 April 2013 that expresses the PROV data model in OWL 2: entities, activities, agents and the relations between them. Bundled upstream copy."@en ;
+    dcat:type assettype:c_89b4bdb7 ;
+    adms:status status:CURRENT .
+
+<> dcterms:creator [ a foaf:Agent ; foaf:name "W3C" ] .
+
+<> schema:logo "w3c-hero.png" .
+
+[] vann:preferredNamespacePrefix "prov" ;
+    vann:preferredNamespaceUri "http://www.w3.org/ns/prov#" .

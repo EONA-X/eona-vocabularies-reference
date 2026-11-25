@@ -69,3 +69,17 @@ jobs:
       - run: pip install pyshacl==0.40.1
       - name: Conforming datasets conform, violating ones are reported
         run: tools/chart-shapes-test.sh
+
+  generators:
+    name: vocabulary generators
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r tools/generators/requirements.txt
+      - name: Generator unit tests
+        run: python -m unittest discover -s tools/generators/tests -t tools/generators
+      - name: Committed TTL equals the generators' output from the pinned upstream
+        run: tools/generators/regenerate.sh --check all

@@ -1,0 +1,7 @@
+Link:
+  type: object
+  description: A link only reachable through ojp.
+  properties:
+    href:
+      type: string
+      format: url

@@ -1,0 +1,31 @@
+openapi: 3.0.3
+info:
+  title: mini
+  version: 0.0.0
+paths: {}
+components:
+  schemas:
+    Animal:
+      $ref: ./schemas/a.yml#/Animal
+    Dog:
+      $ref: ./schemas/a.yml#/Dog
+    Person:
+      $ref: ./schemas/a.yml#/Person
+    Color:
+      $ref: ./schemas/a.yml#/Color
+    MediaType:
+      $ref: ./schemas/a.yml#/MediaType
+    Size:
+      $ref: ./schemas/a.yml#/Size
+    Count:
+      $ref: ./schemas/a.yml#/Count
+    LinkList:
+      $ref: ./schemas/a.yml#/LinkList
+    Shared:
+      $ref: ./schemas/a.yml#/Shared
+    Diff:
+      $ref: ./schemas/a.yml#/Diff
+    Note:
+      $ref: ./schemas/a.yml#/Note
+    OldDiff:
+      $ref: ./schemas/a.yml#/OldDiff
